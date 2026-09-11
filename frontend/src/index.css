@@ -23,7 +23,7 @@ body { @apply bg-slate-50 text-slate-800 antialiased; }
 
 /* shared component styles live in the components layer so one-off utilities (pl-9, py-1 ...) can override them */
 @layer components {
-  .card { @apply bg-white rounded-xl border border-slate-200 shadow-sm; }
+  .card { @apply min-w-0 rounded-xl border border-slate-200 bg-white shadow-sm; }
   .btn-primary { @apply btn bg-brand-700 text-white shadow-sm hover:bg-brand-800 active:bg-brand-900; }
   .btn-ghost { @apply btn text-slate-700 hover:bg-slate-100; }
   .btn-outline { @apply btn border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50; }
