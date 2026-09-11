@@ -100,3 +100,7 @@ The live, typed list is at `http://localhost:8000/docs` (FastAPI auto-docs). Mai
 | integration (mock) | `/api/integration/lrms/*`, `/api/integration/dilrmp/*`, `/api/integration/gis/*` |
 
 Roles: `operator` (upload, view own), `verifier` (+ review queue, verify), `admin` (everything).
+
+Items from `GET /api/review/queue` and `GET /api/documents` carry `flagged`: how many of that
+document's fields are still pending and below the auto-accept threshold or failing a rule, the
+same rule the review screen uses to mark a field for checking (0 once a document is reviewed).
