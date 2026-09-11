@@ -294,6 +294,9 @@ const HI = {
   'From handwritten registers to verified digital land records.': 'हस्तलिखित रजिस्टर से सत्यापित डिजिटल भूमि अभिलेख तक',
   'Demo only: one click signs in. Real deployments turn these accounts off.':
     'केवल डेमो के लिए: एक क्लिक में साइन इन। असली उपयोग में ये खाते बंद रहते हैं।',
+  // app frame
+  'Skip to content': 'मुख्य सामग्री पर जाएँ',
+  'close menu': 'मेन्यू बंद करें',
 }
 
 const KEY = 'landlekha.lang'

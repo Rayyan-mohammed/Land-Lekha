@@ -50,17 +50,17 @@ export default function Layout() {
   </nav>
 
   return <div className="min-h-full lg:flex">
-    <a href="#main" className="skip-link btn-primary">Skip to content</a>
+    <a href="#main" className="skip-link btn-primary">{t('Skip to content')}</a>
     <aside className={`fixed inset-y-0 left-0 z-40 w-60 transform bg-brand-800 transition lg:static lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
       <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
         <Logo light />
-        <button className="lg:hidden text-white" onClick={() => setOpen(false)} aria-label="close menu"><X size={20} /></button>
+        <button className="lg:hidden text-white" onClick={() => setOpen(false)} aria-label={t('close menu')}><X size={20} /></button>
       </div>
       {nav}
       <div className="mt-auto border-t border-white/10 p-3">
         <div className="px-3 py-2">
           <div className="text-sm font-medium text-white truncate">{user?.full_name}</div>
-          <div className="text-xs text-brand-100">{ROLE_LABEL[user?.role]} · {user?.username}</div>
+          <div className="text-xs text-brand-100">{t(ROLE_LABEL[user?.role])} · {user?.username}</div>
         </div>
         <button onClick={logout} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-brand-100 hover:bg-white/10 hover:text-white">
           <LogOut size={17} /> {t('Sign out')}

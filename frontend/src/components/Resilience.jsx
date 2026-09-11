@@ -20,12 +20,16 @@ export class ErrorBoundary extends Component {
 
   render() {
     if (!this.state.error) return this.props.children
+    // a class component cannot use the language hook; LangProvider keeps <html lang> current
+    const hi = document.documentElement.lang === 'hi'
     return <div className="card mx-auto mt-10 max-w-lg p-6 text-center">
       <div className="mx-auto mb-3 w-fit rounded-full bg-amber-50 p-3 text-warn"><TriangleAlert size={26} /></div>
-      <div className="font-medium text-slate-900">This page ran into a problem</div>
-      <p className="mt-1 text-sm text-slate-600">Nothing you saved is lost. Reload the page; if it keeps happening, tell the administrator what you were doing.</p>
-      <button className="btn-primary mt-4" onClick={() => window.location.reload()}><RefreshCw size={16} /> Reload</button>
-      <details className="mt-4 text-left text-xs text-slate-500"><summary>Technical details</summary>
+      <div className="font-medium text-slate-900">{hi ? 'इस पन्ने में कोई दिक़्क़त आ गई' : 'This page ran into a problem'}</div>
+      <p className="mt-1 text-sm text-slate-600">{hi
+        ? 'आपका सहेजा हुआ कुछ भी नहीं खोया। पन्ना फिर से खोलें; बार-बार हो तो प्रशासक को बताएँ कि आप क्या कर रहे थे।'
+        : 'Nothing you saved is lost. Reload the page; if it keeps happening, tell the administrator what you were doing.'}</p>
+      <button className="btn-primary mt-4" onClick={() => window.location.reload()}><RefreshCw size={16} /> {hi ? 'फिर से खोलें' : 'Reload'}</button>
+      <details className="mt-4 text-left text-xs text-slate-500"><summary>{hi ? 'तकनीकी जानकारी' : 'Technical details'}</summary>
         <pre className="mt-2 whitespace-pre-wrap">{String(this.state.error?.message || this.state.error)}</pre></details>
     </div>
   }
