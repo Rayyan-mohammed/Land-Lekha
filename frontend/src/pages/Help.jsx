@@ -11,6 +11,8 @@ const GUIDES = [
       'हर फ़ाइल की प्रगति दिखती है। भू-अभिलेख पोर्टल की डिजिटल PDF लगभग एक सेकंड में पूरी होती है।'],
     ['If a photo is too blurred, you are told straight away. Retake it before the owner leaves the counter.',
       'फ़ोटो बहुत धुंधली हो तो तुरंत बताया जाता है। खातेदार के काउंटर से जाने से पहले फिर से फ़ोटो लें।'],
+    ['On a computer you can also paste a screenshot with Ctrl+V. For a batch, a summary line shows how many were accepted, sent to a verifier or need a retake.',
+      'कंप्यूटर पर Ctrl+V से स्क्रीनशॉट भी चिपका सकते हैं। कई फ़ाइलों पर एक सारांश पंक्ति बताती है कि कितनी स्वीकृत हुईं, जाँचकर्ता को गईं या फिर से फ़ोटो चाहिए।'],
   ]],
   [ClipboardCheck, ['Verifiers', 'जाँचकर्ता'], [
     ['The Review queue lists documents with at least one uncertain field, lowest confidence first.',
@@ -58,6 +60,15 @@ const FAQ = [
   [['Can an approval be undone?', 'क्या स्वीकृति वापस ली जा सकती है?'],
     ['Not from the screen. Every approval is kept in the audit trail with who and when; an administrator can re-issue a corrected record.',
       'स्क्रीन से नहीं। हर स्वीकृति किसने और कब के साथ ऑडिट लॉग में रहती है; प्रशासक सुधरा हुआ अभिलेख फिर से जारी कर सकता है।']],
+  [['How do I switch between Hindi and English?', 'हिंदी और अंग्रेज़ी के बीच कैसे बदलें?'],
+    ['Click हिंदी / English at the bottom of the menu (or on the sign-in page). Every screen, message and date changes at once, and the choice is remembered on this computer.',
+      'मेन्यू के नीचे (या लॉग इन पन्ने पर) हिंदी / English पर क्लिक करें। हर स्क्रीन, संदेश और तारीख तुरंत बदल जाती है, और यह चुनाव इस कंप्यूटर पर याद रहता है।']],
+  [['Can I get the records into Excel?', 'क्या अभिलेख Excel में मिल सकते हैं?'],
+    ['Yes. On Records & GIS, search if you like, then press CSV. The file opens in Excel with Hindi names shown correctly, one row per record with every co-owner and khasra.',
+      'हाँ। अभिलेख और मानचित्र पर चाहें तो खोजें, फिर CSV दबाएँ। फ़ाइल Excel में खुलती है और हिंदी नाम सही दिखते हैं; हर अभिलेख की एक पंक्ति, सभी सह-खातेदार और खसरों के साथ।']],
+  [['Why was I asked to sign in again?', 'मुझसे दोबारा लॉग इन करने को क्यों कहा गया?'],
+    ['For safety, a sign-in lasts a limited time. Sign in again and you return to the page you were on; nothing you had saved is lost.',
+      'सुरक्षा के लिए लॉग इन कुछ समय तक ही रहता है। दोबारा लॉग इन करें, आप उसी पन्ने पर लौट आएँगे; सहेजा हुआ कुछ भी नहीं खोता।']],
 ]
 
 export default function Help() {
