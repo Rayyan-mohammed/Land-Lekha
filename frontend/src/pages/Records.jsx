@@ -112,10 +112,11 @@ export default function Records() {
         <div className="font-medium">{t('DILRMP progress report')}</div>
         <div className="text-xs text-slate-500 mb-3">GET /api/integration/dilrmp/progress</div>
         {dilrmp?.states.length ? dilrmp.states.map((s) => <div key={s.state} className="mb-3">
-          <div className="flex justify-between text-sm font-medium"><span>{s.state}</span><span className="tabular-nums">{s.digitized}/{s.documents_received} · {s.progress_pct}%</span></div>
+          <div className="flex justify-between text-sm font-medium"><span>{t(s.state)}</span><span className="tabular-nums">{s.digitized}/{s.documents_received} · {s.progress_pct}%</span></div>
           <div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-brand-600" style={{ width: `${s.progress_pct}%` }} /></div>
           {s.districts.map((d) => <div key={d.district} className="mt-1 flex justify-between pl-3 text-xs text-slate-600">
-            <span>{d.district}</span><span className="tabular-nums">{d.digitized}/{d.documents_received} {t('digitized')} · {d.pending_verification} {t('pending')}</span></div>)}
+            {/* place names pass through t() unchanged; only the backend's "Unknown" placeholder is translated */}
+            <span>{t(d.district)}</span><span className="tabular-nums">{d.digitized}/{d.documents_received} {t('digitized')} · {d.pending_verification} {t('pending')}</span></div>)}
         </div>) : <Empty>{t('No data yet.')}</Empty>}
       </div>
     </div>

@@ -106,11 +106,11 @@ export default function Dashboard() {
         <div className="table-wrap"><table className="data">
           <thead><tr><th>{tr('State / District')}</th><th className="text-right">{tr('Received')}</th><th className="text-right">{tr('Pending')}</th><th>{tr('Digitized')}</th></tr></thead>
           <tbody>{s.geography.flatMap((g) => [
-            <tr key={g.state}><td className="font-medium">{g.state}</td><td className="text-right tabular-nums">{g.total}</td><td /><td /></tr>,
+            <tr key={g.state}><td className="font-medium">{tr(g.state)}</td><td className="text-right tabular-nums">{g.total}</td><td /><td /></tr>,
             ...g.districts.map((d) => {
               const done = (d.auto_accepted || 0) + (d.verified || 0)
               return <tr key={g.state + d.district}>
-                <td className="pl-6 text-slate-600">{d.district}</td>
+                <td className="pl-6 text-slate-600">{tr(d.district)}</td>
                 <td className="text-right tabular-nums">{d.total}</td>
                 <td className="text-right tabular-nums text-warn">{d.needs_review || 0}</td>
                 <td><div className="flex items-center gap-2"><div className="h-1.5 w-20 rounded-full bg-slate-100"><div className="h-1.5 rounded-full bg-brand-600" style={{ width: `${(done / d.total) * 100}%` }} /></div>
