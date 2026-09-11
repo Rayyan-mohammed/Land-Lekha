@@ -36,6 +36,7 @@ export default function Records() {
   const [error, setError] = useState(null)
   const [pushing, setPushing] = useState(null)
   const [query, setQuery] = useState('')
+  const [onlyUnpushed, setOnlyUnpushed] = useState(false) // the tehsil's to-do: verified but not yet sent to LRMS
   const { t, lang } = useT()
   // LAND_CLASSES labels are "English · हिंदी"; show the half for the chosen language
   const landClass = (k) => LAND_CLASSES[k]?.split(' · ')[lang === 'hi' ? 1 : 0] || '—'
@@ -60,8 +61,9 @@ export default function Records() {
   if (!recs) return <div className="space-y-4"><PageHeader title={t('Records & GIS')} /><div className="card"><SkeletonRows cols={7} /></div></div>
 
   const q = query.trim().toLowerCase()
-  const shown = !q ? recs : recs.filter((r) => [r.account.khata_no, r.parcel?.khasra_no, r.location.village, r.location.district,
+  const searched = !q ? recs : recs.filter((r) => [r.account.khata_no, r.parcel?.khasra_no, r.location.village, r.location.district,
     ...(r.parcels || []).map((p) => p.khasra_no), ...r.account.owners.map((o) => o.name)].some((v) => String(v || '').toLowerCase().includes(q)))
+  const shown = onlyUnpushed ? searched.filter((r) => !r.lrms_ref) : searched
 
   // the rows on screen (after search) as a spreadsheet; the BOM makes Excel read Hindi names correctly
   const downloadCsv = () => {
@@ -124,10 +126,14 @@ export default function Records() {
 
     <div className="card">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
-        <div className="font-medium">{t('Land records')} ({shown.length}{query && ` / ${recs.length}`})</div>
+        <div className="font-medium">{t('Land records')} ({shown.length}{(query || onlyUnpushed) && ` / ${recs.length}`})</div>
         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <div className="relative min-w-0 flex-1 sm:w-72 sm:flex-none"><Search size={15} className="absolute left-3 top-2.5 text-slate-500" />
             <input className="input pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Owner, khata, khasra or village')} aria-label={t('Search records')} /></div>
+          <button onClick={() => setOnlyUnpushed((v) => !v)} aria-pressed={onlyUnpushed}
+            className={`min-h-9 rounded-full border px-3 text-xs font-medium transition-colors duration-200 ${onlyUnpushed
+              ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-brand-500 hover:text-brand-700'}`}>
+            {t('Not sent to LRMS')}</button>
           <button className="btn-outline" onClick={downloadCsv} disabled={!shown.length} title={t('Download these records as a spreadsheet (CSV)')}>
             <Download size={15} /> CSV</button>
         </div>
