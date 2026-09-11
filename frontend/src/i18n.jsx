@@ -324,6 +324,7 @@ const HI = {
   'Zoom in': 'बड़ा करें',
   'Zoom out': 'छोटा करें',
   'Fit to width': 'पूरा पन्ना दिखाएँ',
+  'or paste a screenshot with Ctrl+V': 'या Ctrl+V से स्क्रीनशॉट चिपकाएँ',
 }
 
 const KEY = 'landlekha.lang'

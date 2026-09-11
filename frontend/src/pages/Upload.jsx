@@ -73,6 +73,29 @@ export default function UploadPage() {
     return () => clearTimeout(t)
   }, [items])
 
+  // paste a screenshot or a copied file straight onto the page (Ctrl+V)
+  useEffect(() => {
+    const onPaste = (e) => {
+      const files = [...(e.clipboardData?.files || [])].filter((f) => f.type.startsWith('image/') || f.type === 'application/pdf')
+      if (!files.length) return
+      e.preventDefault()
+      // browsers name every pasted screenshot "image.png"; give each its own name
+      add(files.map((f, i) => (f.name && f.name !== 'image.png' ? f : new File([f], `pasted-${Date.now()}-${i + 1}.png`, { type: f.type }))))
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // warn before leaving only while a file is still being sent; once the server has it,
+  // processing carries on without this page
+  const sending = items.some((x) => !x.error && !x.doc)
+  useEffect(() => {
+    if (!sending) return
+    const warn = (e) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [sending])
+
   // batch summary, so an operator with a stack of files sees at a glance what needs attention
   const finished = items.filter((x) => x.error || (x.doc && DONE.includes(x.doc.status)))
   const tally = {
@@ -95,6 +118,7 @@ export default function UploadPage() {
       <FileUp className="mx-auto text-brand-600" size={40} />
       <p className="mt-3 font-medium text-slate-800">{t('Drop files here')}</p>
       <p className="text-sm text-slate-500">{t('PNG, JPG, TIFF or PDF, up to 20 MB each')}</p>
+      <p className="mt-1 hidden text-xs text-slate-500 sm:block">{t('or paste a screenshot with Ctrl+V')}</p>
       <div className="mt-5 flex flex-wrap justify-center gap-2">
         <button className="btn-primary" onClick={() => fileRef.current.click()}><FileUp size={16} /> {t('Choose files')}</button>
         <button className="btn-outline sm:hidden" onClick={() => camRef.current.click()}><Camera size={16} /> {t('Take photo')}</button>
