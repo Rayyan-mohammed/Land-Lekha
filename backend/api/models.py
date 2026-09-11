@@ -47,6 +47,8 @@ class Document(Base):
     extraction: Mapped[dict | None] = mapped_column(JSON)
     overall_confidence: Mapped[float | None] = mapped_column(Float)
     route_reasons: Mapped[list | None] = mapped_column(JSON)
+    owners: Mapped[list | None] = mapped_column(JSON)  # co-owners under one khata, see docs/contracts.md
+    parcels: Mapped[list | None] = mapped_column(JSON)  # khasra/area/class rows under one khata
     state: Mapped[str | None] = mapped_column(String(64), index=True)
     district: Mapped[str | None] = mapped_column(String(64), index=True)
     processing_ms: Mapped[int | None] = mapped_column(Integer)
@@ -97,6 +99,8 @@ class LandRecord(Base):
     plot_area: Mapped[str | None] = mapped_column(String(32))
     area_hectares: Mapped[float | None] = mapped_column(Float)
     land_classification: Mapped[str | None] = mapped_column(String(32))
+    owners: Mapped[list | None] = mapped_column(JSON)
+    parcels: Mapped[list | None] = mapped_column(JSON)
     village: Mapped[str | None] = mapped_column(String(64), index=True)
     tehsil: Mapped[str | None] = mapped_column(String(64))
     district: Mapped[str | None] = mapped_column(String(64), index=True)

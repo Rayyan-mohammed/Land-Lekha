@@ -218,11 +218,11 @@ def generate_candidates(lines: list[Line]) -> tuple[list[Candidate], dict[int, l
                 if sp2:
                     cands.append(Candidate(hit.field, sp2.text, sp2.bbox, sp2.confidence, hit.score * 0.95,
                                            "near_right", ln.page, context=remainder))
-            # below: table header -> the cell under it (only the first line below that has
-            # something in this column; if that is another label, there is no value)
+            # below: table header -> every cell under it, until the table ends (a line with
+            # its own label means a new section started, so the table stopped before it)
             col_w = lx1 - lx0
             below = sorted((o for o in lines if o.page == ln.page and o.idx != ln.idx
-                            and ly1 - lh * 0.3 < o.bbox[1] <= ly1 + lh * 4), key=lambda o: o.bbox[1])
+                            and ly1 - lh * 0.3 < o.bbox[1] <= ly1 + lh * 20), key=lambda o: o.bbox[1])
             for other in below:
                 toks = [i for i, t in enumerate(other.tokens)
                         if lx0 - col_w * 0.6 <= (t["bbox"][0] + t["bbox"][2]) / 2 <= lx1 + col_w * 0.6]
@@ -236,8 +236,29 @@ def generate_candidates(lines: list[Line]) -> tuple[list[Candidate], dict[int, l
                 if sp3:
                     cands.append(Candidate(hit.field, sp3.text, sp3.bbox, sp3.confidence, hit.score * 0.9,
                                            "below", ln.page, context=remainder))
-                break
     return cands, hits_by_line
+
+
+_OWNER_DELIMS = {"एवं", "व", "and", "&"}
+_OWNER_NUM_TOKEN = re.compile(r"^\d{1,2}[.)]$")
+
+
+def split_owners(text: str) -> list[str]:
+    """Real Khataunis list co-owners as "Ram एवं Shyam", "Ram, Shyam" or numbered
+    lines ("1. Ram  2. Shyam"). Split on whole delimiter tokens only, so a name
+    containing "व" mid-word (e.g. "श्रीवास्तव") is never cut."""
+    groups: list[str] = []
+    cur: list[str] = []
+    for tok in clean(text).replace(",", " , ").split():
+        if tok == "," or tok in _OWNER_DELIMS or _OWNER_NUM_TOKEN.match(tok):
+            if cur:
+                groups.append(" ".join(cur))
+                cur = []
+        else:
+            cur.append(tok)
+    if cur:
+        groups.append(" ".join(cur))
+    return groups or [text.strip()]
 
 
 def build_lines(ocr: dict) -> list[Line]:

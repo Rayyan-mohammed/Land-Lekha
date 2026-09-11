@@ -9,6 +9,7 @@ from backend.extraction.extractor import extract
 from backend.extraction.learning import CorrectionMemory
 from backend.extraction.names import restore
 from backend.extraction.normalize import skeleton
+from backend.extraction.parser import split_owners
 from backend.extraction.validate import parse_area, parse_date, parse_name, parse_plain_number, parse_plot_id, parse_registration
 
 
@@ -140,6 +141,59 @@ def test_duplicates_same_parcel():
     rec = {"district": "Lucknow", "village": "Nigoha", "khasra_number": "123/2", "khata_number": "00245", "owner_name": "राम प्रसाद शर्मा"}
     dups = find_duplicates(rec, [{**rec, "record_id": 7}, {**rec, "village": "Rampur", "record_id": 8}])
     assert [d["record_id"] for d in dups] == [7]
+
+
+def test_split_owners_on_whole_words_only():
+    assert split_owners("राम प्रसाद शर्मा एवं श्याम लाल शर्मा") == ["राम प्रसाद शर्मा", "श्याम लाल शर्मा"]
+    assert split_owners("Ram Sharma, Shyam Sharma and Gita Devi") == ["Ram Sharma", "Shyam Sharma", "Gita Devi"]
+    # "व" must not match mid-word inside a name like Shrivastava written in Devanagari
+    assert split_owners("राजेश श्रीवास्तव") == ["राजेश श्रीवास्तव"]
+    assert split_owners("1. Ram Lal  2. Shyam Lal") == ["Ram Lal", "Shyam Lal"]
+
+
+def _multi_row_khatauni_ocr():
+    """One page: khata + two co-owners on one line, then a 3-column table with two
+    khasra rows, laid out so the "below" column-matching in parser.py lines up."""
+    # columns are spaced well apart so the +-60% column-tolerance in parser.py's
+    # "below" matching can't bleed a neighbouring column's token into this one
+    tokens = [
+        {"text": "खाता संख्या : 00245", "confidence": 0.95, "bbox": [80, 0, 320, 30]},
+        {"text": "खातेदार का नाम : राम प्रसाद शर्मा एवं श्याम लाल शर्मा", "confidence": 0.9, "bbox": [80, 50, 900, 80]},
+        {"text": "खसरा संख्या", "confidence": 0.95, "bbox": [80, 100, 160, 130]},
+        {"text": "क्षेत्रफल", "confidence": 0.95, "bbox": [400, 100, 480, 130]},
+        {"text": "भूमि का प्रकार", "confidence": 0.95, "bbox": [700, 100, 860, 130]},
+        {"text": "123/1", "confidence": 0.9, "bbox": [90, 150, 150, 180]},
+        {"text": "0.5", "confidence": 0.9, "bbox": [410, 150, 470, 180]},
+        {"text": "कृषि (सिंचित)", "confidence": 0.9, "bbox": [710, 150, 850, 180]},
+        {"text": "456/2", "confidence": 0.9, "bbox": [90, 200, 150, 230]},
+        {"text": "1.2", "confidence": 0.9, "bbox": [410, 200, 470, 230]},
+        {"text": "बंजर", "confidence": 0.9, "bbox": [710, 200, 780, 230]},
+    ]
+    lines = [
+        {"bbox": [80, 0, 320, 30], "token_ids": [0]},
+        {"bbox": [80, 50, 900, 80], "token_ids": [1]},
+        {"bbox": [80, 100, 860, 130], "token_ids": [2, 3, 4]},
+        {"bbox": [90, 150, 850, 180], "token_ids": [5, 6, 7]},
+        {"bbox": [90, 200, 780, 230], "token_ids": [8, 9, 10]},
+    ]
+    return {"engine": "test", "languages": ["hi", "en"], "elapsed_ms": 0,
+            "pages": [{"page": 1, "width": 1240, "height": 1754, "tokens": tokens, "lines": lines}]}
+
+
+def test_multi_owner_and_multi_parcel_khatauni():
+    ext = extract(_multi_row_khatauni_ocr())
+    assert ext["owners"] == [
+        {"owner_name": "राम प्रसाद शर्मा", "father_name": None},
+        {"owner_name": "श्याम लाल शर्मा", "father_name": None},
+    ]
+    assert [p["khasra_number"] for p in ext["parcels"]] == ["123/1", "456/2"]
+    assert [p["land_classification"] for p in ext["parcels"]] == ["agricultural_irrigated", "barren"]
+    assert ext["parcels"][0]["plot_area_normalized"]["hectares"] == 0.5
+    assert ext["parcels"][1]["plot_area_normalized"]["hectares"] == 1.2
+    # single fields stay equal to the first entry
+    f = {k: v["value"] for k, v in ext["fields"].items()}
+    assert f["owner_name"] == "राम प्रसाद शर्मा"
+    assert f["khasra_number"] == "123/1" and f["land_classification"] == "agricultural_irrigated"
 
 
 def test_learning_memory_applies_corrections_and_raises_thresholds():

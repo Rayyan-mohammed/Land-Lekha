@@ -87,6 +87,10 @@ class Record:
     reg_no: str | None
     reg_date: str | None
     extras: dict = field(default_factory=dict)
+    # co-owners and parcel rows under one khata; owner/father/khasra/area_value/land_class
+    # above always equal owners[0] / parcels[0], for callers that only know the single fields
+    owners: list[tuple[tuple[str, str], tuple[str, str] | None]] = field(default_factory=list)
+    parcels: list[dict] = field(default_factory=list)
 
 
 def rand_date(rng: random.Random, start_year=1995, end_year=2024) -> str:
@@ -104,47 +108,63 @@ def person(rng: random.Random, female: bool, surname=None) -> tuple[str, str]:
     return hi, en
 
 
-def make_record(rng: random.Random, gaz: dict) -> Record:
+def make_khasra(rng: random.Random) -> tuple[str, str]:
+    base = rng.randint(1, 1999)
+    style = rng.random()
+    if style < 0.4:
+        return str(base), str(base)
+    if style < 0.8:
+        sub = rng.randint(1, 9)
+        return f"{base}/{sub}", f"{base}/{sub}"
+    sub = rng.randint(1, 9)
+    i = rng.randint(0, 2)
+    return f"{base}/{sub}{'कखग'[i]}", f"{base}/{sub}{'ABC'[i]}"
+
+
+def make_parcel(rng: random.Random, unit: str) -> dict:
+    value = {"hectare": round(rng.uniform(0.05, 4.5), 3), "acre": round(rng.uniform(0.2, 10), 2),
+             "bigha": round(rng.uniform(0.5, 20), 2)}[unit]
+    return {"khasra": make_khasra(rng), "area_value": value, "land_class": rng.choice(list(LAND_CLASS_TEXT))}
+
+
+def make_record(rng: random.Random, gaz: dict, multi: bool = False) -> Record:
+    """`multi`: real Khataunis list several co-owners and several parcel rows under one
+    khata. Set for the khatauni_table template only; other templates stay single-value."""
     state = rng.choice(gaz["states"])
     district = rng.choice(state["districts"])
     tehsil = rng.choice(district["tehsils"])
     village = tuple(rng.choice(tehsil["villages"]))
     surname = rng.choice(SURNAMES)
-    owner = person(rng, rng.random() < 0.3, surname)
-    father = person(rng, False, surname) if rng.random() < 0.9 else None
 
-    base = rng.randint(1, 1999)
-    style = rng.random()
-    if style < 0.4:
-        khasra = (str(base), str(base))
-    elif style < 0.8:
-        sub = rng.randint(1, 9)
-        khasra = (f"{base}/{sub}", f"{base}/{sub}")
-    else:
-        sub = rng.randint(1, 9)
-        i = rng.randint(0, 2)
-        khasra = (f"{base}/{sub}{'कखग'[i]}", f"{base}/{sub}{'ABC'[i]}")
+    n_owners = rng.randint(1, 3) if multi else 1
+    owners = []
+    for _ in range(n_owners):
+        owner = person(rng, rng.random() < 0.3, surname)
+        father = person(rng, False, surname) if rng.random() < 0.9 else None
+        owners.append((owner, father))
 
     unit = {"UP": "hectare", "MP": "hectare", "RJ": "bigha", "BR": "bigha"}[state["code"]]
     if rng.random() < 0.2:
         unit = "acre"
-    value = {"hectare": round(rng.uniform(0.05, 4.5), 3), "acre": round(rng.uniform(0.2, 10), 2),
-             "bigha": round(rng.uniform(0.5, 20), 2)}[unit]
+    n_parcels = rng.randint(1, 4) if multi else 1
+    parcels = [make_parcel(rng, unit) for _ in range(n_parcels)]
 
     has_mut = rng.random() < 0.8
     has_reg = rng.random() < 0.6
     return Record(
-        state=state, district=district, tehsil=tehsil, village=village, owner=owner, father=father,
+        state=state, district=district, tehsil=tehsil, village=village,
+        owner=owners[0][0], father=owners[0][1],
         khata=f"{rng.randint(1, 1500):05d}" if rng.random() < 0.6 else str(rng.randint(1, 1500)),
-        khasra=khasra,
+        khasra=parcels[0]["khasra"],
         survey=f"{rng.randint(1, 450)}/{rng.randint(1, 6)}" if state["code"] in ("MP", "RJ") or rng.random() < 0.3 else None,
-        area_value=value, area_unit=unit,
-        land_class=rng.choice(list(LAND_CLASS_TEXT)),
+        area_value=parcels[0]["area_value"], area_unit=unit,
+        land_class=parcels[0]["land_class"],
         mutation_no=str(rng.randint(100, 9999)) if has_mut else None,
         mutation_date=rand_date(rng) if has_mut else None,
         reg_no=f"{rng.randint(1995, 2024)}/{rng.randint(1, 99999):05d}" if has_reg else None,
         reg_date=rand_date(rng) if has_reg else None,
         extras={"fasli": f"{rng.randint(1420, 1432)}-{rng.randint(1433, 1440)}", "remark_no": rng.randint(1, 60)},
+        owners=owners, parcels=parcels,
     )
 
 
@@ -169,6 +189,12 @@ def ground_truth(r: Record, script: str) -> dict:
         "mutation_date": r.mutation_date,
         "registration_number": r.reg_no,
         "registration_date": r.reg_date,
+        "owners": [{"owner_name": o[0] if hi else o[1], "father_name": (f[0] if hi else f[1]) if f else None}
+                   for o, f in r.owners],
+        "parcels": [{"khasra_number": p["khasra"][0] if hi else p["khasra"][1],
+                     "plot_area": {"value": p["area_value"], "unit": r.area_unit,
+                                   "hectares": round(p["area_value"] * to_ha, 4)},
+                     "land_classification": p["land_class"]} for p in r.parcels],
     }
     return {k: v for k, v in gt.items() if v is not None}
 
@@ -210,17 +236,20 @@ def v(field_name: str, text: str, hw: bool = False) -> str:
 def tpl_khatauni_table(r: Record, rng: random.Random, dev_digits: bool, hw: bool) -> str:
     s, d, t = r.state, r.district, r.tehsil
     unit_hi = UNIT_TEXT[r.area_unit][0]
-    head ="".join(f'<th class="nw">{h}</th>' for h in [
-        "खाता संख्या", "खसरा संख्या", f"क्षेत्रफल ({unit_hi})", "भूमि का प्रकार"])
-    cells = "".join(f"<td>{c}</td>" for c in [
-        v("khata_number", num(r.khata, dev_digits), hw),
-        v("khasra_number", num(r.khasra[0], dev_digits), hw),
-        v("plot_area", num(f"{r.area_value}", dev_digits), hw),
-        v("land_classification", LAND_CLASS_TEXT[r.land_class][0], hw),
-    ])
-    owner_block = f'<div class="row"><span class="nw">खातेदार का नाम :</span> {v("owner_name", r.owner[0], hw)}</div>'
-    if r.father:
-        owner_block += f'<div class="row"><span class="nw">पिता / पति का नाम :</span> {v("father_name", r.father[0], hw)}</div>'
+    head = "".join(f'<th class="nw">{h}</th>' for h in [
+        "खसरा संख्या", f"क्षेत्रफल ({unit_hi})", "भूमि का प्रकार"])
+    rows = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in [
+        v("khasra_number", num(p["khasra"][0], dev_digits), hw),
+        v("plot_area", num(f"{p['area_value']}", dev_digits), hw),
+        v("land_classification", LAND_CLASS_TEXT[p["land_class"]][0], hw),
+    ]) + "</tr>" for p in r.parcels)
+    khata_block = f'<div class="row"><span class="nw">खाता संख्या :</span> {v("khata_number", num(r.khata, dev_digits), hw)}</div>'
+    owner_names = " एवं ".join(v("owner_name", o[0], hw) for o, _ in r.owners)
+    owner_block = f'<div class="row"><span class="nw">खातेदार का नाम :</span> {owner_names}</div>'
+    fathers = [f for _, f in r.owners if f]
+    if fathers:
+        father_names = " एवं ".join(v("father_name", f[0], hw) for f in fathers)
+        owner_block += f'<div class="row"><span class="nw">पिता / पति का नाम :</span> {father_names}</div>'
     survey = f'<div class="row"><span class="nw">सर्वे संख्या :</span> {v("survey_number", num(r.survey, dev_digits), hw)}</div>' if r.survey else ""
     mut = ""
     if r.mutation_no:
@@ -241,9 +270,10 @@ def tpl_khatauni_table(r: Record, rng: random.Random, dev_digits: bool, hw: bool
     <div class="row"><span class="nw">जिला :</span> {v("district", d['hi'], hw)}&nbsp;&nbsp;&nbsp;&nbsp;<span class="nw">राज्य :</span> {v("state", s['hi'], hw)}</div>
   </div>
   <hr/>
+  {khata_block}
   {owner_block}
   {survey}
-  <table><tr>{head}</tr><tr>{cells}</tr></table>
+  <table><tr>{head}</tr>{rows}</table>
   {mut}
   {reg}
   <div class="row small nw">टिप्पणी : प्रविष्टि क्रमांक {num(str(r.extras['remark_no']), dev_digits)} के अनुसार अंकित।</div>
@@ -508,7 +538,7 @@ def main() -> None:
             doc_id = f"{args.split}-{i + 1:03d}"
             tname = rng.choice(list(TEMPLATES))
             fn, script, font = TEMPLATES[tname]
-            rec = make_record(rng, gaz)
+            rec = make_record(rng, gaz, multi=tname == "khatauni_table")
             hw = tname == "form_bilingual" and rng.random() < 0.6 or tname == "khatauni_table" and rng.random() < 0.2
             dev_digits = script == "hi" and rng.random() < 0.25
             profile = rng.choice(PROFILES)

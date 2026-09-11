@@ -4,7 +4,7 @@ from __future__ import annotations
 from . import gazetteer
 from .confidence import default_threshold, field_confidence, overall_confidence, route
 from .learning import CorrectionMemory
-from .parser import Candidate, build_lines, detect_document_type, generate_candidates
+from .parser import Candidate, build_lines, detect_document_type, generate_candidates, split_owners
 from .schema import FIELD_NAMES, REQUIRED_FIELDS
 from .validate import PARSERS, Parsed, find_unit, parse_area
 
@@ -94,6 +94,27 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
             chosen[name] = (c, p)
             fields[name] = _field(name, c, p, source="learned" if learned else None)
 
+    # 1b. co-owners: a Khatauni khata can list several ("Ram एवं Shyam"). The single
+    # owner_name/father_name fields above always stay equal to the first entry.
+    owners_list: list[dict] = []
+    if "owner_name" in chosen:
+        oc, _ = chosen["owner_name"]
+        name_parts = split_owners(oc.text)
+        father_parts = split_owners(chosen["father_name"][0].text) if "father_name" in chosen else []
+        if len(name_parts) > 1:
+            for i, nm in enumerate(name_parts):
+                fp = PARSERS["father_name"](father_parts[i]) if i < len(father_parts) else None
+                owners_list.append({"owner_name": PARSERS["owner_name"](nm).value,
+                                    "father_name": fp.value if fp else None})
+            fields["owner_name"] = _field("owner_name", oc, PARSERS["owner_name"](name_parts[0]))
+            if "father_name" in chosen:
+                fc, _ = chosen["father_name"]
+                fp0 = PARSERS["father_name"](father_parts[0]) if father_parts else Parsed(None, 0.0)
+                fields["father_name"] = _field("father_name", fc, fp0)
+        else:
+            owners_list.append({"owner_name": fields["owner_name"]["value"],
+                                "father_name": fields.get("father_name", {}).get("value")})
+
     # 2. places against master database
     raw_places = {lvl: chosen[lvl][1].value for lvl in PLACE_LEVELS if lvl in chosen and chosen[lvl][1].value}
     matches, consistency = gazetteer.resolve(raw_places)
@@ -142,6 +163,45 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
             _, c, p, learned = best
             fields["plot_area"] = _field("plot_area", c, p, source="learned" if learned else None)
 
+    # 3b. parcel rows: a Khatauni khata can list several khasra/area/class rows. The
+    # single khasra_number/plot_area/land_classification fields stay equal to row 0.
+    def _below_rows(name: str) -> list[Candidate]:
+        rows = [c for c in by_field.get(name, []) if c.source == "below"]
+        rows.sort(key=lambda c: c.bbox[1] if c.bbox else 0)
+        return rows
+
+    khasra_rows = _below_rows("khasra_number")
+    area_rows = _below_rows("plot_area")
+    class_rows = _below_rows("land_classification")
+    parcels_list: list[dict] = []
+    if max(len(khasra_rows), len(area_rows), len(class_rows)) > 1:
+        for i in range(max(len(khasra_rows), len(area_rows), len(class_rows))):
+            row: dict = {}
+            if i < len(khasra_rows):
+                row["khasra_number"] = PARSERS["khasra_number"](khasra_rows[i].text).value
+            if i < len(area_rows):
+                ap = parse_area(area_rows[i].text, find_unit(area_rows[i].context), bigha, default_unit)
+                row["plot_area"] = ap.value
+                row["plot_area_normalized"] = ap.normalized
+            if i < len(class_rows):
+                row["land_classification"] = PARSERS["land_classification"](class_rows[i].text).value
+            parcels_list.append(row)
+        if khasra_rows:
+            fields["khasra_number"] = _field("khasra_number", khasra_rows[0], PARSERS["khasra_number"](khasra_rows[0].text))
+        if area_rows:
+            fields["plot_area"] = _field("plot_area", area_rows[0],
+                                         parse_area(area_rows[0].text, find_unit(area_rows[0].context), bigha, default_unit))
+        if class_rows:
+            fields["land_classification"] = _field("land_classification", class_rows[0],
+                                                    PARSERS["land_classification"](class_rows[0].text))
+    elif any(n in fields for n in ("khasra_number", "plot_area", "land_classification")):
+        parcels_list.append({
+            "khasra_number": fields.get("khasra_number", {}).get("value"),
+            "plot_area": fields.get("plot_area", {}).get("value"),
+            "plot_area_normalized": fields.get("plot_area", {}).get("normalized"),
+            "land_classification": fields.get("land_classification", {}).get("value"),
+        })
+
     # 4. duplicates + routing
     flat = {k: v["value"] for k, v in fields.items()}
     dups = []
@@ -164,4 +224,6 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
         "consistency": consistency,
         "duplicates": dups,
         "threshold": threshold,
+        "owners": owners_list,
+        "parcels": parcels_list,
     }

@@ -30,13 +30,20 @@ DISTRICT_HQ = {
 
 
 def _lrms_record(r: LandRecord) -> dict:
-    """Record in an LRMS-style exchange format."""
+    """Record in an LRMS-style exchange format. `parcel` (singular) is the first khasra
+    row, kept for existing consumers; `parcels` lists every row under this khata."""
+    owners = r.owners or [{"owner_name": r.owner_name, "father_name": r.father_name}]
+    parcels = r.parcels or [{"khasra_number": r.khasra_number, "plot_area": r.plot_area,
+                             "land_classification": r.land_classification}]
     return {
         "record_id": r.id,
         "location": {"state": r.state, "district": r.district, "tehsil": r.tehsil, "village": r.village},
-        "account": {"khata_no": r.khata_number, "owners": [{"name": r.owner_name, "father_or_husband": r.father_name}]},
+        "account": {"khata_no": r.khata_number,
+                    "owners": [{"name": o.get("owner_name"), "father_or_husband": o.get("father_name")} for o in owners]},
         "parcel": {"khasra_no": r.khasra_number, "survey_no": r.survey_number, "area": r.plot_area,
                    "area_hectares": r.area_hectares, "land_class": r.land_classification},
+        "parcels": [{"khasra_no": p.get("khasra_number"), "area": p.get("plot_area"),
+                    "land_class": p.get("land_classification")} for p in parcels],
         "mutation": {"number": r.mutation_number, "date": r.mutation_date} if r.mutation_number else None,
         "registration": {"number": r.registration_number, "date": r.registration_date} if r.registration_number else None,
         "provenance": {"source_document_id": r.document_id, "verification": r.verification,

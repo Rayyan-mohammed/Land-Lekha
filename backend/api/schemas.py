@@ -81,6 +81,8 @@ class DocumentDetail(DocumentSummary):
     uploader_name: str | None = None
     record_id: int | None = None
     threshold: float | None = None
+    owners: list | None = None
+    parcels: list | None = None
 
 
 class FieldDecision(BaseModel):

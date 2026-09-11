@@ -116,6 +116,8 @@ def process_document(doc_id: int) -> None:
         doc.document_type = ext["document_type"]
         doc.overall_confidence = ext["overall_confidence"]
         doc.route_reasons = ext["route_reasons"]
+        doc.owners = ext.get("owners")
+        doc.parcels = ext.get("parcels")
         doc.state = ext["fields"].get("state", {}).get("value")
         doc.district = district
         doc.fields.clear()
@@ -160,6 +162,8 @@ def upsert_record(db: Session, doc: Document, verification: str) -> LandRecord:
         setattr(rec, name, values.get(name))
     area = next((f for f in doc.fields if f.name == "plot_area" and f.status != "rejected"), None)
     rec.area_hectares = (area.normalized or {}).get("hectares") if area else None
+    rec.owners = doc.owners
+    rec.parcels = doc.parcels
     rec.verification = verification
     db.add(rec)
     return rec
