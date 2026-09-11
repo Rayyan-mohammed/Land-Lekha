@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Camera, CheckCircle2, FileUp, Loader2, XCircle } from 'lucide-react'
+import { Camera, CheckCircle2, FileText, FileUp, Focus, Loader2, Maximize, Sun, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { ConfidenceBar, PageHeader, StatusBadge, worstQuality } from '../components/ui'
 import { useT } from '../i18n'
@@ -10,6 +10,12 @@ const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
 const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
 
 const STEPS = ['Uploaded', 'In queue', 'Reading and checking', 'Done']
+const TIPS = [
+  [Maximize, 'Lay the page flat and fit the whole page in the frame'],
+  [Sun, 'Use even daylight; avoid shadows and camera flash glare'],
+  [Focus, 'Hold steady and tap the screen to focus before taking the photo'],
+  [FileText, 'Best of all: a PDF downloaded from the land portal is read instantly and exactly'],
+]
 
 // Where one upload is: driven by the document's real status (queued / processing / done).
 function Stepper({ status, started }) {
@@ -68,6 +74,7 @@ export default function UploadPage() {
 
   return <div>
     <PageHeader title={t('Upload land records')} subtitle={t('Scanned PDFs, images or phone photos · Hindi and English · printed or handwritten')} />
+    <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
     <div
       onDragOver={(e) => { e.preventDefault(); setDrag(true) }}
       onDragLeave={() => setDrag(false)}
@@ -82,6 +89,13 @@ export default function UploadPage() {
       </div>
       <input ref={fileRef} type="file" multiple accept={ACCEPT} hidden onChange={(e) => { add([...e.target.files]); e.target.value = '' }} />
       <input ref={camRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { add([...e.target.files]); e.target.value = '' }} />
+    </div>
+    <aside className="card p-4" aria-label={t('Tips for a good photo')}>
+      <div className="font-medium text-slate-900">{t('Tips for a good photo')}</div>
+      <ul className="mt-3 space-y-3 text-sm">
+        {TIPS.map(([Icon, tip]) => <li key={tip} className="flex gap-2.5"><Icon size={16} className="mt-0.5 shrink-0 text-brand-600" /><span className="text-slate-700">{t(tip)}</span></li>)}
+      </ul>
+    </aside>
     </div>
 
     {items.length > 0 && <div className="card mt-6 divide-y divide-slate-100">
