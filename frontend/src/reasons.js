@@ -32,3 +32,19 @@ export function explainReason(r, lang = 'en') {
   }
   return r
 }
+
+// Photo-quality advice from backend/ocr/quality.py, in the viewer's language.
+const ADVICE = [
+  [/^very little text found/, 'बहुत कम लिखावट मिली — जाँचें कि यह भू-अभिलेख का पन्ना है'],
+  [/^image is blurred/, 'चित्र धुंधला है — कैमरा स्थिर रखें, फ़ोकस के लिए स्क्रीन छुएँ और फिर से फ़ोटो लें'],
+  [/^text is small/, 'अक्षर छोटे हैं — कैमरा पास लाएँ या 300 dpi पर स्कैन करें'],
+  [/^text is hard to read/, 'पढ़ना कठिन है — बराबर रोशनी में फिर से फ़ोटो लें, या पन्ना स्कैन करें'],
+]
+
+export function explainAdvice(a, lang = 'en') {
+  if (lang !== 'hi') return a
+  const m = a.match(/^low resolution \((\d+)px\) - use at least (\d+)px/)
+  if (m) return `कम रिज़ॉल्यूशन (${m[1]}px) — कम से कम ${m[2]}px / 150 dpi रखें`
+  const hit = ADVICE.find(([re]) => re.test(a))
+  return hit ? hit[1] : a
+}

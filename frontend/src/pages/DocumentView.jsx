@@ -6,7 +6,7 @@ import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
-import { explainReason } from '../reasons'
+import { explainAdvice, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
@@ -226,7 +226,7 @@ export default function DocumentView() {
         <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
           <div className="flex items-center gap-2 font-medium"><Camera size={16} />
             {quality.verdict === 'poor' ? t('The image is too poor to read reliably — please rescan or retake it') : t('Image quality is only fair — check the flagged fields carefully')}</div>
-          <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{a}</li>)}</ul>
+          <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{explainAdvice(a, lang)}</li>)}</ul>
         </div>}
       {(doc.route_reasons?.length > 0 || doc.duplicates?.length > 0 || doc.consistency?.some((c) => !c.ok)) && doc.status === 'needs_review' &&
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">

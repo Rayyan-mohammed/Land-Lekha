@@ -4,6 +4,7 @@ import { Camera, CheckCircle2, FileText, FileUp, Focus, Loader2, Maximize, Sun, 
 import { api } from '../api'
 import { ConfidenceBar, PageHeader, StatusBadge, worstQuality } from '../components/ui'
 import { useT } from '../i18n'
+import { explainAdvice } from '../reasons'
 import { useToast } from '../components/toast'
 
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
@@ -36,7 +37,7 @@ function Stepper({ status, started }) {
 }
 
 export default function UploadPage() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const toast = useToast()
   const [items, setItems] = useState([]) // {key, file, doc, error}
   const [drag, setDrag] = useState(false)
@@ -121,7 +122,7 @@ export default function UploadPage() {
             {done && worstQuality(d.pages)?.verdict === 'poor' &&
               <div className="mt-1 flex items-start gap-1.5 text-xs font-medium text-bad">
                 <Camera size={14} className="mt-0.5 shrink-0" />
-                <span>{t('Image too poor to read reliably — please retake')}: {worstQuality(d.pages).advice.join('; ')}</span>
+                <span>{t('Image too poor to read reliably — please retake')}: {worstQuality(d.pages).advice.map((a) => explainAdvice(a, lang)).join('; ')}</span>
               </div>}
           </div>
           {d && <StatusBadge status={d.status} />}
