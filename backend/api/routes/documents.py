@@ -88,7 +88,8 @@ def get_document(doc_id: int, db: Session = Depends(get_db), user: User = Depend
     out.consistency = ext.get("consistency", [])
     out.duplicates = ext.get("duplicates", [])
     out.threshold = ext.get("threshold")
-    out.pages = [{"page": p["page"], "width": p["width"], "height": p["height"], "preprocess": p["preprocess"]}
+    out.pages = [{"page": p["page"], "width": p["width"], "height": p["height"], "preprocess": p["preprocess"],
+                  "quality": p.get("quality")}
                  for p in (doc.ocr or {}).get("pages", [])]
     out.uploader_name = doc.uploader.full_name if doc.uploader else None
     rec = db.scalar(select(LandRecord.id).where(LandRecord.document_id == doc.id))

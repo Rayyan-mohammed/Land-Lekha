@@ -9,6 +9,25 @@ export function StatusBadge({ status }) {
   </span>
 }
 
+const QUALITY = {
+  good: { label: 'Good image', cls: 'bg-emerald-100 text-emerald-800' },
+  fair: { label: 'Fair image', cls: 'bg-amber-100 text-amber-800' },
+  poor: { label: 'Poor image — retake', cls: 'bg-red-100 text-red-800' },
+}
+
+export function QualityBadge({ quality }) {
+  if (!quality) return null
+  const q = QUALITY[quality.verdict] || { label: quality.verdict, cls: 'bg-slate-100 text-slate-700' }
+  return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${q.cls}`}
+    title={`median OCR confidence ${Math.round((quality.median_confidence || 0) * 100)}%, sharpness ${quality.sharpness}`}>{q.label}</span>
+}
+
+// the worst page decides what the operator is told
+export function worstQuality(pages = []) {
+  const order = { poor: 0, fair: 1, good: 2 }
+  return pages.map((p) => p.quality).filter(Boolean).sort((a, b) => order[a.verdict] - order[b.verdict])[0] || null
+}
+
 export function confColor(c, threshold = 0.8) {
   if (c == null) return 'text-slate-400'
   if (c >= threshold) return 'text-ok'

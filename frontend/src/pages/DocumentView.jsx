@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AlertTriangle, ArrowLeft, Check, CheckCircle2, Copy, History, Info, MapPin, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, Copy, History, Info, LayoutList, MapPin, RotateCcw, Users, X, ZoomIn, ZoomOut } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import { ConfidenceBar, confColor, ErrorNote, fmtDate, Spinner, StatusBadge, useAuthImage } from '../components/ui'
+import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { FIELDS, LAND_CLASSES } from '../constants'
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
@@ -14,7 +14,13 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
   const boxes = fields.filter((f) => f.bbox && (f.page || 1) === page.page)
   return <div className="card overflow-hidden">
     <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 text-xs text-slate-500">
-      <span>Page {page.page} · deskew {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.join(' → ')}</span>
+      <span className="flex flex-wrap items-center gap-2">
+        <span>Page {page.page}</span>
+        <QualityBadge quality={page.quality} />
+        {page.preprocess?.steps?.includes('pdf_text_layer')
+          ? <span>read from the PDF's text layer (no OCR needed)</span>
+          : <span>deskew {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.join(' → ')}</span>}
+      </span>
       <div className="flex gap-1">
         <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.max(1, z - 0.5))} aria-label="zoom out"><ZoomOut size={15} /></button>
         <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.min(3, z + 0.5))} aria-label="zoom in"><ZoomIn size={15} /></button>
@@ -148,6 +154,7 @@ export default function DocumentView() {
   const loadTrail = () => api.audit({ entity_type: 'document', entity_id: doc.id }).then((r) => setTrail(r.items)).catch(setError)
 
   const processing = ['queued', 'processing'].includes(doc.status)
+  const quality = worstQuality(doc.pages)
   return <div>
     <div className="mb-4 flex flex-wrap items-center gap-3">
       <button className="btn-ghost px-2" onClick={() => nav(-1)}><ArrowLeft size={16} /></button>
@@ -167,6 +174,12 @@ export default function DocumentView() {
     {doc.status === 'failed' && <ErrorNote error={doc.error || 'processing failed'} />}
 
     {!processing && doc.status !== 'failed' && <>
+      {quality && quality.verdict !== 'good' &&
+        <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
+          <div className="flex items-center gap-2 font-medium"><Camera size={16} />
+            {quality.verdict === 'poor' ? 'The image is too poor to read reliably — please rescan or retake it' : 'Image quality is only fair — check the flagged fields carefully'}</div>
+          <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{a}</li>)}</ul>
+        </div>}
       {(doc.route_reasons?.length > 0 || doc.duplicates?.length > 0 || doc.consistency?.some((c) => !c.ok)) && doc.status === 'needs_review' &&
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           <div className="flex items-center gap-2 font-medium"><AlertTriangle size={16} /> Why this needs a human</div>
@@ -193,6 +206,25 @@ export default function DocumentView() {
             {FIELDS.map((def) => (byName[def.name] || editable) &&
               <FieldRow key={def.name} def={def} f={byName[def.name]} decision={decisions[def.name]} editable={editable}
                 onDecision={(dec) => setDecision(def.name, dec)} threshold={threshold} selected={selected === def.name} onSelect={setSelected} />)}
+            {doc.owners?.length > 1 && <div className="border-b border-slate-100 px-4 py-3">
+              <div className="label flex items-center gap-1"><Users size={12} /> Co-owners on this khata ({doc.owners.length})</div>
+              <ol className="mt-1 space-y-0.5 text-sm">
+                {doc.owners.map((o, i) => <li key={i}><span className="text-slate-400 tabular-nums">{i + 1}.</span> <span className="font-medium">{o.owner_name || '—'}</span>
+                  {o.father_name && <span className="text-slate-500"> · {o.father_name}</span>}</li>)}
+              </ol>
+            </div>}
+            {doc.parcels?.length > 1 && <div className="border-b border-slate-100 px-4 py-3">
+              <div className="label flex items-center gap-1"><LayoutList size={12} /> Parcels under this khata ({doc.parcels.length})</div>
+              <table className="mt-1 w-full text-sm">
+                <thead><tr className="text-left text-[11px] uppercase text-slate-500"><th className="py-1 font-medium">Khasra</th><th className="font-medium">Area</th><th className="font-medium">Class</th></tr></thead>
+                <tbody>{doc.parcels.map((p, i) => <tr key={i} className="border-t border-slate-100">
+                  <td className="py-1 tabular-nums">{p.khasra_number || '—'}</td>
+                  <td className="tabular-nums">{p.plot_area || '—'}</td>
+                  <td className="text-xs">{LAND_CLASSES[p.land_classification]?.split(' · ')[0] || p.land_classification || '—'}</td>
+                </tr>)}</tbody>
+              </table>
+              <div className="mt-1 text-[11px] text-slate-500">The fields above show the first row; correct individual rows on the scan if needed.</div>
+            </div>}
             {doc.consistency?.length > 0 && <div className="px-4 py-3 text-xs text-slate-600">
               <div className="label flex items-center gap-1"><Info size={12} /> Master data checks</div>
               {doc.consistency.map((c) => <div key={c.check} className={c.ok ? 'text-ok' : 'text-bad'}>{c.ok ? '✓' : '✗'} {c.check.replaceAll('_', ' ')} — {c.detail}</div>)}

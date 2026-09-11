@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Camera, CheckCircle2, FileUp, Loader2, XCircle } from 'lucide-react'
 import { api } from '../api'
-import { ConfidenceBar, PageHeader, StatusBadge } from '../components/ui'
+import { ConfidenceBar, PageHeader, StatusBadge, worstQuality } from '../components/ui'
 
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
 const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
@@ -78,6 +78,11 @@ export default function UploadPage() {
                     : d.status === 'failed' ? 'Could not process this file'
                       : `${d.district || 'Unknown district'} · processed in ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
             </div>
+            {done && worstQuality(d.pages)?.verdict === 'poor' &&
+              <div className="mt-1 flex items-start gap-1.5 text-xs font-medium text-bad">
+                <Camera size={14} className="mt-0.5 shrink-0" />
+                <span>Image too poor to read reliably — please retake: {worstQuality(d.pages).advice.join('; ')}</span>
+              </div>}
           </div>
           {d && <StatusBadge status={d.status} />}
           {done && d.overall_confidence != null && <ConfidenceBar value={d.overall_confidence} />}
