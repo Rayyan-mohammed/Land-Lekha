@@ -4,6 +4,27 @@ import { describe, expect, it } from 'vitest'
 import { docTypeLabel } from './constants'
 import { areaInLang, explainAdvice, explainIssue, explainReason } from './reasons'
 import { parseTs } from './components/ui'
+import { sortQueue } from './queue'
+
+describe('sortQueue', () => {
+  const rows = [
+    { id: 1, flagged: 5, overall_confidence: 0.2 },
+    { id: 2, flagged: 1, overall_confidence: 0.5 },
+    { id: 3, flagged: 1, overall_confidence: 0.7 },
+    { id: 4, overall_confidence: 0.1 },
+  ]
+  it('keeps the server order (lowest confidence first) by default', () => {
+    expect(sortQueue(rows, 'confidence')).toBe(rows)
+  })
+  it('puts the quickest documents first, higher confidence breaking ties', () => {
+    expect(sortQueue(rows, 'quick').map((r) => r.id)).toEqual([3, 2, 1, 4])
+    expect(rows.map((r) => r.id)).toEqual([1, 2, 3, 4]) // the original list is untouched
+  })
+  it('handles an empty or missing list', () => {
+    expect(sortQueue(null, 'quick')).toBe(null)
+    expect(sortQueue([], 'quick')).toEqual([])
+  })
+})
 
 describe('explainReason', () => {
   it('turns a low-confidence reason into a sentence with the field name', () => {

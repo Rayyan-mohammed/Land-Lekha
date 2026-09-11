@@ -5,6 +5,7 @@ import { api } from '../api'
 import { ConfidenceBar, EmptyState, ErrorNote, fmtDate, PageHeader, SkeletonRows } from '../components/ui'
 import { docTypeLabel } from '../constants'
 import { useT } from '../i18n'
+import { getQueueOrder, QUEUE_ORDER_KEY, sortQueue } from '../queue'
 
 export default function ReviewQueue() {
   const { t, lang } = useT()
@@ -12,8 +13,8 @@ export default function ReviewQueue() {
   const [error, setError] = useState(null)
   // "confidence": the hardest documents first (default); "quick": fewest fields to check first,
   // for a verifier with a few minutes to spare. Remembered on this computer.
-  const [order, setOrderState] = useState(() => { try { return localStorage.getItem('landlekha.queueOrder') || 'confidence' } catch { return 'confidence' } })
-  const setOrder = (o) => { setOrderState(o); try { localStorage.setItem('landlekha.queueOrder', o) } catch { /* storage blocked */ } }
+  const [order, setOrderState] = useState(getQueueOrder)
+  const setOrder = (o) => { setOrderState(o); try { localStorage.setItem(QUEUE_ORDER_KEY, o) } catch { /* storage blocked */ } }
   useEffect(() => {
     const load = () => api.queue().then(setRows).catch(setError)
     load()
@@ -21,9 +22,7 @@ export default function ReviewQueue() {
     return () => clearInterval(t)
   }, [])
 
-  const sorted = rows && (order === 'quick'
-    ? [...rows].sort((a, b) => (a.flagged ?? Infinity) - (b.flagged ?? Infinity) || (b.overall_confidence ?? 0) - (a.overall_confidence ?? 0))
-    : rows)
+  const sorted = sortQueue(rows, order)
 
   return <div>
     <PageHeader title={t('Review queue')}
