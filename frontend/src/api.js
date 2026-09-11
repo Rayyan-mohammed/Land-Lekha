@@ -25,6 +25,8 @@ async function request(path, { method = 'GET', body, form, raw } = {}) {
   const res = await fetch(path, { method, headers, body: payload })
   if (res.status === 401 && token) {
     setToken(null)
+    // tell the sign-in page why the user is back there (a deliberate sign-out never gets here)
+    try { sessionStorage.setItem('landlekha.expired', '1') } catch { /* storage blocked */ }
     window.dispatchEvent(new Event('landlekha:logout'))
   }
   if (!res.ok) {

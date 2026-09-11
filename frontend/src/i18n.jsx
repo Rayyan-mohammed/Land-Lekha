@@ -318,6 +318,8 @@ const HI = {
   'accepted automatically': 'अपने आप स्वीकृत',
   'sent to a verifier': 'जाँचकर्ता को भेजी गईं',
   'need a retake': 'फिर से फ़ोटो लें',
+  'Your session has ended. Sign in again to carry on where you left off.':
+    'आपका सत्र समाप्त हो गया। जहाँ छोड़ा था वहीं से जारी रखने के लिए फिर से साइन इन करें।',
 }
 
 const KEY = 'landlekha.lang'

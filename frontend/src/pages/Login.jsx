@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { BarChart3, ClipboardCheck, FileUp, ScanText, ShieldCheck, Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BarChart3, ClipboardCheck, Clock, FileUp, ScanText, ShieldCheck, Upload } from 'lucide-react'
 import { useAuth } from '../auth'
 import { Logo } from '../components/Layout'
 import { ErrorNote } from '../components/ui'
@@ -37,6 +37,10 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  // set by api.js when the server rejected an expired token; the URL is unchanged, so signing
+  // in again returns the user to the page they were on
+  const [expired] = useState(() => { try { return sessionStorage.getItem('landlekha.expired') === '1' } catch { return false } })
+  useEffect(() => { try { sessionStorage.removeItem('landlekha.expired') } catch { /* storage blocked */ } }, [])
 
   const signIn = async (u, p) => {
     setBusy(true)
@@ -79,6 +83,8 @@ export default function Login() {
             <LangToggle className="border-slate-300 text-slate-700" />
           </div>
           <p className="mt-1 text-sm text-slate-600">{t('Use your department account.')}</p>
+          {expired && <div role="status" className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+            <Clock size={16} className="mt-0.5 shrink-0" /> {t('Your session has ended. Sign in again to carry on where you left off.')}</div>}
           <form onSubmit={submit} className="mt-6 space-y-4">
             <div><label className="label" htmlFor="u">{t('Username')}</label>
               <input id="u" className="input" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoFocus /></div>
