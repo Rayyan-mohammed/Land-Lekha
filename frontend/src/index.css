@@ -35,3 +35,11 @@ table.data td { @apply px-3 py-2.5 border-b border-slate-100; }
 table.data tr:hover td { @apply bg-slate-50; }
 
 .leaflet-container { font: inherit; }
+
+/* printing a verified extract: only the sheet */
+@media print {
+  aside, header, .no-print { display: none !important; }
+  main { padding: 0 !important; max-width: none !important; }
+  body { background: #fff; }
+  .extract-sheet { box-shadow: none; border: none; max-width: none; }
+}

@@ -69,4 +69,9 @@ export const api = {
   lrmsPush: (id) => request(`/api/integration/lrms/push/${id}`, { method: 'POST' }),
   dilrmp: () => request('/api/integration/dilrmp/progress'),
   parcels: () => request('/api/integration/gis/parcels'),
+  extract: (id) => request(`/api/records/${id}/extract`),
+  publicVerify: (id, fp) => fetch(`/api/public/records/${id}/verify?fp=${encodeURIComponent(fp)}`).then((r) => {
+    if (!r.ok) throw new ApiError(r.status, 'verification service error')
+    return r.json()
+  }),
 }
