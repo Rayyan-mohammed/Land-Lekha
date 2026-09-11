@@ -1,0 +1,39 @@
+# private planning docs (kept local only)
+LandLekha_Blueprint.docx
+GIT_RULES.md
+Dataset 26018.pdf
+
+# python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# node
+node_modules/
+dist/
+
+# model weights
+*.pt
+*.pth
+*.onnx
+
+# runtime data
+uploads/
+storage/
+*.sqlite3
+*.db
+data/generated/
+data/fonts/
+
+# editor / os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

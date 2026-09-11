@@ -1,0 +1,68 @@
+{
+  "_note": "Master location data used for validation. District/tehsil names are real; village lists are a representative sample for the prototype.",
+  "states": [
+    {
+      "en": "Uttar Pradesh", "hi": "उत्तर प्रदेश", "code": "UP", "record_title_hi": "खतौनी", "record_title_en": "Khatauni", "bigha_ha": 0.2529,
+      "districts": [
+        {"en": "Lucknow", "hi": "लखनऊ", "tehsils": [
+          {"en": "Sadar", "hi": "सदर", "villages": [["Rampur", "रामपुर"], ["Sultanpur", "सुल्तानपुर"], ["Daulatpur", "दौलतपुर"], ["Bhikhampur", "भीखमपुर"]]},
+          {"en": "Mohanlalganj", "hi": "मोहनलालगंज", "villages": [["Nigoha", "निगोहा"], ["Gosainganj", "गोसाईंगंज"], ["Salempur", "सलेमपुर"], ["Karanpur", "करनपुर"]]},
+          {"en": "Malihabad", "hi": "मलिहाबाद", "villages": [["Rahimabad", "रहीमाबाद"], ["Kasmandi", "कसमंडी"], ["Mal", "माल"], ["Nabipanah", "नबीपनाह"]]}
+        ]},
+        {"en": "Barabanki", "hi": "बाराबंकी", "tehsils": [
+          {"en": "Nawabganj", "hi": "नवाबगंज", "villages": [["Deva", "देवा"], ["Satrikh", "सतरिख"], ["Harakh", "हरख"], ["Kursi", "कुर्सी"]]},
+          {"en": "Fatehpur", "hi": "फतेहपुर", "villages": [["Belhara", "बेलहरा"], ["Mohammadpur", "मोहम्मदपुर"], ["Sarai", "सराय"], ["Goverdhanpur", "गोवर्धनपुर"]]},
+          {"en": "Haidergarh", "hi": "हैदरगढ़", "villages": [["Bhitariya", "भिटरिया"], ["Subeha", "सुबेहा"], ["Lohni", "लोहनी"], ["Chandauli", "चंदौली"]]}
+        ]},
+        {"en": "Varanasi", "hi": "वाराणसी", "tehsils": [
+          {"en": "Pindra", "hi": "पिंडरा", "villages": [["Babatpur", "बाबतपुर"], ["Phulpur", "फूलपुर"], ["Kathiraon", "कठिरांव"], ["Bhatauli", "भटौली"]]},
+          {"en": "Rajatalab", "hi": "राजातालाब", "villages": [["Jakhini", "जखिनी"], ["Mirzamurad", "मिर्जामुराद"], ["Kachnar", "कचनार"], ["Bhikharipur", "भिखारीपुर"]]}
+        ]},
+        {"en": "Agra", "hi": "आगरा", "tehsils": [
+          {"en": "Etmadpur", "hi": "एत्मादपुर", "villages": [["Barhan", "बरहन"], ["Kuberpur", "कुबेरपुर"], ["Chaoli", "चावली"], ["Nagla Beri", "नगला बेरी"]]},
+          {"en": "Kiraoli", "hi": "किरावली", "villages": [["Achhnera", "अछनेरा"], ["Raipur", "रायपुर"], ["Sehla", "सेहला"], ["Kagarol", "कागारौल"]]}
+        ]}
+      ]
+    },
+    {
+      "en": "Madhya Pradesh", "hi": "मध्य प्रदेश", "code": "MP", "record_title_hi": "खसरा पांचसाला", "record_title_en": "Khasra Panchsala", "bigha_ha": 0.2090,
+      "districts": [
+        {"en": "Bhopal", "hi": "भोपाल", "tehsils": [
+          {"en": "Huzur", "hi": "हुजूर", "villages": [["Kolar", "कोलार"], ["Bilkhiriya", "बिलखिरिया"], ["Ratibad", "रातीबड़"], ["Kerwa", "केरवा"]]},
+          {"en": "Berasia", "hi": "बैरसिया", "villages": [["Nazirabad", "नजीराबाद"], ["Gunga", "गुनगा"], ["Dhamarra", "धमर्रा"], ["Harrakheda", "हर्राखेड़ा"]]}
+        ]},
+        {"en": "Sehore", "hi": "सीहोर", "tehsils": [
+          {"en": "Ashta", "hi": "आष्टा", "villages": [["Kothri", "कोठरी"], ["Jawar", "जावर"], ["Siddiqganj", "सिद्दीकगंज"], ["Mainwara", "मैनवाड़ा"]]},
+          {"en": "Ichhawar", "hi": "इछावर", "villages": [["Brijesh Nagar", "बृजेश नगर"], ["Amlaha", "अमलाहा"], ["Bishankhedi", "बिशनखेड़ी"], ["Dhablamata", "धबलामाता"]]}
+        ]}
+      ]
+    },
+    {
+      "en": "Rajasthan", "hi": "राजस्थान", "code": "RJ", "record_title_hi": "जमाबंदी", "record_title_en": "Jamabandi", "bigha_ha": 0.1619,
+      "districts": [
+        {"en": "Jaipur", "hi": "जयपुर", "tehsils": [
+          {"en": "Sanganer", "hi": "सांगानेर", "villages": [["Muhana", "मुहाना"], ["Goner", "गोनेर"], ["Watika", "वाटिका"], ["Chaksu", "चाकसू"]]},
+          {"en": "Amer", "hi": "आमेर", "villages": [["Kukas", "कूकस"], ["Achrol", "अचरोल"], ["Naila", "नायला"], ["Saipura", "सायपुरा"]]},
+          {"en": "Chomu", "hi": "चौमूं", "villages": [["Samod", "सामोद"], ["Kaladera", "कालाडेरा"], ["Jaitpura", "जैतपुरा"], ["Morija", "मोरीजा"]]}
+        ]},
+        {"en": "Ajmer", "hi": "अजमेर", "tehsils": [
+          {"en": "Kishangarh", "hi": "किशनगढ़", "villages": [["Rupangarh", "रूपनगढ़"], ["Silora", "सिलोरा"], ["Buhru", "बुहारू"], ["Tilonia", "तिलोनिया"]]},
+          {"en": "Beawar", "hi": "ब्यावर", "villages": [["Jalia", "जालिया"], ["Sendra", "सेन्दड़ा"], ["Barar", "बरार"], ["Kharwa", "खरवा"]]}
+        ]}
+      ]
+    },
+    {
+      "en": "Bihar", "hi": "बिहार", "code": "BR", "record_title_hi": "खतियान", "record_title_en": "Khatiyan", "bigha_ha": 0.2529,
+      "districts": [
+        {"en": "Patna", "hi": "पटना", "tehsils": [
+          {"en": "Danapur", "hi": "दानापुर", "villages": [["Maner", "मनेर"], ["Shahpur", "शाहपुर"], ["Naubatpur", "नौबतपुर"], ["Bihta", "बिहटा"]]},
+          {"en": "Masaurhi", "hi": "मसौढ़ी", "villages": [["Dhanaruwa", "धनरुआ"], ["Punpun", "पुनपुन"], ["Tarenga", "तरेगना"], ["Nadwan", "नदवां"]]}
+        ]},
+        {"en": "Gaya", "hi": "गया", "tehsils": [
+          {"en": "Bodh Gaya", "hi": "बोधगया", "villages": [["Mocharim", "मोचारिम"], ["Bakraur", "बकरौर"], ["Sujata", "सुजाता"], ["Silaunja", "सिलौंजा"]]},
+          {"en": "Sherghati", "hi": "शेरघाटी", "villages": [["Amas", "आमस"], ["Dobhi", "डोभी"], ["Gurua", "गुरुआ"], ["Banke", "बांके"]]}
+        ]}
+      ]
+    }
+  ]
+}
