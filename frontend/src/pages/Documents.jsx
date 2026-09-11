@@ -27,7 +27,7 @@ export default function Documents() {
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
 
   return <div>
-    <PageHeader title={t('Documents')} subtitle={data ? `${data.total} document${data.total === 1 ? '' : 's'}` : ' '}
+    <PageHeader title={t('Documents')} subtitle={data ? `${data.total} ${t(data.total === 1 ? 'document' : 'documents')}` : ' '}
       actions={<button className="btn-outline" onClick={load}><RefreshCw size={15} /> {t('Refresh')}</button>} />
     <div className="card">
       <div className="flex flex-wrap gap-2 border-b border-slate-100 p-3">
@@ -47,9 +47,9 @@ export default function Documents() {
       </div>}
       <ErrorNote error={error} />
       {!data ? <SkeletonRows cols={6} />
-        : data.items.length === 0 ? <EmptyState icon={FileUp} title={status || params.get('q') ? 'Nothing matches this filter' : 'No documents yet'}
+        : data.items.length === 0 ? <EmptyState icon={FileUp} title={t(status || params.get('q') ? 'Nothing matches this filter' : 'No documents yet')}
           action={!status && !params.get('q') && <Link className="btn-primary" to="/upload"><FileUp size={16} /> {t('Upload land records')}</Link>}>
-          {status || params.get('q') ? 'Try another status or search term.' : 'Scanned records you upload will appear here with their status and confidence.'}</EmptyState>
+          {t(status || params.get('q') ? 'Try another status or search term.' : 'Scanned records you upload will appear here with their status and confidence.')}</EmptyState>
           : <div className="table-wrap"><table className="data">
             <thead><tr><th>#</th><th>{t('File')}</th><th>{t('Type')}</th><th>{t('District')}</th><th>{t('Status')}</th><th>{t('Confidence')}</th><th>{t('Time')}</th><th>{t('Uploaded')}</th></tr></thead>
             <tbody>{data.items.map((d) => <tr key={d.id}>
@@ -65,7 +65,7 @@ export default function Documents() {
           </table></div>}
       {pages > 1 && <div className="flex items-center justify-end gap-2 p-3 text-sm">
         <button className="btn-outline py-1" disabled={page <= 1} onClick={() => set('page', page - 1)}>{t('Previous')}</button>
-        <span className="text-slate-500">Page {page} of {pages}</span>
+        <span className="text-slate-500">{t('Page')} {page} / {pages}</span>
         <button className="btn-outline py-1" disabled={page >= pages} onClick={() => set('page', page + 1)}>{t('Next')}</button>
       </div>}
     </div>
