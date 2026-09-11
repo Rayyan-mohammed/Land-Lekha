@@ -20,7 +20,7 @@ from .auth import hash_password
 from .config import CORS_ORIGINS, ROOT, SEED_DEMO_USERS
 from .db import Base, SessionLocal, engine, upgrade_schema
 from .models import Document, User
-from .routes import admin, auth, documents, integration, review
+from .routes import admin, auth, documents, integration, public, review
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("landlekha")
@@ -77,7 +77,7 @@ app = FastAPI(title="LandLekha API", version="0.1.0", lifespan=lifespan,
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
-for r in (auth.router, documents.router, review.router, admin.router, integration.router):
+for r in (auth.router, documents.router, review.router, admin.router, integration.router, public.router):
     app.include_router(r)
 
 

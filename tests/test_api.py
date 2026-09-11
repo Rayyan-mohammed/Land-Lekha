@@ -103,3 +103,32 @@ def test_full_flow(client):
     gis = client.get("/api/integration/gis/parcels", headers=op).json()
     assert gis["type"] == "FeatureCollection" and gis["features"]
     assert client.get("/api/integration/dilrmp/progress", headers=op).json()["states"]
+
+
+def test_verified_extract_detects_tampering(client):
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+    lines = [ln.replace("00245", "00777").replace("123/2", "456/1") for ln in RECORD]  # a different record
+    r = client.post("/api/documents", headers=op, files={"file": ("second.pdf", _pdf(lines), "application/pdf")})
+    doc = _wait(client, r.json()["id"], op)
+    client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"})
+    rec_id = client.get(f"/api/documents/{doc['id']}", headers=ver).json()["record_id"]
+
+    ex = client.get(f"/api/records/{rec_id}/extract", headers=ver).json()
+    assert ex["record"]["khata_number"] == "00777" and len(ex["fingerprint"]) == 64
+    assert ex["verify_path"] == f"/verify/{rec_id}?fp={ex['fingerprint']}"
+
+    # the public check needs no login
+    ok = client.get(f"/api/public/records/{rec_id}/verify", params={"fp": ex["fingerprint"]}).json()
+    assert ok["valid"] and ok["khata_number"] == "00777" and ok["owners"] == ["Ram Prasad Sharma"]
+    assert not client.get(f"/api/public/records/{rec_id}/verify", params={"fp": "0" * 64}).json()["valid"]
+
+    # someone changes the record after the extract was printed -> the old extract no longer verifies
+    from backend.api.db import SessionLocal
+    from backend.api.models import LandRecord
+    with SessionLocal() as db:
+        db.get(LandRecord, rec_id).khasra_number = "999/9"
+        db.commit()
+    changed = client.get(f"/api/public/records/{rec_id}/verify", params={"fp": ex["fingerprint"]}).json()
+    assert changed["valid"] is False and "changed" in changed["reason"]
+    assert client.get(f"/api/records/{rec_id}/extract").status_code == 401  # issuing needs a login
