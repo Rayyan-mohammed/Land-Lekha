@@ -35,7 +35,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 Upload the document nobody has seen. Whatever happens, explain it: confident fields pass, uncertain ones are flagged, nothing is silently guessed.
 
 ## Numbers to quote
-From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **82.7% field accuracy, 17.7% of fields flagged for a human, 96.4% precision on unflagged fields, 6/6 auto-accepted documents fully correct, median CER 11.3%**. Weakest case: phone photos (58.6%).
+From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **82.9% field accuracy, 16.3% of fields flagged for a human, 95.7% precision on unflagged fields, 7/7 auto-accepted documents fully correct, median CER 11.3%**. Weakest case: phone photos (58.6%).
 
 ## Honest answers to likely questions
 - **"Is the data real?"** No. No public labelled dataset of Indian land records exists, so we generate realistic Khatauni, Khasra, Jamabandi and Khatiyan records, with ground truth, in Hindi and English. They include handwriting fonts, Devanagari digits, fading, stains, skew and phone-photo perspective. Real records are the first thing we'd add after selection.

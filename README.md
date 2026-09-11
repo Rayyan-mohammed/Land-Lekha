@@ -27,17 +27,17 @@ Measured on 40 **held-out** synthetic documents (`test` split). The confidence m
 
 | Metric | Held-out test | Dev (tuning split) |
 | --- | --- | --- |
-| Field accuracy (all 15 fields) | **82.7%** | 89.0% |
-| Required-field accuracy | 82.9% | 86.1% |
+| Field accuracy (all 15 fields) | **82.9%** | 89.4% |
+| Required-field accuracy | 83.2% | 86.8% |
 | Character error rate, median / mean | 11.3% / 16.7% | 11.8% / 16.5% |
-| Fields flagged for a human | **17.7%** | 16.2% |
-| Precision of fields *not* flagged | **96.4%** | 98.6% |
-| Auto-accepted documents with every required field correct | **100%** (6 of 6) | 100% (10 of 10) |
-| Documents needing a human look | 85% | 75% |
+| Fields flagged for a human | **16.3%** | 15.0% |
+| Precision of fields *not* flagged | **95.7%** | 99.1% |
+| Auto-accepted documents with every required field correct | **100%** (7 of 7) | 100% (13 of 13) |
+| Documents needing a human look | 82.5% | 67.5% |
 
-By document type (test): English Record of Rights 97.3%, scanner-quality pages 92.3%, clean pages 88.0%, old faded paper 83.7%, handwritten entries 75.4%, Khatauni tables 70.5%, **phone photos 58.6%** (the weakest case).
+By document type (test): English Record of Rights 97.3%, scanner-quality pages 92.3%, clean pages 88.0%, old faded paper 84.4%, handwritten entries 75.4%, Khatauni tables 70.5%, **phone photos 58.6%** (the weakest case).
 
-Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the drop from dev to test is real: the label rules were tuned by looking at dev errors, so the test split is the honest number.
+Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the drop from dev to test is real: the label rules were tuned by looking at dev errors, so the test split is the honest number. OCR changes are A/B-tested before adoption; two that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
 
 The documents are deliberately hard: about 60% are degraded (faded/stained paper, scanner noise and skew, phone photos with perspective and uneven light), and some have handwritten entries or Devanagari digits. CER counts every character on the page, including stamps and footers, so it's a pessimistic number.
 
@@ -70,6 +70,10 @@ cd frontend && npm install && npm run dev                  # UI at http://localh
 ```
 
 The first start downloads the EasyOCR models (about 100 MB). For a single-port demo, run `npm run build` in `frontend/`; the API then serves the UI at http://localhost:8000.
+
+Or start everything with one command: `scripts\start.ps1` on Windows (`powershell -ExecutionPolicy Bypass -File scripts\start.ps1`), or `scripts/start.sh` elsewhere. Add `-Fresh` / `--fresh` for an empty database before a demo, and `-Built` / `--built` to serve the built UI from port 8000.
+
+Keep the project **outside** a OneDrive/Dropbox-synced folder if you can. Sync clients re-upload every generated image and OCR cache file and can make processing several times slower.
 
 Demo accounts (created on first start; disable with `LL_SEED_DEMO_USERS=0`):
 
