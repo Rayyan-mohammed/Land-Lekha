@@ -83,8 +83,8 @@ def test_skeleton_ignores_dropped_marks():
 def test_gazetteer_matches_both_scripts_and_checks_hierarchy():
     place, score = gazetteer.best_match("district", "लखनऊ")
     assert place.en == "Lucknow" and score == 1.0
-    out, checks = gazetteer.resolve({"district": "Lucknow", "tehsil": "मोहनलालगंज", "village": "निगोहा"})
-    assert out["village"][0].en == "Nigoha"
+    out, checks = gazetteer.resolve({"district": "Lucknow", "tehsil": "मोहनलालगंज", "village": "अब्बास नागार"})
+    assert out["village"][0].en == "Abbas Nagar"
     assert all(c["ok"] for c in checks)
     _, bad = gazetteer.resolve({"district": "Lucknow", "tehsil": "Pindra"})
     assert not next(c for c in bad if c["check"] == "tehsil_in_district")["ok"]
@@ -104,7 +104,7 @@ def _ocr(lines):
 def test_end_to_end_key_value_record():
     ocr = _ocr([
         ("खतौनी (अधिकार अभिलेख)", 0.9),
-        ("ग्राम : निगोहा   तहसील : मोहनलालगंज", 0.95),
+        ("ग्राम : अब्बास नागार   तहसील : मोहनलालगंज", 0.95),
         ("जिला : लखनऊ   राज्य : उत्तर प्रदेश", 0.95),
         ("खातेदार का नाम : राम प्रसाद शर्मा", 0.9),
         ("खाता संख्या : 00245", 0.97),
@@ -119,7 +119,7 @@ def test_end_to_end_key_value_record():
     assert f["owner_name"] == "राम प्रसाद शर्मा"
     assert f["khata_number"] == "00245" and f["khasra_number"] == "123/2"
     assert ext["fields"]["plot_area"]["normalized"]["hectares"] == 0.412
-    assert (f["village"], f["tehsil"], f["district"], f["state"]) == ("Nigoha", "Mohanlalganj", "Lucknow", "Uttar Pradesh")
+    assert (f["village"], f["tehsil"], f["district"], f["state"]) == ("Abbas Nagar", "Mohanlalganj", "Lucknow", "Uttar Pradesh")
     assert f["land_classification"] == "agricultural_irrigated"
     assert f["mutation_number"] == "4521" and f["mutation_date"] == "12/03/2019"
     assert ext["missing_required"] == []
