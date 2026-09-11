@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import DocumentView from './pages/DocumentView'
 import Documents from './pages/Documents'
 import Extract from './pages/Extract'
+import Help from './pages/Help'
 import Login from './pages/Login'
 import Records from './pages/Records'
 import ReviewQueue from './pages/ReviewQueue'
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="dashboard" element={<Guard roles={['verifier']}><Dashboard /></Guard>} />
       <Route path="records" element={<Records />} />
       <Route path="records/:id/extract" element={<Extract />} />
+      <Route path="help" element={<Help />} />
       <Route path="audit" element={<Guard roles={[]}><Audit /></Guard>} />
       <Route path="users" element={<Guard roles={[]}><UsersPage /></Guard>} />
       <Route path="*" element={<Navigate to={home} replace />} />

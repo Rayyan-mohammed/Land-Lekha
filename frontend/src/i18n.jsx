@@ -55,6 +55,7 @@ const HI = {
   'Review': 'जाँचें',
   'Start reviewing': 'जाँच शुरू करें',
   'All clear': 'सब पूरा हो गया',
+  'Help': 'सहायता',
   'Verified records in LRMS exchange format, parcel map, and DILRMP progress report': 'LRMS प्रारूप में सत्यापित अभिलेख, खसरा मानचित्र और DILRMP प्रगति रिपोर्ट',
   'Parcel map': 'खसरा मानचित्र',
   'geometry is synthetic in this prototype (placed near district HQ, sized by area)': 'इस प्रोटोटाइप में सीमाएँ काल्पनिक हैं (जिला मुख्यालय के पास, क्षेत्रफल के अनुसार)',

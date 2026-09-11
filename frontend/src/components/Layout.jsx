@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { BarChart3, ClipboardCheck, FileStack, LogOut, Map, Menu, ScrollText, Upload, Users, X } from 'lucide-react'
+import { BarChart3, CircleHelp, ClipboardCheck, FileStack, LogOut, Map, Menu, ScrollText, Upload, Users, X } from 'lucide-react'
 import { useAuth } from '../auth'
 import { ROLE_LABEL } from '../constants'
 import { LangToggle, useT } from '../i18n'
@@ -14,6 +14,7 @@ const NAV = [
   { to: '/records', label: 'Records & GIS', icon: Map, roles: ['operator', 'verifier'] },
   { to: '/audit', label: 'Audit trail', icon: ScrollText, roles: [] },
   { to: '/users', label: 'Users', icon: Users, roles: [] },
+  { to: '/help', label: 'Help', icon: CircleHelp, roles: ['operator', 'verifier'] },
 ]
 
 export function Logo({ light = false }) {
