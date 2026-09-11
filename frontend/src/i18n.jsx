@@ -74,8 +74,6 @@ const HI = {
   'was': 'पहले',
   'uploaded by': 'अपलोड किया',
   'Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…': 'दस्तावेज़ पढ़ा जा रहा है: सुधार, OCR और विवरण निकालना। प्रति पृष्ठ कुछ सेकंड लगते हैं…',
-  'Every field passed validation with confidence above': 'हर विवरण जाँच में सफल रहा, विश्वसनीयता',
-  'accepted without manual review. Verifiers can still audit and correct it.': 'से ऊपर — बिना मैन्युअल जाँच के स्वीकृत। जाँचकर्ता फिर भी जाँच और सुधार कर सकते हैं।',
   'Help': 'सहायता',
   'Verified records in LRMS exchange format, parcel map, and DILRMP progress report': 'LRMS प्रारूप में सत्यापित अभिलेख, खसरा मानचित्र और DILRMP प्रगति रिपोर्ट',
   'Parcel map': 'खसरा मानचित्र',
@@ -267,7 +265,6 @@ const HI = {
   'No events here yet': 'यहाँ अभी कोई घटना नहीं',
   'system': 'सिस्टम',
   'rejected': 'अस्वीकृत',
-  'of': 'में से',
   // printed extract toolbar (the sheet itself is always bilingual)
   'Check the details, then print or save as PDF.': 'विवरण जाँचें, फिर छापें या PDF में सहेजें।',
   'Print extract': 'नकल छापें',

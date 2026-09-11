@@ -257,7 +257,9 @@ export default function DocumentView() {
         {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">{t('Record')} #{d.record_id} — {t('match')} {Math.round(d.score * 100)}% ({d.reasons.join(', ')})</div>)}
       </div>}
       {doc.status === 'auto_accepted' && <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 flex items-center gap-2">
-        <CheckCircle2 size={16} /> {t('Every field passed validation with confidence above')} {Math.round(threshold * 100)}% — {t('accepted without manual review. Verifiers can still audit and correct it.')}
+        <CheckCircle2 size={16} className="shrink-0" /> {lang === 'hi'
+          ? `हर विवरण ${Math.round(threshold * 100)}% से अधिक विश्वसनीयता के साथ सभी जाँचों में सही निकला, इसलिए बिना मैन्युअल जाँच के स्वीकृत हुआ। जाँचकर्ता फिर भी इसे देख और सुधार सकते हैं।`
+          : `Every field passed validation with confidence above ${Math.round(threshold * 100)}% — accepted without manual review. Verifiers can still audit and correct it.`}
       </div>}
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">

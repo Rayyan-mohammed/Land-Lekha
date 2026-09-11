@@ -98,7 +98,7 @@ export default function Audit() {
         </ol>}
       {total > 50 && <div className="flex items-center justify-end gap-2 border-t border-slate-100 p-3 text-sm">
         <button className="btn-outline py-1" disabled={page <= 1} onClick={() => setPage(page - 1)}>{t('Previous')}</button>
-        <span className="text-slate-500">{t('Page')} {page} {t('of')} {Math.ceil(total / 50)}</span>
+        <span className="text-slate-500">{t('Page')} {page} / {Math.ceil(total / 50)}</span>
         <button className="btn-outline py-1" disabled={page * 50 >= total} onClick={() => setPage(page + 1)}>{t('Next')}</button>
       </div>}
     </div>
