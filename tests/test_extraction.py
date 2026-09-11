@@ -176,6 +176,9 @@ def test_name_lexicon_undoes_ocr_letter_confusions():
     assert restore(["नाय"])[0] == ["नाथ"]          # थ read as य
     assert restore(["नरेट"])[0] == ["नरेंद्र"]      # ंद्र read as ट
     assert restore(["तिचारी"])[0] == ["तिवारी"]
+    assert restore(["च्मा"])[0] == ["वर्मा"]        # वर् read as च
+    assert restore(["भशोक"])[0] == ["अशोक"]        # अ read as भ
+    assert restore(["झमला"])[0] == ["कमला"]        # क read as झ
     assert restore(["क्षितिजा"])[0] == ["क्षितिजा"]  # unknown names pass through
 
 

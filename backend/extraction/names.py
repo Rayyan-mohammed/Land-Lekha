@@ -32,9 +32,10 @@ def _index() -> tuple[dict[str, str | None], list[str]]:
 
 
 # Letter confusions OCR makes in Devanagari names, as skeleton substitutions (bad -> good):
-# व read as च (यादव -> यादच), थ as य (नाथ -> नाय), and the conjunct ंद्र as ट (नरेंद्र -> नरेट;
-# the skeleton drops ं and ्, so ंद्र is "दर" there).
-_CONFUSIONS = (("च", "व"), ("य", "थ"), ("ट", "दर"))
+# व read as च (यादव -> यादच), थ as य (नाथ -> नाय), the conjunct ंद्र as ट (नरेंद्र -> नरेट; the
+# skeleton drops ं and ्, so ंद्र is "दर" there), वर् as च (वर्मा -> च्मा), अ as भ (अशोक -> भशोक)
+# and क as झ (कमला -> झमला).
+_CONFUSIONS = (("च", "व"), ("य", "थ"), ("ट", "दर"), ("च", "वर"), ("भ", "अ"), ("झ", "क"))
 
 
 def _confusion_match(sk: str, by_skel: dict[str, str | None]) -> str | None:

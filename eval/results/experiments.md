@@ -145,6 +145,11 @@ Caveat: the confusions were found by reading errors from all three splits, test 
 change the test number is not strictly held out. The rules are generic OCR confusions, not fitted to
 particular documents, and dev improves by more than test.
 
+A second pass over the remaining name errors added three more confusions: वर् read as च (वर्मा → च्मा,
+the most frequent one left), अ as भ (अशोक → भशोक) and क as झ (कमला → झमला). Multi-owner split: field
+accuracy 81.7% → 81.9%, every co-owner found 3 → 4 of 6; dev 84.6% → 84.8%; test unchanged at 84.8%.
+Flag rates and unflagged precision did not move on any split.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.
