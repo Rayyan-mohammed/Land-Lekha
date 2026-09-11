@@ -313,6 +313,11 @@ const HI = {
   'Reviewer note': 'जाँचकर्ता की टिप्पणी',
   'Back': 'वापस',
   'Actions': 'कार्य',
+  // upload batch summary
+  'files done': 'फ़ाइलें पूरी',
+  'accepted automatically': 'अपने आप स्वीकृत',
+  'sent to a verifier': 'जाँचकर्ता को भेजी गईं',
+  'need a retake': 'फिर से फ़ोटो लें',
 }
 
 const KEY = 'landlekha.lang'

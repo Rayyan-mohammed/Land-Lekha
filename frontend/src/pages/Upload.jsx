@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Camera, CheckCircle2, FileText, FileUp, Focus, Loader2, Maximize, Sun, XCircle } from 'lucide-react'
+import { Camera, CheckCircle2, ClipboardCheck, FileText, FileUp, Focus, Loader2, Maximize, Sun, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { ConfidenceBar, PageHeader, StatusBadge, worstQuality } from '../components/ui'
 import { useT } from '../i18n'
@@ -73,6 +73,17 @@ export default function UploadPage() {
     return () => clearTimeout(t)
   }, [items])
 
+  // batch summary, so an operator with a stack of files sees at a glance what needs attention
+  const finished = items.filter((x) => x.error || (x.doc && DONE.includes(x.doc.status)))
+  const tally = {
+    auto: finished.filter((x) => x.doc?.status === 'auto_accepted').length,
+    review: finished.filter((x) => x.doc?.status === 'needs_review').length,
+    retake: finished.filter((x) => x.doc && worstQuality(x.doc.pages)?.verdict === 'poor').length,
+    dup: finished.filter((x) => x.dupId).length,
+    failed: finished.filter((x) => (x.error && !x.dupId) || x.doc?.status === 'failed').length,
+  }
+  const showSummary = finished.length >= 2
+
   return <div>
     <PageHeader title={t('Upload land records')} subtitle={t('Scanned PDFs, images or phone photos · Hindi and English · printed or handwritten')} />
     <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
@@ -99,13 +110,21 @@ export default function UploadPage() {
     </aside>
     </div>
 
-    {items.length > 0 && <div className="card mt-6 divide-y divide-slate-100">
+    {showSummary && <div className="card mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm" role="status">
+      <span className="font-medium text-slate-900">{finished.length}/{items.length} {t('files done')}</span>
+      {tally.auto > 0 && <span className="inline-flex items-center gap-1.5 text-ok"><CheckCircle2 size={15} /> {tally.auto} {t('accepted automatically')}</span>}
+      {tally.review > 0 && <span className="inline-flex items-center gap-1.5 text-warn"><ClipboardCheck size={15} /> {tally.review} {t('sent to a verifier')}</span>}
+      {tally.retake > 0 && <span className="inline-flex items-center gap-1.5 text-bad"><Camera size={15} /> {tally.retake} {t('need a retake')}</span>}
+      {tally.dup > 0 && <span className="inline-flex items-center gap-1.5 text-slate-600"><FileText size={15} /> {tally.dup} {t('already uploaded')}</span>}
+      {tally.failed > 0 && <span className="inline-flex items-center gap-1.5 text-bad"><XCircle size={15} /> {tally.failed} {t('failed')}</span>}
+    </div>}
+    {items.length > 0 && <div className={`card ${showSummary ? 'mt-3' : 'mt-6'} divide-y divide-slate-100`}>
       {items.map((x) => {
         const d = x.doc
         const done = d && DONE.includes(d.status)
         return <div key={x.key} className="flex flex-wrap items-center gap-3 px-4 py-3">
           <div className="w-5">
-            {x.error ? <XCircle className="text-bad" size={18} />
+            {x.error ? (x.dupId ? <FileText className="text-slate-500" size={18} /> : <XCircle className="text-bad" size={18} />)
               : done ? (d.status === 'failed' ? <XCircle className="text-bad" size={18} /> : <CheckCircle2 className="text-ok" size={18} />)
                 : <Loader2 className="animate-spin text-brand-600" size={18} />}
           </div>
@@ -113,7 +132,9 @@ export default function UploadPage() {
             <div className="truncate text-sm font-medium">{x.file.name}</div>
             {d && !done && <Stepper status={d.status} started={x.started} />}
             <div className="text-xs text-slate-500">
-              {x.error ? <span className="text-bad">{x.error}{x.dupId && <> — <Link className="underline" to={`/documents/${x.dupId}`}>{t('open existing')}</Link></>}</span>
+              {/* a duplicate is not a failure: the file is already on record, so say so plainly and link to it */}
+              {x.dupId ? <span className="text-slate-600">{t('already uploaded')} — <Link className="underline" to={`/documents/${x.dupId}`}>{t('open existing')}</Link></span>
+                : x.error ? <span className="text-bad">{x.error}</span>
                 : !d ? t('Uploading…')
                   : !done ? t('usually 10–30 seconds per page; digital PDFs about a second')
                     : d.status === 'failed' ? t('Could not process this file')
