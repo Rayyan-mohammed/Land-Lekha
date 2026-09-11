@@ -69,6 +69,9 @@ const FAQ = [
   [['Why was I asked to sign in again?', 'मुझसे दोबारा लॉग इन करने को क्यों कहा गया?'],
     ['For safety, a sign-in lasts a limited time. Sign in again and you return to the page you were on; nothing you had saved is lost.',
       'सुरक्षा के लिए लॉग इन कुछ समय तक ही रहता है। दोबारा लॉग इन करें, आप उसी पन्ने पर लौट आएँगे; सहेजा हुआ कुछ भी नहीं खोता।']],
+  [['What if I close the tab in the middle of a review?', 'अगर जाँच के बीच टैब बंद हो जाए तो?'],
+    ['Your corrections are kept on this computer for a day. Open the same document again and they come back; approve when you are ready.',
+      'आपके सुधार इस कंप्यूटर पर एक दिन तक रखे जाते हैं। वही दस्तावेज़ फिर खोलें, वे वापस आ जाएँगे; तैयार होने पर स्वीकृत करें।']],
 ]
 
 export default function Help() {
