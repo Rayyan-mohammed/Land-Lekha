@@ -54,7 +54,7 @@ export default function UploadPage() {
       } catch (e) {
         const dupId = e.detail?.document_id
         setItems((xs) => xs.map((x) => (x.key === key ? { ...x, error: e.message, dupId } : x)))
-        toast(dupId ? `${file.name} was already uploaded` : `${file.name} could not be uploaded`, { type: dupId ? 'info' : 'error', body: e.message })
+        toast(`${file.name}: ${t(dupId ? 'already uploaded' : 'could not be uploaded')}`, { type: dupId ? 'info' : 'error', body: e.message })
       }
     }
   }

@@ -172,18 +172,31 @@ export default function DocumentView() {
     try {
       await api.verify(doc.id, { decision, fields: decisions, note: note || null })
       const nChanged = Object.values(decisions).filter((d) => d.action !== 'confirm').length
-      toast(decision === 'approve' ? `Record approved: ${doc.filename}` : `Document rejected: ${doc.filename}`,
-        { body: decision === 'approve' ? (nChanged ? `${nChanged} correction${nChanged > 1 ? 's' : ''} saved and learned` : 'All fields confirmed as read') : 'Kept in the audit trail with your note',
+      toast(`${t(decision === 'approve' ? 'Record approved' : 'Document rejected')}: ${doc.filename}`,
+        { body: decision === 'approve'
+          ? (nChanged ? `${nChanged} ${t(nChanged > 1 ? 'corrections saved and learned' : 'correction saved and learned')}` : t('All fields confirmed as read'))
+          : t('Kept in the audit trail with your note'),
           type: decision === 'approve' ? 'success' : 'info' })
       if (can('verifier')) {
         const q = await api.queue().catch(() => [])
         const next = q.find((d) => d.id !== doc.id)
         if (next) return nav(`/documents/${next.id}`)
-        if (decision === 'approve') toast(t('All clear'), { type: 'info', body: 'The review queue is empty. Nice work.' })
+        if (decision === 'approve') toast(t('All clear'), { type: 'info', body: t('The review queue is empty. Nice work.') })
       }
       setDecisions({})
       await load()
-    } catch (e) { setError(e); toast('Could not save the review', { type: 'error', body: e.message }) } finally { setBusy(false) }
+    } catch (e) {
+      // the backend refuses approval while required fields are empty: name them plainly and go to the first one
+      const missing = String(e.message).match(/required fields missing: \[(.*)\]/)?.[1].match(/\w+/g)
+      if (missing?.length) {
+        const label = (n) => FIELDS.find((f) => f.name === n)?.[lang === 'hi' ? 'hi' : 'en'] || n
+        toast(t('Could not save the review'), { type: 'error', body: `${t('Fill in these required fields first')}: ${missing.map(label).join(', ')}` })
+        setSelected(missing[0])
+      } else {
+        setError(e)
+        toast(t('Could not save the review'), { type: 'error', body: e.message })
+      }
+    } finally { setBusy(false) }
   }
   // keyboard: arrows/j/k move, Enter confirm, X reject, E edit, Ctrl+Enter approve
   const present = FIELDS.filter((d) => byName[d.name] || editable).map((d) => d.name)

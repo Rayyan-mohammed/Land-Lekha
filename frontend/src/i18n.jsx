@@ -296,6 +296,18 @@ const HI = {
   'close menu': 'मेन्यू बंद करें',
   'Go to fields': 'विवरणों पर जाएँ',
   'parcels': 'खसरे',
+  // pop-up messages
+  'already uploaded': 'पहले ही अपलोड हो चुका है',
+  'could not be uploaded': 'अपलोड नहीं हो सका',
+  'Record approved': 'अभिलेख स्वीकृत',
+  'Document rejected': 'दस्तावेज़ अस्वीकृत',
+  'correction saved and learned': 'सुधार सहेजा गया और सीखा गया',
+  'corrections saved and learned': 'सुधार सहेजे गए और सीखे गए',
+  'All fields confirmed as read': 'सभी विवरण जैसे पढ़े गए वैसे ही पुष्ट',
+  'Kept in the audit trail with your note': 'आपकी टिप्पणी के साथ ऑडिट लॉग में दर्ज',
+  'The review queue is empty. Nice work.': 'जाँच सूची खाली है। बढ़िया काम!',
+  'Could not save the review': 'जाँच सहेजी नहीं जा सकी',
+  'Fill in these required fields first': 'पहले ये ज़रूरी विवरण भरें',
 }
 
 const KEY = 'landlekha.lang'
