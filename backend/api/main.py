@@ -18,7 +18,7 @@ from sqlalchemy import select
 
 from .auth import hash_password
 from .config import CORS_ORIGINS, ROOT, SEED_DEMO_USERS
-from .db import Base, SessionLocal, engine
+from .db import Base, SessionLocal, engine, upgrade_schema
 from .models import Document, User
 from .routes import admin, auth, documents, integration, review
 
@@ -34,6 +34,9 @@ DEMO_USERS = [
 
 def _init_db() -> None:
     Base.metadata.create_all(engine)
+    added = upgrade_schema()
+    if added:
+        log.warning("database upgraded, added columns: %s", ", ".join(added))
     with SessionLocal() as db:
         if SEED_DEMO_USERS and db.scalar(select(User).limit(1)) is None:
             for username, name, role, pw in DEMO_USERS:
