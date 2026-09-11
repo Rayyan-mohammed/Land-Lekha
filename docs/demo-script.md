@@ -14,6 +14,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 ## 2. Upload (1 min) — log in as `operator`
 - Drag in `01-ror-english-clean.jpg`, `02-khatauni-table-scan.jpg`, `03-form-handwritten.jpg`, `07-sideways-photo.jpg` and `08-born-digital.pdf`.
 - Point out: works on a phone too (the **Take photo** button), and takes PDF, JPG and TIFF.
+- Click **हिंदी** in the sidebar: every screen, message, reason and date switches to Hindi, and back with one click.
 - **`08-born-digital.pdf` is done in about a second**: PDFs exported by a land portal already contain the text, so no OCR is needed and the text is exact.
 - **`07-sideways-photo.jpg`** was photographed sideways: it's turned upright automatically and reads as well as `01`.
 - If a photo is too blurred, the upload screen says so straight away (**poor quality, with what to fix and a request to retake**), so the operator fixes it at the counter instead of creating a case nobody can resolve. `05-phone-photo.jpg` shows the check.
@@ -32,7 +33,8 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 
 ## 4. Governance (1 min) — log in as `admin`
 - **Dashboard**: documents processed, auto-accept rate, pending verification, error statistics, state- and district-wise progress, benchmark CER and field accuracy.
-- **Records & GIS**: the verified record in LRMS exchange format with every co-owner and parcel row, **Push** to LRMS (simulated acknowledgement), the parcel on the map, and the DILRMP progress report.
+- **Records & GIS**: the verified record in LRMS exchange format with every co-owner and parcel row, **Push** to LRMS (simulated acknowledgement), the parcel on the map, the DILRMP progress report, and a **CSV** download of the list for the tehsil office.
+- Open **Extract** on a record: the printed copy is bilingual (English and Hindi) with a QR code. Scan it with a phone: the public check page says whether the paper still matches the record, in both languages.
 - **Audit trail**: every upload, decision and correction, with who, when and from which IP.
 - `http://localhost:8000/docs`: the documented REST API other government systems would call.
 

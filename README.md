@@ -45,14 +45,16 @@ The documents are deliberately hard: about 60% are degraded (faded/stained paper
 
 ## Screens
 
+Every screen works in Hindi and English (one click in the sidebar): labels, review reasons, photo advice, the audit trail and dates. The printed extract and the public QR check are always bilingual.
+
 | | |
 | --- | --- |
 | ![Sign-in with one-click demo accounts](docs/screenshots/1-sign-in.jpg) | ![Review: the scan with a box on every field, next to the extracted values](docs/screenshots/2-review.jpg) |
 | **Sign-in**: how it works in three steps, one-click demo accounts, Hindi / English switch | **Review**: boxes coloured by confidence on the cleaned scan; confirm, correct or reject with the keyboard |
 | ![Dashboard](docs/screenshots/3-dashboard.jpg) | ![Records and GIS](docs/screenshots/4-records-gis.jpg) |
-| **Dashboard**: what waits for a person, accuracy, state/district progress | **Records & GIS**: LRMS format, co-owners, parcel map, DILRMP report |
+| **Dashboard**: what waits for a person, accuracy, state/district progress | **Records & GIS**: LRMS format, co-owners, parcel map, DILRMP report, CSV download |
 | ![Verified extract with QR code](docs/screenshots/5-verified-extract.jpg) | ![Public check on a phone](docs/screenshots/6-public-check-phone.jpg) |
-| **Verified extract**: printable, with a tamper-evident fingerprint and QR code | **Public check**: anyone scanning the QR sees whether the paper still matches the record |
+| **Verified extract**: printable and bilingual, with a tamper-evident fingerprint and QR code | **Public check**: anyone scanning the QR sees, in English and Hindi, whether the paper still matches the record |
 
 ## What maps to the problem statement
 
