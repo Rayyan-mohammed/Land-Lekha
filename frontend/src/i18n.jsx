@@ -2,7 +2,7 @@
 // Field names are already bilingual (constants.js); this covers the surrounding UI.
 import { createContext, useContext, useEffect, useState } from 'react'
 
-const HI = {
+export const HI = {
   // menu
   'Upload': 'अपलोड',
   'Documents': 'दस्तावेज़',
