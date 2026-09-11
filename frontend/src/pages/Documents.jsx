@@ -35,11 +35,16 @@ export default function Documents() {
           <Search size={15} className="absolute left-3 top-2.5 text-slate-500" />
           <input className="input pl-9" placeholder={t('Search file name or district')} value={q} onChange={(e) => setQ(e.target.value)} />
         </form>
-        <select className="input w-auto" value={status} onChange={(e) => set('status', e.target.value)}>
-          <option value="">{t('All statuses')}</option>
-          {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{t(v.label)}</option>)}
-        </select>
       </div>
+      {data?.counts && <div className="flex flex-wrap gap-2 border-b border-slate-100 px-3 py-2.5" role="group" aria-label={t('Status')}>
+        {[['', t('All statuses'), Object.values(data.counts).reduce((x, y) => x + y, 0)],
+          ...Object.keys(STATUS).filter((k) => data.counts[k]).map((k) => [k, t(STATUS[k].label), data.counts[k]])].map(([k, label, n]) =>
+          <button key={k || 'all'} onClick={() => set('status', k)} aria-pressed={status === k}
+            className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors duration-200 ${status === k
+              ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-brand-500 hover:text-brand-700'}`}>
+            {label}<span className={`rounded-full px-1.5 tabular-nums ${status === k ? 'bg-white/20' : 'bg-slate-100 text-slate-600'}`}>{n}</span>
+          </button>)}
+      </div>}
       <ErrorNote error={error} />
       {!data ? <SkeletonRows cols={6} />
         : data.items.length === 0 ? <EmptyState icon={FileUp} title={status || params.get('q') ? 'Nothing matches this filter' : 'No documents yet'}

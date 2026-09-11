@@ -72,6 +72,11 @@ def test_full_flow(client):
     assert f["owner_name"] == "Ram Prasad Sharma" and f["khata_number"] == "00245" and f["khasra_number"] == "123/2"
     assert (f["village"], f["tehsil"], f["district"], f["state"]) == ("Nigoha", "Mohanlalganj", "Lucknow", "Uttar Pradesh")
 
+    listing = client.get("/api/documents", headers=op).json()
+    assert sum(listing["counts"].values()) == listing["total"] >= 1 and doc["status"] in listing["counts"]
+    filtered = client.get("/api/documents", headers=op, params={"status": "failed"}).json()
+    assert filtered["total"] == 0 and filtered["counts"] == listing["counts"]  # counts ignore the status filter
+
     # same file again is refused; wrong type is refused
     assert client.post("/api/documents", headers=op, files={"file": ("again.pdf", pdf, "application/pdf")}).status_code == 409
     assert client.post("/api/documents", headers=op, files={"file": ("a.txt", b"hi", "text/plain")}).status_code == 415

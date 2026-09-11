@@ -68,15 +68,18 @@ def list_documents(status_: str | None = Query(None, alias="status"), district: 
     stmt = select(Document)
     if user.role == "operator":
         stmt = stmt.where(Document.uploaded_by == user.id)
-    if status_:
-        stmt = stmt.where(Document.status.in_(status_.split(",")))
     if district:
         stmt = stmt.where(Document.district == district)
     if q:
         stmt = stmt.where(or_(Document.filename.ilike(f"%{q}%"), Document.district.ilike(f"%{q}%")))
+    # per-status counts for the filter chips (same visibility and search, any status)
+    visible = stmt.subquery()
+    counts = {s: n for s, n in db.execute(select(visible.c.status, func.count()).group_by(visible.c.status))}
+    if status_:
+        stmt = stmt.where(Document.status.in_(status_.split(",")))
     total = db.scalar(select(func.count()).select_from(stmt.subquery()))
     rows = db.scalars(stmt.order_by(Document.created_at.desc()).offset((page - 1) * page_size).limit(page_size))
-    return {"total": total, "page": page, "page_size": page_size,
+    return {"total": total, "page": page, "page_size": page_size, "counts": counts,
             "items": [DocumentSummary.model_validate(d).model_dump(mode="json") for d in rows]}
 
 
