@@ -308,6 +308,9 @@ const HI = {
   'The review queue is empty. Nice work.': 'जाँच सूची खाली है। बढ़िया काम!',
   'Could not save the review': 'जाँच सहेजी नहीं जा सकी',
   'Fill in these required fields first': 'पहले ये ज़रूरी विवरण भरें',
+  'The fields above show the first row; correct individual rows on the scan if needed.':
+    'ऊपर के विवरण पहली पंक्ति के हैं; ज़रूरत हो तो बाकी पंक्तियाँ स्कैन देखकर सुधारें।',
+  'Reviewer note': 'जाँचकर्ता की टिप्पणी',
 }
 
 const KEY = 'landlekha.lang'

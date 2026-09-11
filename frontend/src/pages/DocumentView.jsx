@@ -313,7 +313,7 @@ export default function DocumentView() {
                   <td className="text-xs">{LAND_CLASSES[p.land_classification]?.split(' · ')[0] || p.land_classification || '—'}</td>
                 </tr>)}</tbody>
               </table>
-              <div className="mt-1 text-[11px] text-slate-500">The fields above show the first row; correct individual rows on the scan if needed.</div>
+              <div className="mt-1 text-[11px] text-slate-500">{t('The fields above show the first row; correct individual rows on the scan if needed.')}</div>
             </div>}
             {doc.consistency?.length > 0 && <div className="px-4 py-3 text-xs text-slate-600">
               <div className="label flex items-center gap-1"><Info size={12} /> {t('Master data checks')}</div>
@@ -334,7 +334,7 @@ export default function DocumentView() {
             </div>
             <div className="text-[11px] text-slate-500">{t('Unmarked fields are confirmed as shown. Corrections are remembered and applied to future documents.')}</div>
           </div>}
-          {!editable && doc.review_note && <div className="border-t border-slate-100 p-3 text-sm"><span className="label">Reviewer note</span>{doc.review_note}</div>}
+          {!editable && doc.review_note && <div className="border-t border-slate-100 p-3 text-sm"><span className="label">{t('Reviewer note')}</span>{doc.review_note}</div>}
         </div>
       </div>
 
