@@ -167,6 +167,7 @@ def test_split_owners_on_whole_words_only():
     assert split_owners("एच आर शर्मा") == ["एच आर शर्मा"]      # ...even without the full stop, at the start
     assert split_owners("शिव प्रसाद अंसारी एच राम लाल अंसारी") == ["शिव प्रसाद अंसारी", "राम लाल अंसारी"]
     assert split_owners("राम एच. आर. शर्मा") == ["राम एच. आर. शर्मा"]  # initial with a stop never splits
+    assert split_owners("सावित्री मिश्रा एचं राकेश चंद्र मिश्रा") == ["सावित्री मिश्रा", "राकेश चंद्र मिश्रा"]
 
 
 def _multi_row_khatauni_ocr():

@@ -239,8 +239,9 @@ def generate_candidates(lines: list[Line]) -> tuple[list[Candidate], dict[int, l
     return cands, hits_by_line
 
 
-# "एव" is how OCR usually reads "एवं" (the anusvara dot is dropped); "एवम्" is the Sanskrit spelling
-_OWNER_DELIMS = {"एवं", "एव", "एवँ", "एवम", "एवम्", "व", "and", "&"}
+# "एव" is how OCR usually reads "एवं" (the anusvara dot is dropped); "एवम्" is the Sanskrit spelling.
+# "एचं" is "एवं" with व misread as च but the dot kept; an initial "H" never carries that dot
+_OWNER_DELIMS = {"एवं", "एव", "एवँ", "एवम", "एवम्", "एचं", "व", "and", "&"}
 _OWNER_NUM_TOKEN = re.compile(r"^\d{1,2}[.)]$")
 
 
