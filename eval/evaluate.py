@@ -56,6 +56,17 @@ def field_correct(name: str, pred: dict | None, gt) -> bool:
 
 
 LIST_KEYS = ("owners", "parcels")
+DOC_EXTS = (".pdf", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".webp", ".bmp")
+
+
+def document_file(meta: dict, meta_path: Path) -> str:
+    """Generated docs list their files; for real docs, the image/PDF with the JSON's name."""
+    if meta.get("files"):
+        return meta["files"][-1]
+    for ext in DOC_EXTS:
+        if meta_path.with_suffix(ext).exists():
+            return meta_path.with_suffix(ext).name
+    sys.exit(f"no document file next to {meta_path.name}")
 
 
 def scalar_fields(meta: dict) -> dict:
@@ -96,12 +107,14 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--cache", default="ocr", help="OCR cache folder name (use a new one per OCR setting)")
     ap.add_argument("--out", default=None, help="results file name (default: the split name)")
+    ap.add_argument("--dir", default=None, help="folder of documents + ground-truth JSON (default: data/generated/<split>); use data/real for real records")
     args = ap.parse_args()
 
-    split_dir = DATA / args.split
+    split_dir = Path(args.dir) if args.dir else DATA / args.split
     cache = split_dir / args.cache
     cache.mkdir(exist_ok=True)
-    metas = sorted(split_dir.glob(f"{args.split}-*.json"))
+    # generated splits name files <split>-NNN.json; real folders may use any names
+    metas = sorted(split_dir.glob(f"{args.split}-*.json")) or sorted(split_dir.glob("*.json"))
     if args.limit:
         metas = metas[: args.limit]
     if not metas:
@@ -114,13 +127,14 @@ def main() -> None:
     by_group: dict[str, list[float]] = defaultdict(list)
     for mp in metas:
         meta = json.loads(mp.read_text(encoding="utf-8"))
+        meta.setdefault("id", mp.stem)  # real documents: the file name is the id
         cp = cache / f"{meta['id']}.json"
         if cp.exists() and not args.no_cache:
             ocr = json.loads(cp.read_text(encoding="utf-8"))
         else:
             from backend.ocr.pipeline import run_ocr
 
-            img = split_dir / meta["files"][-1]  # prefer the PDF when one exists
+            img = split_dir / document_file(meta, mp)  # prefer the PDF when one exists
             ocr = run_ocr(img.read_bytes(), img.name)
             cp.write_text(json.dumps(ocr, ensure_ascii=False), encoding="utf-8")
         t0 = time.perf_counter()
@@ -128,7 +142,7 @@ def main() -> None:
         extract_ms = (time.perf_counter() - t0) * 1000
 
         text = "\n".join(l["text"] for p in ocr["pages"] for l in p["lines"])
-        c = cer(text, meta["text"])
+        c = cer(text, meta["text"]) if meta.get("text") else None
         gt = scalar_fields(meta)
         correct = {}
         for name, gv in gt.items():
@@ -156,8 +170,9 @@ def main() -> None:
                 flag_stats["trusted_correct"] += int(ok)
         flag_stats["missing_required"] += len(ext["missing_required"])
         doc = {
-            "id": meta["id"], "template": meta["template"], "profile": meta["degradation"]["profile"],
-            "handwritten": meta["handwritten"], "cer": round(c, 4),
+            "id": meta["id"], "template": meta.get("template", "real"),
+            "profile": meta.get("degradation", {}).get("profile", "real"),
+            "handwritten": meta.get("handwritten", False), "cer": round(c, 4) if c is not None else None,
             "field_acc": round(sum(correct.values()) / max(1, len(correct)), 4),
             "route": ext["route"], "required_all_correct": req_ok,
             "ocr_ms": ocr["elapsed_ms"], "extract_ms": round(extract_ms, 1),
@@ -167,17 +182,20 @@ def main() -> None:
         per_doc.append(doc)
         for key in (f"template:{doc['template']}", f"profile:{doc['profile']}", f"handwritten:{doc['handwritten']}"):
             by_group[key].append(doc["field_acc"])
-            by_group[key + ":cer"].append(doc["cer"])
-        print(f"{doc['id']}  cer={doc['cer']:.3f}  fields={doc['field_acc']:.2f}  {doc['route']:11s}  wrong={doc['wrong']}")
+            if doc["cer"] is not None:
+                by_group[key + ":cer"].append(doc["cer"])
+        cer_txt = "  n/a" if doc["cer"] is None else f"{doc['cer']:.3f}"
+        print(f"{doc['id']}  cer={cer_txt}  fields={doc['field_acc']:.2f}  {doc['route']:11s}  wrong={doc['wrong']}")
 
     auto = [d for d in per_doc if d["route"] == "auto_accept"]
+    cers = [d["cer"] for d in per_doc if d["cer"] is not None]
     total_hit = sum(h for h, _ in field_hits.values())
     total_n = sum(n for _, n in field_hits.values())
     summary = {
         "split": args.split,
         "documents": len(per_doc),
-        "cer_mean": round(statistics.mean(d["cer"] for d in per_doc), 4),
-        "cer_median": round(statistics.median(d["cer"] for d in per_doc), 4),
+        "cer_mean": round(statistics.mean(cers), 4) if cers else None,
+        "cer_median": round(statistics.median(cers), 4) if cers else None,
         "field_accuracy": round(total_hit / max(1, total_n), 4),
         "required_field_accuracy": round(
             sum(field_hits[n][0] for n in REQUIRED_FIELDS) / max(1, sum(field_hits[n][1] for n in REQUIRED_FIELDS)), 4),
@@ -201,7 +219,8 @@ def main() -> None:
                                                encoding="utf-8")
     md = [f"# Evaluation — `{args.split}` split ({summary['documents']} documents)", "",
           "| Metric | Value |", "| --- | --- |",
-          f"| CER (mean / median) | {summary['cer_mean']:.1%} / {summary['cer_median']:.1%} |",
+          (f"| CER (mean / median) | {summary['cer_mean']:.1%} / {summary['cer_median']:.1%} |" if cers
+           else "| CER | n/a (no full-text transcripts) |"),
           f"| Field accuracy (all fields) | {summary['field_accuracy']:.1%} |",
           f"| Field accuracy (required fields) | {summary['required_field_accuracy']:.1%} |",
           f"| Review rate | {summary['review_rate']:.1%} |",
@@ -219,7 +238,9 @@ def main() -> None:
           "## Per field", "", "| Field | Accuracy | n |", "| --- | --- | --- |"]
     md += [f"| {n} | {v['accuracy']:.1%} | {v['n']} |" for n, v in summary["per_field"].items()]
     md += ["", "## By document group (field accuracy / CER)", "", "| Group | Field acc. | CER |", "| --- | --- | --- |"]
-    md += [f"| {k} | {v:.1%} | {summary['by_group'][k + ':cer']:.1%} |" for k, v in summary["by_group"].items() if not k.endswith(":cer")]
+    groups = summary["by_group"]
+    md += [f"| {k} | {v:.1%} | " + (f"{groups[k + ':cer']:.1%}" if k + ":cer" in groups else "n/a") + " |"
+           for k, v in groups.items() if not k.endswith(":cer")]
     (RESULTS / f"{out}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in summary.items() if k not in ("per_field", "by_group")}, indent=1))
 
