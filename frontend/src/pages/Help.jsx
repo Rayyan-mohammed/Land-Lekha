@@ -2,70 +2,93 @@ import { ClipboardCheck, FileUp, Keyboard, Printer, ShieldCheck, Upload } from '
 import { PageHeader } from '../components/ui'
 import { useT } from '../i18n'
 
+// every text is an [English, Hindi] pair; the page shows the one for the chosen language
 const GUIDES = [
-  [Upload, 'Operators', [
-    'Upload scans, PDFs or phone photos from the Upload page. Several files at once is fine.',
-    'Each file shows its progress. Digital PDFs from the land portal finish in about a second.',
-    'If a photo is too blurred, you are told straight away. Retake it before the owner leaves the counter.',
+  [Upload, ['Operators', 'ऑपरेटर'], [
+    ['Upload scans, PDFs or phone photos from the Upload page. Several files at once is fine.',
+      'अपलोड पन्ने से स्कैन, PDF या फ़ोन की फ़ोटो अपलोड करें। एक साथ कई फ़ाइलें भी चलेंगी।'],
+    ['Each file shows its progress. Digital PDFs from the land portal finish in about a second.',
+      'हर फ़ाइल की प्रगति दिखती है। भू-अभिलेख पोर्टल की डिजिटल PDF लगभग एक सेकंड में पूरी होती है।'],
+    ['If a photo is too blurred, you are told straight away. Retake it before the owner leaves the counter.',
+      'फ़ोटो बहुत धुंधली हो तो तुरंत बताया जाता है। खातेदार के काउंटर से जाने से पहले फिर से फ़ोटो लें।'],
   ]],
-  [ClipboardCheck, 'Verifiers', [
-    'The Review queue lists documents with at least one uncertain field, lowest confidence first.',
-    'You only check what is flagged. The scan is on the left, with a box on every field; click a box to jump to it.',
-    'Confirm, correct or reject each flagged field, then approve. Corrections are remembered and applied to future documents.',
+  [ClipboardCheck, ['Verifiers', 'जाँचकर्ता'], [
+    ['The Review queue lists documents with at least one uncertain field, lowest confidence first.',
+      'जाँच सूची में वे दस्तावेज़ हैं जिनमें कम से कम एक विवरण अनिश्चित है — सबसे कम विश्वसनीयता पहले।'],
+    ['You only check what is flagged. The scan is on the left, with a box on every field; click a box to jump to it.',
+      'आपको केवल संदिग्ध विवरण जाँचने हैं। बाईं ओर स्कैन है, हर विवरण पर एक बॉक्स; बॉक्स पर क्लिक करके सीधे उस विवरण पर जाएँ।'],
+    ['Confirm, correct or reject each flagged field, then approve. Corrections are remembered and applied to future documents.',
+      'हर संदिग्ध विवरण की पुष्टि करें, सुधारें या अस्वीकार करें, फिर स्वीकृत करें। सुधार याद रखे जाते हैं और आगे के दस्तावेज़ों पर लागू होते हैं।'],
   ]],
-  [ShieldCheck, 'Administrators', [
-    'The Dashboard shows progress by state and district, accuracy, and what is waiting.',
-    'Users & roles: create accounts, change roles, reset passwords. Everything is recorded in the audit trail.',
+  [ShieldCheck, ['Administrators', 'प्रशासक'], [
+    ['The Dashboard shows progress by state and district, accuracy, and what is waiting.',
+      'डैशबोर्ड पर राज्य और जिलेवार प्रगति, शुद्धता और लंबित काम दिखते हैं।'],
+    ['Users & roles: create accounts, change roles, reset passwords. Everything is recorded in the audit trail.',
+      'उपयोगकर्ता और भूमिकाएँ: खाते बनाएँ, भूमिका बदलें, पासवर्ड बदलें। सब कुछ ऑडिट लॉग में दर्ज होता है।'],
   ]],
-  [Printer, 'Verified extracts', [
-    'From Records & GIS, open a record and print its extract. The QR code on it lets anyone check it is genuine and current.',
+  [Printer, ['Verified extracts', 'सत्यापित नकल'], [
+    ['From Records & GIS, open a record and print its extract. The QR code on it lets anyone check it is genuine and current.',
+      'अभिलेख और मानचित्र से कोई अभिलेख खोलें और उसकी नकल छापें। उस पर बने QR कोड से कोई भी जाँच सकता है कि नकल असली और ताज़ा है।'],
   ]],
 ]
 
 const COLOURS = [
-  ['border-ok bg-emerald-50', 'Green', 'confident: passed every check, above the auto-accept threshold'],
-  ['border-warn bg-amber-50', 'Amber', 'please check: readable but not certain'],
-  ['border-bad bg-red-50', 'Red', 'probably wrong or failed a rule (format, master data)'],
+  ['border-ok bg-emerald-50', ['Green', 'हरा'], ['confident: passed every check, above the auto-accept threshold', 'भरोसेमंद: हर जाँच पास, स्वतः स्वीकृति सीमा से ऊपर']],
+  ['border-warn bg-amber-50', ['Amber', 'पीला'], ['please check: readable but not certain', 'कृपया जाँचें: पढ़ने योग्य, पर पक्का नहीं']],
+  ['border-bad bg-red-50', ['Red', 'लाल'], ['probably wrong or failed a rule (format, master data)', 'शायद ग़लत, या किसी नियम (प्रारूप, मास्टर डेटा) पर खरा नहीं']],
 ]
 
-const KEYS = [['↑ ↓', 'move between fields'], ['N', 'next flagged field'], ['Enter', 'confirm the field'], ['X', 'reject the field'],
-  ['E', 'edit the value'], ['Ctrl + Enter', 'approve the record'], ['Esc', 'leave the text box']]
+const KEYS = [
+  ['↑ ↓', ['move between fields', 'विवरणों के बीच जाएँ']], ['N', ['next flagged field', 'अगला संदिग्ध विवरण']],
+  ['Enter', ['confirm the field', 'विवरण की पुष्टि']], ['X', ['reject the field', 'विवरण अस्वीकार']],
+  ['E', ['edit the value', 'मान बदलें']], ['Ctrl + Enter', ['approve the record', 'अभिलेख स्वीकृत करें']],
+  ['Esc', ['leave the text box', 'लिखने का बॉक्स छोड़ें']],
+]
 
 const FAQ = [
-  ['Why was my photo marked "poor"?', 'The text could not be read reliably, usually blur, shadow or a page that is too small in the frame. A clearer photo or the portal PDF fixes it; guessing would put wrong data into the record.'],
-  ['What does the percentage mean?', 'How likely the value is to be correct, learned from checked examples. Fields below the threshold always go to a person.'],
-  ['The village was not found. What now?', 'Check the spelling against the official village list. If the village is genuinely missing, tell the administrator so the master list can be updated.'],
-  ['Can an approval be undone?', 'Not from the screen. Every approval is kept in the audit trail with who and when; an administrator can re-issue a corrected record.'],
+  [['Why was my photo marked "poor"?', 'मेरी फ़ोटो को "ख़राब" क्यों बताया गया?'],
+    ['The text could not be read reliably, usually blur, shadow or a page that is too small in the frame. A clearer photo or the portal PDF fixes it; guessing would put wrong data into the record.',
+      'लिखावट भरोसे से नहीं पढ़ी जा सकी — अक्सर धुंधलापन, छाया, या फ़्रेम में पन्ना बहुत छोटा होने से। साफ़ फ़ोटो या पोर्टल की PDF से यह ठीक होता है; अंदाज़ा लगाने से अभिलेख में ग़लत जानकारी चली जाती।']],
+  [['What does the percentage mean?', 'प्रतिशत का क्या मतलब है?'],
+    ['How likely the value is to be correct, learned from checked examples. Fields below the threshold always go to a person.',
+      'मान के सही होने की संभावना, जो जाँचे गए उदाहरणों से सीखी गई है। सीमा से नीचे के विवरण हमेशा किसी व्यक्ति के पास जाते हैं।']],
+  [['The village was not found. What now?', 'ग्राम नहीं मिला। अब क्या करें?'],
+    ['Check the spelling against the official village list. If the village is genuinely missing, tell the administrator so the master list can be updated.',
+      'आधिकारिक ग्राम सूची से वर्तनी मिलाएँ। अगर ग्राम सच में सूची में नहीं है, तो प्रशासक को बताएँ ताकि मास्टर सूची अपडेट हो सके।']],
+  [['Can an approval be undone?', 'क्या स्वीकृति वापस ली जा सकती है?'],
+    ['Not from the screen. Every approval is kept in the audit trail with who and when; an administrator can re-issue a corrected record.',
+      'स्क्रीन से नहीं। हर स्वीकृति किसने और कब के साथ ऑडिट लॉग में रहती है; प्रशासक सुधरा हुआ अभिलेख फिर से जारी कर सकता है।']],
 ]
 
 export default function Help() {
-  const { t } = useT()
+  const { t, lang } = useT()
+  const L = ([en, hi]) => (lang === 'hi' ? hi : en)
   return <div className="space-y-4">
-    <PageHeader title={t('Help')} subtitle="How LandLekha works, in two minutes" />
+    <PageHeader title={t('Help')} subtitle={L(['How LandLekha works, in two minutes', 'LandLekha कैसे काम करता है, दो मिनट में'])} />
     <div className="grid gap-4 md:grid-cols-2">
-      {GUIDES.map(([Icon, title, points]) => <section key={title} className="card p-4">
-        <h2 className="flex items-center gap-2 font-medium text-slate-900"><Icon size={17} className="text-brand-600" /> {title}</h2>
-        <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-700">{points.map((p) => <li key={p}>{p}</li>)}</ul>
+      {GUIDES.map(([Icon, title, points]) => <section key={title[0]} className="card p-4">
+        <h2 className="flex items-center gap-2 font-medium text-slate-900"><Icon size={17} className="text-brand-600" /> {L(title)}</h2>
+        <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-slate-700">{points.map((p) => <li key={p[0]}>{L(p)}</li>)}</ul>
       </section>)}
     </div>
     <div className="grid gap-4 md:grid-cols-2">
       <section className="card p-4">
-        <h2 className="font-medium text-slate-900">What the colours mean</h2>
-        <ul className="mt-2 space-y-2 text-sm">{COLOURS.map(([cls, name, text]) => <li key={name} className="flex items-center gap-2.5">
-          <span className={`h-4 w-4 shrink-0 rounded-sm border-2 ${cls}`} /><span><span className="font-medium">{name}</span>: {text}</span></li>)}</ul>
+        <h2 className="font-medium text-slate-900">{L(['What the colours mean', 'रंगों का मतलब'])}</h2>
+        <ul className="mt-2 space-y-2 text-sm">{COLOURS.map(([cls, name, text]) => <li key={name[0]} className="flex items-center gap-2.5">
+          <span className={`h-4 w-4 shrink-0 rounded-sm border-2 ${cls}`} /><span><span className="font-medium">{L(name)}</span>: {L(text)}</span></li>)}</ul>
       </section>
       <section className="card p-4">
-        <h2 className="flex items-center gap-2 font-medium text-slate-900"><Keyboard size={17} className="text-brand-600" /> Review shortcuts</h2>
+        <h2 className="flex items-center gap-2 font-medium text-slate-900"><Keyboard size={17} className="text-brand-600" /> {L(['Review shortcuts', 'जाँच के शॉर्टकट'])}</h2>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-          {KEYS.map(([k, what]) => <div key={k} className="contents"><dt><kbd className="kbd">{k}</kbd></dt><dd className="text-slate-700">{what}</dd></div>)}
+          {KEYS.map(([k, what]) => <div key={k} className="contents"><dt><kbd className="kbd">{k}</kbd></dt><dd className="text-slate-700">{L(what)}</dd></div>)}
         </dl>
       </section>
     </div>
     <section className="card p-4">
-      <h2 className="flex items-center gap-2 font-medium text-slate-900"><FileUp size={17} className="text-brand-600" /> Common questions</h2>
-      <div className="mt-2 divide-y divide-slate-100">{FAQ.map(([q, a]) => <details key={q} className="group py-2.5">
-        <summary className="text-sm font-medium text-slate-800 marker:text-brand-600">{q}</summary>
-        <p className="mt-1.5 text-sm text-slate-600">{a}</p>
+      <h2 className="flex items-center gap-2 font-medium text-slate-900"><FileUp size={17} className="text-brand-600" /> {L(['Common questions', 'आम सवाल'])}</h2>
+      <div className="mt-2 divide-y divide-slate-100">{FAQ.map(([q, a]) => <details key={q[0]} className="group py-2.5">
+        <summary className="text-sm font-medium text-slate-800 marker:text-brand-600">{L(q)}</summary>
+        <p className="mt-1.5 text-sm text-slate-600">{L(a)}</p>
       </details>)}</div>
     </section>
   </div>
