@@ -39,7 +39,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 Upload the document nobody has seen. Whatever happens, explain it: confident fields pass, uncertain ones are flagged, nothing is silently guessed.
 
 ## Numbers to quote
-From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **82.9% field accuracy, 16.3% of fields flagged for a human, 95.7% precision on unflagged fields, 7/7 auto-accepted documents fully correct, median CER 11.3%**. Weakest case: phone photos (58.6%).
+From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **84.4% field accuracy, 21.8% of fields flagged for a human, 96.2% precision on unflagged fields, 3/3 auto-accepted documents fully correct, median CER 11.1%**, on real LGD village names. Weakest case: phone photos (43.9%).
 
 ## Honest answers to likely questions
 - **"What about blurred phone photos?"** The text is found but the letters are too blurred for the recogniser. We measured this: pages with a median OCR confidence below 0.2 produced no correct fields. So instead of guessing, the app asks the operator to retake the photo. A recognition model trained on real field photos is on the roadmap.

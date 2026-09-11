@@ -1,6 +1,6 @@
 """Fit the field-confidence calibrator on the dev split.
 
-    python eval/calibrate.py --split dev [--target-precision 0.98]
+    python eval/calibrate.py --split dev [--target-precision 0.95]
 
 For every extracted field on the dev documents we know whether it was right (from
 ground truth). A logistic regression learns P(correct | features) and the
@@ -32,7 +32,7 @@ from evaluate import field_correct, scalar_fields  # noqa: E402
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", default="dev")
-    ap.add_argument("--target-precision", type=float, default=0.98)
+    ap.add_argument("--target-precision", type=float, default=0.95)
     args = ap.parse_args()
 
     from sklearn.linear_model import LogisticRegression

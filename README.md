@@ -23,21 +23,21 @@ flowchart LR
 
 ## Results
 
-Measured on 40 **held-out** synthetic documents (`test` split). The confidence model and threshold were fitted on a separate `dev` split. Reproduce with `python eval/evaluate.py --split test`; the full table is in [eval/results/test.md](eval/results/test.md).
+Measured on 40 **held-out** synthetic documents (`test` split) whose places come from the official LGD village directory. The confidence model and threshold (95% target precision) were fitted on a separate `dev` split. Reproduce with `python eval/evaluate.py --split test`; the full table is in [eval/results/test.md](eval/results/test.md).
 
 | Metric | Held-out test | Dev (tuning split) |
 | --- | --- | --- |
-| Field accuracy (all 15 fields) | **82.9%** | 89.4% |
-| Required-field accuracy | 83.2% | 86.8% |
-| Character error rate, median / mean | 11.3% / 16.7% | 11.8% / 16.5% |
-| Fields flagged for a human | **16.3%** | 15.0% |
-| Precision of fields *not* flagged | **95.7%** | 99.1% |
-| Auto-accepted documents with every required field correct | **100%** (7 of 7) | 100% (13 of 13) |
-| Documents needing a human look | 82.5% | 67.5% |
+| Field accuracy (all 15 fields) | **84.4%** | 83.0% |
+| Required-field accuracy | 83.6% | 81.1% |
+| Character error rate, median / mean | 11.1% / 15.7% | 12.1% / 16.3% |
+| Fields flagged for a human | **21.8%** | 30.2% |
+| Precision of fields *not* flagged | **96.2%** | 97.0% |
+| Auto-accepted documents with every required field correct | **100%** (3 of 3) | 100% (5 of 5) |
+| Documents needing a human look | 92.5% | 87.5% |
 
-By document type (test): English Record of Rights 97.3%, scanner-quality pages 92.3%, clean pages 88.0%, old faded paper 84.4%, handwritten entries 75.4%, Khatauni tables 70.5%, **phone photos 58.6%** (the weakest case). For photos the text is located correctly but the recogniser can't read blurred strokes. Rather than guess, the page quality check tells the operator to retake the photo.
+By document type (test): English Record of Rights 94.6%, clean pages 97.2%, old faded paper 94.4%, scanner-quality pages 85.9%, Khatauni tables 82.4%, handwritten entries 67.7%, **phone photos 43.9%** (the weakest case). For photos the text is located correctly but the recogniser can't read blurred strokes. Rather than guess, the page quality check tells the operator to retake the photo.
 
-Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the drop from dev to test is real: the label rules were tuned by looking at dev errors, so the test split is the honest number. OCR changes are A/B-tested before adoption; two that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
+Two things to read from this. First, the verifier checks about 1 field in 5 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
 
 **Multi-owner Khataunis** (separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 5 of 7 multi-owner documents, 11 of 18 parcel rows in multi-row tables recovered. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
 
