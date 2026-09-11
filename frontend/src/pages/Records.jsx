@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet'
-import { Map as MapIcon, Send } from 'lucide-react'
+import { Map as MapIcon, Search, Send } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth'
 import { Empty, EmptyState, ErrorNote, PageHeader, SkeletonRows } from '../components/ui'
 import { LAND_CLASSES } from '../constants'
 import { useToast } from '../components/toast'
+import { useT } from '../i18n'
 
 function FitBounds({ data, focus }) {
   const map = useMap()
@@ -33,6 +34,8 @@ export default function Records() {
   const [dilrmp, setDilrmp] = useState(null)
   const [error, setError] = useState(null)
   const [pushing, setPushing] = useState(null)
+  const [query, setQuery] = useState('')
+  const { t } = useT()
 
   const load = () => Promise.all([api.lrmsRecords({ limit: 200 }), api.parcels(), api.dilrmp()])
     .then(([r, g, d]) => { setRecs(r.records); setGeo(g); setDilrmp(d) }).catch(setError)
@@ -53,11 +56,14 @@ export default function Records() {
   if (error) return <ErrorNote error={error} />
   if (!recs) return <div className="space-y-4"><PageHeader title="Digitized records & GIS" /><div className="card"><SkeletonRows cols={7} /></div></div>
 
+  const q = query.trim().toLowerCase()
+  const shown = !q ? recs : recs.filter((r) => [r.account.khata_no, r.parcel?.khasra_no, r.location.village, r.location.district,
+    ...(r.parcels || []).map((p) => p.khasra_no), ...r.account.owners.map((o) => o.name)].some((v) => String(v || '').toLowerCase().includes(q)))
   return <div className="space-y-4">
-    <PageHeader title="Digitized records & GIS" subtitle="Verified records in LRMS exchange format, parcel map, and DILRMP progress report" />
+    <PageHeader title={t('Records & GIS')} subtitle={t('Verified records in LRMS exchange format, parcel map, and DILRMP progress report')} />
     <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
       <div className="card overflow-hidden">
-        <div className="border-b border-slate-100 px-4 py-2 text-xs text-slate-500">Parcel map · geometry is synthetic in this prototype (placed near district HQ, sized by area)</div>
+        <div className="border-b border-slate-100 px-4 py-2 text-xs text-slate-500">{t('Parcel map')} · {t('geometry is synthetic in this prototype (placed near district HQ, sized by area)')}</div>
         <div className="h-96">
           <MapContainer center={[25.5, 80]} zoom={5} className="h-full w-full" scrollWheelZoom>
             <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -81,7 +87,7 @@ export default function Records() {
         </div>
       </div>
       <div className="card p-4">
-        <div className="font-medium">DILRMP progress report</div>
+        <div className="font-medium">{t('DILRMP progress report')}</div>
         <div className="text-xs text-slate-500 mb-3">GET /api/integration/dilrmp/progress</div>
         {dilrmp?.states.length ? dilrmp.states.map((s) => <div key={s.state} className="mb-3">
           <div className="flex justify-between text-sm font-medium"><span>{s.state}</span><span className="tabular-nums">{s.digitized}/{s.documents_received} · {s.progress_pct}%</span></div>
@@ -93,11 +99,15 @@ export default function Records() {
     </div>
 
     <div className="card">
-      <div className="border-b border-slate-100 px-4 py-3 font-medium">Land records ({recs.length})</div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+        <div className="font-medium">{t('Land records')} ({shown.length}{query && ` / ${recs.length}`})</div>
+        <div className="relative w-full sm:w-72"><Search size={15} className="absolute left-3 top-2.5 text-slate-500" />
+          <input className="input pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Owner, khata, khasra or village')} aria-label={t('Search records')} /></div>
+      </div>
       {recs.length === 0 ? <EmptyState icon={MapIcon} title="No verified records yet">A record is created when a verifier approves a document, or when a document passes every check on its own.</EmptyState> :
         <div className="table-wrap"><table className="data">
-          <thead><tr><th>#</th><th>Owner</th><th>Khata</th><th>Khasra</th><th>Area</th><th>Class</th><th>Village / District</th><th>Verified</th><th>LRMS</th><th /></tr></thead>
-          <tbody>{recs.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
+          <thead><tr><th>#</th><th>{t('Owner')}</th><th>{t('Khata')}</th><th>{t('Khasra')}</th><th>{t('Area')}</th><th>{t('Class')}</th><th>{t('Village / District')}</th><th>{t('Verified')}</th><th>LRMS</th><th /></tr></thead>
+          <tbody>{shown.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
             <td className="tabular-nums text-slate-500"><button className="hover:underline" onClick={() => setParams({ focus: r.record_id })}>{r.record_id}</button></td>
             <td className="font-medium">{r.account.owners[0].name}<div className="text-xs font-normal text-slate-500">{r.account.owners[0].father_or_husband}</div>
               {r.account.owners.length > 1 && <div className="text-xs font-normal text-brand-700" title={r.account.owners.slice(1).map((o) => o.name).join(', ')}>
