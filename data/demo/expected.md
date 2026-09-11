@@ -117,3 +117,61 @@ form_bilingual · scan · handwritten=True
 | mutation_date | 11/05/2006 |
 | registration_number | 2022/47284 |
 | registration_date | 04/02/2004 |
+
+## 07-sideways-photo.jpg
+Same record as 01, photographed sideways: the pipeline turns it upright (`rotate90`).
+
+| Field | Expected |
+| --- | --- |
+| owner_name | Gopal Lal Tiwari |
+| khata_number | 00256 |
+| khasra_number | 1521/9 |
+| survey_number | 26/2 |
+| plot_area | 0.77 hectare (0.77 ha) |
+| land_classification | barren |
+| village | Ratibad |
+| tehsil | Huzur |
+| district | Bhopal |
+| state | Madhya Pradesh |
+| registration_number | 1998/51514 |
+| registration_date | 19/06/2015 |
+
+## 08-born-digital.pdf
+Exported by a portal (real text inside): read from the text layer in about a second, no OCR.
+
+| Field | Expected |
+| --- | --- |
+| owner_name | भरत कुमार मौर्य |
+| father_name | कृष्ण चंद्र मौर्य |
+| khata_number | 1333 |
+| khasra_number | 637 |
+| plot_area | 3.787 hectare (3.787 ha) |
+| land_classification | orchard |
+| village | Achhnera |
+| tehsil | Kiraoli |
+| district | Agra |
+| state | Uttar Pradesh |
+| registration_number | 1999/84495 |
+| registration_date | 13/06/2012 |
+| owners | भरत कुमार मौर्य (s/o कृष्ण चंद्र मौर्य) |
+| parcels | 637 = 3.787 hectare, orchard |
+
+## 09-multi-owner-khatauni.jpg
+One khata, 3 co-owners and 3 khasra rows.
+
+| Field | Expected |
+| --- | --- |
+| owner_name | मीना मीणा |
+| father_name | प्रकाश चंद्र मीणा |
+| khata_number | 3 |
+| khasra_number | 445/9 |
+| plot_area | 2.453 hectare (2.453 ha) |
+| land_classification | orchard |
+| village | Karanpur |
+| tehsil | Mohanlalganj |
+| district | Lucknow |
+| state | Uttar Pradesh |
+| registration_number | 2014/40702 |
+| registration_date | 28/04/1995 |
+| owners | मीना मीणा (s/o प्रकाश चंद्र मीणा); कृष्ण प्रसाद मीणा (s/o सुनील प्रसाद मीणा); रेखा मीणा (s/o भरत मीणा) |
+| parcels | 445/9 = 2.453 hectare, orchard; 1684/9 = 3.99 hectare, barren; 1377 = 2.548 hectare, barren |
