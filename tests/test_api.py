@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from backend.api.main import app
 
 RECORD = ["RECORD OF RIGHTS - EXTRACT (Khatauni)",
-          "Village : Nigoha    Tehsil : Mohanlalganj",
+          "Village : Nigohan    Tehsil : Mohanlalganj",
           "District : Lucknow    State : Uttar Pradesh",
           "Name of Landowner : Ram Prasad Sharma",
           "Father's Name : Mohan Lal Sharma",
@@ -70,7 +70,7 @@ def test_full_flow(client):
     assert doc["pages"][0]["quality"]["verdict"] == "good"
     f = {x["name"]: x["value"] for x in doc["fields"]}
     assert f["owner_name"] == "Ram Prasad Sharma" and f["khata_number"] == "00245" and f["khasra_number"] == "123/2"
-    assert (f["village"], f["tehsil"], f["district"], f["state"]) == ("Nigoha", "Mohanlalganj", "Lucknow", "Uttar Pradesh")
+    assert (f["village"], f["tehsil"], f["district"], f["state"]) == ("Nigohan", "Mohanlalganj", "Lucknow", "Uttar Pradesh")
 
     listing = client.get("/api/documents", headers=op).json()
     assert sum(listing["counts"].values()) == listing["total"] >= 1 and doc["status"] in listing["counts"]

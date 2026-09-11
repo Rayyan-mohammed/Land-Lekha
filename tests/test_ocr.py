@@ -85,7 +85,7 @@ def test_digital_pdf_is_read_without_ocr():
 
     doc = fitz.open()
     page = doc.new_page(width=595, height=842)
-    lines = ["RECORD OF RIGHTS - EXTRACT", "Village : Nigoha    Tehsil : Mohanlalganj", "District : Lucknow    State : Uttar Pradesh",
+    lines = ["RECORD OF RIGHTS - EXTRACT", "Village : Nigohan    Tehsil : Mohanlalganj", "District : Lucknow    State : Uttar Pradesh",
              "Name of Landowner : Ram Prasad Sharma", "Khata No. : 00245", "Khasra No. : 123/2", "Area : 0.412 Hectare"]
     for i, text in enumerate(lines):
         page.insert_text((50, 80 + 30 * i), text, fontsize=12)
@@ -95,7 +95,7 @@ def test_digital_pdf_is_read_without_ocr():
     assert engine_mod._engines == loaded_before  # the OCR model was never needed
     f = {k: v["value"] for k, v in extract(ocr)["fields"].items()}
     assert f["owner_name"] == "Ram Prasad Sharma" and f["khata_number"] == "00245" and f["khasra_number"] == "123/2"
-    assert (f["village"], f["district"]) == ("Nigoha", "Lucknow")
+    assert (f["village"], f["district"]) == ("Nigohan", "Lucknow")
 
 
 def _ruled_table():
