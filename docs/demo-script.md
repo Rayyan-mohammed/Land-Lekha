@@ -24,6 +24,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 ## 3. What the machine decided (2 min) — log in as `verifier`
 - The born-digital PDF (`08`) is **auto-accepted**: every field passed validation above the calibrated threshold.
 - The English Record of Rights (`01`) needs **one field** checked (the father's name); everything else is trusted. Most documents land in between: a handful of flagged fields, not a full retype.
+- The **review queue** shows how many fields each document needs checked; switch it to **Fewest fields first** to clear quick ones, and the dashboard says exactly how many fields are waiting in all.
 - Open the handwritten form from the **review queue**:
   - Left: the cleaned, deskewed scan with a box on every field (green = confident, amber or red = check it).
   - Right: each value, the raw OCR text, and *why* it was flagged.
