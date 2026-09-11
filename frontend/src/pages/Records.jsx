@@ -45,16 +45,16 @@ export default function Records() {
     setPushing(id)
     try {
       const r = await api.lrmsPush(id)
-      toast(`Record #${id} sent to LRMS`, { body: `Reference ${r.lrms_ref} (simulated acknowledgement)` })
+      toast(`${t('Record')} #${id} ${t('sent to LRMS')}`, { body: `${t('Reference')} ${r.lrms_ref} (${t('simulated acknowledgement')})` })
       await load()
-    } catch (e) { toast('LRMS push failed', { type: 'error', body: e.message }) } finally { setPushing(null) }
+    } catch (e) { toast(t('LRMS push failed'), { type: 'error', body: e.message }) } finally { setPushing(null) }
   }
   const style = useMemo(() => (f) => ({
     color: f.id === focus ? '#b91c1c' : '#0f3d3e', weight: f.id === focus ? 3 : 1.5, fillColor: '#f2c14e', fillOpacity: 0.45,
   }), [focus])
 
   if (error) return <ErrorNote error={error} />
-  if (!recs) return <div className="space-y-4"><PageHeader title="Digitized records & GIS" /><div className="card"><SkeletonRows cols={7} /></div></div>
+  if (!recs) return <div className="space-y-4"><PageHeader title={t('Records & GIS')} /><div className="card"><SkeletonRows cols={7} /></div></div>
 
   const q = query.trim().toLowerCase()
   const shown = !q ? recs : recs.filter((r) => [r.account.khata_no, r.parcel?.khasra_no, r.location.village, r.location.district,
@@ -112,8 +112,8 @@ export default function Records() {
           <div className="flex justify-between text-sm font-medium"><span>{s.state}</span><span className="tabular-nums">{s.digitized}/{s.documents_received} · {s.progress_pct}%</span></div>
           <div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-brand-600" style={{ width: `${s.progress_pct}%` }} /></div>
           {s.districts.map((d) => <div key={d.district} className="mt-1 flex justify-between pl-3 text-xs text-slate-600">
-            <span>{d.district}</span><span className="tabular-nums">{d.digitized}/{d.documents_received} digitized · {d.pending_verification} pending</span></div>)}
-        </div>) : <Empty>No data yet.</Empty>}
+            <span>{d.district}</span><span className="tabular-nums">{d.digitized}/{d.documents_received} {t('digitized')} · {d.pending_verification} {t('pending')}</span></div>)}
+        </div>) : <Empty>{t('No data yet.')}</Empty>}
       </div>
     </div>
 
@@ -127,7 +127,7 @@ export default function Records() {
             <Download size={15} /> CSV</button>
         </div>
       </div>
-      {recs.length === 0 ? <EmptyState icon={MapIcon} title="No verified records yet">A record is created when a verifier approves a document, or when a document passes every check on its own.</EmptyState> :
+      {recs.length === 0 ? <EmptyState icon={MapIcon} title={t('No verified records yet')}>{t('A record is created when a verifier approves a document, or when a document passes every check on its own.')}</EmptyState> :
         <div className="table-wrap"><table className="data">
           <thead><tr><th>#</th><th>{t('Owner')}</th><th>{t('Khata')}</th><th>{t('Khasra')}</th><th>{t('Area')}</th><th>{t('Class')}</th><th>{t('Village / District')}</th><th>{t('Verified')}</th><th>LRMS</th><th /></tr></thead>
           <tbody>{shown.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
@@ -141,11 +141,11 @@ export default function Records() {
             <td className="tabular-nums whitespace-nowrap">{r.parcel.area}{r.parcel.area_hectares != null && <div className="text-xs text-slate-500">{r.parcel.area_hectares} ha</div>}</td>
             <td className="text-xs">{LAND_CLASSES[r.parcel.land_class]?.split(' · ')[0] || '—'}</td>
             <td>{r.location.village}<div className="text-xs text-slate-500">{r.location.tehsil}, {r.location.district}</div></td>
-            <td><Link className="text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{r.provenance.verification === 'auto' ? 'auto' : 'human'} · doc #{r.provenance.source_document_id}</Link></td>
+            <td><Link className="text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{t(r.provenance.verification === 'auto' ? 'auto' : 'human')} · {t('doc')} #{r.provenance.source_document_id}</Link></td>
             <td>{r.lrms_ref ? <span className="text-xs font-mono text-ok">{r.lrms_ref}</span>
-              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id} onClick={() => push(r.record_id)}><Send size={13} /> Push</button>
-                : <span className="text-xs text-slate-500">not pushed</span>}</td>
-            <td><Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>Extract</Link></td>
+              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id} onClick={() => push(r.record_id)}><Send size={13} /> {t('Push')}</button>
+                : <span className="text-xs text-slate-500">{t('not pushed')}</span>}</td>
+            <td><Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>{t('Extract')}</Link></td>
           </tr>)}</tbody>
         </table></div>}
     </div>

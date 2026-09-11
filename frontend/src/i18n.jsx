@@ -179,6 +179,23 @@ const HI = {
   'Downloaded': 'डाउनलोड हुए',
   'records': 'अभिलेख',
   'Download these records as a spreadsheet (CSV)': 'ये अभिलेख स्प्रेडशीट (CSV) में डाउनलोड करें',
+  // records page
+  'No data yet.': 'अभी कोई आँकड़ा नहीं।',
+  'digitized': 'डिजिटल',
+  'pending': 'लंबित',
+  'No verified records yet': 'अभी कोई सत्यापित अभिलेख नहीं',
+  'A record is created when a verifier approves a document, or when a document passes every check on its own.':
+    'अभिलेख तब बनता है जब जाँचकर्ता दस्तावेज़ स्वीकृत करता है, या दस्तावेज़ हर जाँच अपने आप पास कर लेता है।',
+  'auto': 'स्वतः',
+  'human': 'जाँचकर्ता',
+  'doc': 'दस्तावेज़',
+  'Push': 'भेजें',
+  'not pushed': 'नहीं भेजा',
+  'Extract': 'नकल',
+  'sent to LRMS': 'LRMS को भेजा गया',
+  'Reference': 'संदर्भ',
+  'simulated acknowledgement': 'नकली पावती',
+  'LRMS push failed': 'LRMS को भेजना विफल',
 }
 
 const KEY = 'landlekha.lang'
