@@ -117,6 +117,7 @@ python eval/calibrate.py --split dev       # fits confidence model + threshold
 python eval/evaluate.py --split test       # report on held-out data
 python -m pytest tests -q                  # fast extraction tests (no OCR)
 python scripts/a11y_check.py               # axe accessibility audit of every screen, both languages (app running)
+cd frontend && npm test                    # frontend unit tests (Hindi/English wording helpers)
 ```
 
 `data/demo/` has six small committed files for the live demo, with expected answers in `data/demo/expected.md`. The script is [docs/demo-script.md](docs/demo-script.md).
