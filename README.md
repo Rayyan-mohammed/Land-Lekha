@@ -56,6 +56,10 @@ Every screen works in Hindi and English (one click in the sidebar): labels, revi
 | ![Verified extract with QR code](docs/screenshots/5-verified-extract.jpg) | ![Public check on a phone](docs/screenshots/6-public-check-phone.jpg) |
 | **Verified extract**: printable and bilingual, with a tamper-evident fingerprint and QR code | **Public check**: anyone scanning the QR sees, in English and Hindi, whether the paper still matches the record |
 
+**हिंदी में (in Hindi)**: the same review screen after one click on the language switch.
+
+![Review screen in Hindi](docs/screenshots/7-review-hindi.jpg)
+
 ## What maps to the problem statement
 
 | PS 26018 asks for | In LandLekha |
