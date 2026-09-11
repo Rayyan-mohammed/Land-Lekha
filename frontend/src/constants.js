@@ -39,3 +39,14 @@ export const STATUS = {
 }
 
 export const ROLE_LABEL = { operator: 'Operator', verifier: 'Verifier', admin: 'Administrator' }
+
+// document types from backend/extraction/labels.py DOC_TYPES, as [English, Hindi]
+export const DOC_TYPE = {
+  khatauni: ['Khatauni', 'खतौनी'], khasra_panchsala: ['Khasra Panchsala', 'खसरा पांचसाला'], jamabandi: ['Jamabandi', 'जमाबंदी'],
+  khatiyan: ['Khatiyan', 'खतियान'], record_of_rights: ['Record of Rights', 'अधिकार अभिलेख'], particulars_form: ['Particulars form', 'विवरण प्रपत्र'],
+  unknown: ['unknown type', 'अज्ञात प्रकार'],
+}
+export const docTypeLabel = (k, lang) => {
+  const pair = DOC_TYPE[k || 'unknown']
+  return pair ? pair[lang === 'hi' ? 1 : 0] : k.replaceAll('_', ' ')
+}

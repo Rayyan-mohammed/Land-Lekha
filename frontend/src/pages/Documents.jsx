@@ -3,11 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { FileUp, RefreshCw, Search } from 'lucide-react'
 import { api } from '../api'
 import { ConfidenceBar, EmptyState, ErrorNote, fmtDate, PageHeader, SkeletonRows, StatusBadge } from '../components/ui'
-import { STATUS } from '../constants'
+import { docTypeLabel, STATUS } from '../constants'
 import { useT } from '../i18n'
 
 export default function Documents() {
-  const { t } = useT()
+  const { t, lang } = useT()
   const [params, setParams] = useSearchParams()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -50,19 +50,30 @@ export default function Documents() {
         : data.items.length === 0 ? <EmptyState icon={FileUp} title={t(status || params.get('q') ? 'Nothing matches this filter' : 'No documents yet')}
           action={!status && !params.get('q') && <Link className="btn-primary" to="/upload"><FileUp size={16} /> {t('Upload land records')}</Link>}>
           {t(status || params.get('q') ? 'Try another status or search term.' : 'Scanned records you upload will appear here with their status and confidence.')}</EmptyState>
-          : <div className="table-wrap"><table className="data">
+          : <>
+          {/* phones: one tappable card per document instead of a wide table */}
+          <ul className="divide-y divide-slate-100 sm:hidden">{data.items.map((d) => <li key={d.id}>
+            <Link to={`/documents/${d.id}`} className="flex items-start gap-3 px-4 py-3 transition-colors duration-200 active:bg-slate-50">
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-medium text-brand-700">{d.filename}</div>
+                <div className="mt-0.5 text-xs text-slate-500">#{d.id} · {d.document_type ? docTypeLabel(d.document_type, lang) : '—'} · {d.district || '—'}</div>
+                <div className="mt-1.5 flex items-center gap-3"><ConfidenceBar value={d.overall_confidence} /><span className="text-xs text-slate-500">{fmtDate(d.created_at)}</span></div>
+              </div>
+              <StatusBadge status={d.status} />
+            </Link></li>)}</ul>
+          <div className="table-wrap hidden sm:block"><table className="data">
             <thead><tr><th>#</th><th>{t('File')}</th><th>{t('Type')}</th><th>{t('District')}</th><th>{t('Status')}</th><th>{t('Confidence')}</th><th>{t('Time')}</th><th>{t('Uploaded')}</th></tr></thead>
             <tbody>{data.items.map((d) => <tr key={d.id}>
               <td className="text-slate-500 tabular-nums">{d.id}</td>
               <td><Link to={`/documents/${d.id}`} className="font-medium text-brand-700 hover:underline">{d.filename}</Link></td>
-              <td className="text-slate-600">{d.document_type?.replaceAll('_', ' ') || '—'}</td>
+              <td className="text-slate-600">{d.document_type ? docTypeLabel(d.document_type, lang) : '—'}</td>
               <td>{d.district || '—'}{d.state && <span className="text-slate-500"> · {d.state}</span>}</td>
               <td><StatusBadge status={d.status} /></td>
               <td><ConfidenceBar value={d.overall_confidence} /></td>
               <td className="tabular-nums text-slate-600">{d.processing_ms ? `${(d.processing_ms / 1000).toFixed(1)} s` : '—'}</td>
               <td className="text-slate-500 whitespace-nowrap">{fmtDate(d.created_at)}</td>
             </tr>)}</tbody>
-          </table></div>}
+          </table></div></>}
       {pages > 1 && <div className="flex items-center justify-end gap-2 p-3 text-sm">
         <button className="btn-outline py-1" disabled={page <= 1} onClick={() => set('page', page - 1)}>{t('Previous')}</button>
         <span className="text-slate-500">{t('Page')} {page} / {pages}</span>

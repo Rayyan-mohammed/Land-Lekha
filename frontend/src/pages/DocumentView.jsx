@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowLeft, Camera, Check, CheckCircle2, Copy, History, I
 import { api } from '../api'
 import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
-import { FIELDS, LAND_CLASSES } from '../constants'
+import { docTypeLabel, FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
 import { explainAdvice, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
@@ -17,15 +17,6 @@ const stepLabel = (s, lang) => {
   if (lang !== 'hi') return s
   const [k, n] = s.split(/[: ]/)
   return STEP_HI[k] ? `${STEP_HI[k]}${n ? ` ${n}` : ''}` : s
-}
-
-// document types from backend/extraction/labels.py DOC_TYPES
-const DOC_TYPE = { khatauni: ['Khatauni', 'खतौनी'], khasra_panchsala: ['Khasra Panchsala', 'खसरा पांचसाला'], jamabandi: ['Jamabandi', 'जमाबंदी'],
-  khatiyan: ['Khatiyan', 'खतियान'], record_of_rights: ['Record of Rights', 'अधिकार अभिलेख'], particulars_form: ['Particulars form', 'विवरण प्रपत्र'],
-  unknown: ['unknown type', 'अज्ञात प्रकार'] }
-const docTypeLabel = (k, lang) => {
-  const pair = DOC_TYPE[k || 'unknown']
-  return pair ? pair[lang === 'hi' ? 1 : 0] : k.replaceAll('_', ' ')
 }
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
