@@ -20,6 +20,8 @@ const HI = {
   'Password': 'पासवर्ड',
   'Signing in…': 'लॉग इन हो रहा है…',
   'Demo accounts': 'डेमो खाते',
+  'Read and check': 'पढ़ें और जाँचें',
+  'Verify': 'सत्यापित करें',
   // upload
   'Upload land records': 'भूमि अभिलेख अपलोड करें',
   'Scanned PDFs, images or phone photos · Hindi and English · printed or handwritten': 'स्कैन PDF, चित्र या मोबाइल फ़ोटो · हिंदी और अंग्रेज़ी · छपे या हस्तलिखित',
