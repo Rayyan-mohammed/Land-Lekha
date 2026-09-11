@@ -72,6 +72,11 @@ def test_full_flow(client):
     assert f["owner_name"] == "Ram Prasad Sharma" and f["khata_number"] == "00245" and f["khasra_number"] == "123/2"
     assert (f["village"], f["tehsil"], f["district"], f["state"]) == ("Nigohan", "Mohanlalganj", "Lucknow", "Uttar Pradesh")
 
+    # the review queue says how many fields each waiting document needs checked
+    queue = client.get("/api/review/queue", headers=ver).json()
+    assert all(isinstance(q["flagged"], int) and q["flagged"] >= 0 for q in queue)
+    assert (doc["status"] == "needs_review") == any(q["id"] == doc["id"] for q in queue)
+
     listing = client.get("/api/documents", headers=op).json()
     assert sum(listing["counts"].values()) == listing["total"] >= 1 and doc["status"] in listing["counts"]
     filtered = client.get("/api/documents", headers=op, params={"status": "failed"}).json()

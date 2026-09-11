@@ -2,15 +2,17 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.extraction import gazetteer
+from backend.extraction.confidence import default_threshold
 from backend.extraction.schema import FIELD_MAP, REQUIRED_FIELDS
 from backend.extraction.validate import PARSERS, Parsed, parse_area
 
 from .. import audit
 from ..auth import require
+from ..config import AUTO_ACCEPT_THRESHOLD
 from ..db import get_db
 from ..models import Correction, Document, ExtractedField, User, utcnow
 from ..processing import invalidate_memory, upsert_record
@@ -19,12 +21,29 @@ from ..schemas import DocumentSummary, VerifyIn
 router = APIRouter(prefix="/api", tags=["review"])
 
 
-@router.get("/review/queue", response_model=list[DocumentSummary])
+class QueueItem(DocumentSummary):
+    flagged: int = 0  # fields a verifier should look at: still pending, below the threshold or failing a rule
+
+
+@router.get("/review/queue", response_model=list[QueueItem])
 def queue(limit: int = 50, db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
-    """Documents waiting for a human, lowest confidence first."""
-    rows = db.scalars(select(Document).where(Document.status == "needs_review")
-                      .order_by(Document.overall_confidence.asc().nulls_first(), Document.created_at).limit(limit))
-    return list(rows)
+    """Documents waiting for a human, lowest confidence first, with how many fields each needs checked."""
+    docs = list(db.scalars(select(Document).where(Document.status == "needs_review")
+                           .order_by(Document.overall_confidence.asc().nulls_first(), Document.created_at).limit(limit)))
+    if not docs:
+        return []
+    thr = AUTO_ACCEPT_THRESHOLD or default_threshold()
+    counts = dict(db.execute(
+        select(ExtractedField.document_id, func.count())
+        .where(ExtractedField.document_id.in_([d.id for d in docs]), ExtractedField.status == "pending",
+               or_(ExtractedField.confidence < thr, ExtractedField.valid.is_(False)))
+        .group_by(ExtractedField.document_id)).all())
+    out = []
+    for d in docs:
+        item = QueueItem.model_validate(d)
+        item.flagged = counts.get(d.id, 0)
+        out.append(item)
+    return out
 
 
 def _reparse(name: str, value: str, state: str | None):

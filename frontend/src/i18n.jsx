@@ -330,6 +330,8 @@ export const HI = {
     'फ़ाइल 20 MB से बड़ी है। कम रिज़ॉल्यूशन पर स्कैन करें या PDF को हिस्सों में बाँटें।',
   'Your unsaved changes were restored': 'आपके बिना सहेजे बदलाव वापस लाए गए',
   'Review them and approve when ready.': 'उन्हें देखें और तैयार होने पर स्वीकृत करें।',
+  'to check': 'जाँचने हैं',
+  'To check': 'जाँचने हैं',
 }
 
 const KEY = 'landlekha.lang'
