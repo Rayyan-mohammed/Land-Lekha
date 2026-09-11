@@ -62,7 +62,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
   const low = f && f.status === 'pending' && (f.confidence < threshold || !f.valid)
   const reviewedTag = f && ['confirmed', 'corrected', 'rejected', 'auto'].includes(f.status) ? f.status : null
 
-  return <div ref={ref} onClick={() => onSelect(def.name)}
+  return <div ref={ref} data-field-row={def.name} onClick={() => onSelect(def.name)}
     className={`px-4 py-3 border-b border-slate-100 cursor-pointer ${selected ? 'bg-brand-50' : low ? 'bg-amber-50/50' : ''}`}>
     <div className="flex items-center justify-between gap-2">
       <div className="text-xs font-medium text-slate-500">
@@ -124,6 +124,14 @@ export default function DocumentView() {
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [trail, setTrail] = useState(null)
+  const [left, setLeft] = useState(null)
+  const keyRef = useRef(null)
+  // one listener for the page; it always calls the latest handler (set below, after data loads)
+  useEffect(() => {
+    const h = (e) => keyRef.current?.(e)
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [])
 
   const load = () => api.document(id).then((d) => { setDoc(d); setError(null) }).catch(setError)
   useEffect(() => { setDoc(null); setDecisions({}); setNote(''); setTrail(null); load() }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -136,6 +144,10 @@ export default function DocumentView() {
   const byName = useMemo(() => Object.fromEntries((doc?.fields || []).map((f) => [f.name, f])), [doc])
   const threshold = doc?.threshold ?? 0.8
   const editable = doc && can('verifier') && ['needs_review', 'auto_accepted'].includes(doc.status)
+  useEffect(() => {
+    if (!editable) return
+    api.queue().then((q) => setLeft(q.filter((d) => d.id !== doc.id).length)).catch(() => {})
+  }, [editable, doc?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (error) return <ErrorNote error={error} />
   if (!doc) return <div className="flex justify-center p-16"><Spinner /></div>
@@ -155,10 +167,27 @@ export default function DocumentView() {
         const q = await api.queue().catch(() => [])
         const next = q.find((d) => d.id !== doc.id)
         if (next) return nav(`/documents/${next.id}`)
+        if (decision === 'approve') toast(t('All clear'), { type: 'info', body: 'The review queue is empty. Nice work.' })
       }
       setDecisions({})
       await load()
     } catch (e) { setError(e); toast('Could not save the review', { type: 'error', body: e.message }) } finally { setBusy(false) }
+  }
+  // keyboard: arrows/j/k move, Enter confirm, X reject, E edit, Ctrl+Enter approve
+  const present = FIELDS.filter((d) => byName[d.name] || editable).map((d) => d.name)
+  keyRef.current = (e) => {
+    if (!editable || busy) return
+    const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit('approve'); return }
+    if (typing) { if (e.key === 'Escape') document.activeElement.blur(); return }
+    const i = present.indexOf(selected)
+    const move = (d) => { e.preventDefault(); setSelected(present[Math.min(present.length - 1, Math.max(0, (i < 0 ? -1 : i) + d))]) }
+    if (e.key === 'ArrowDown' || e.key === 'j') return move(1)
+    if (e.key === 'ArrowUp' || e.key === 'k') return move(-1)
+    if (!selected) return
+    if (e.key === 'Enter' && byName[selected]) { e.preventDefault(); setDecision(selected, decisions[selected]?.action === 'confirm' ? null : { action: 'confirm' }) }
+    else if ((e.key === 'x' || e.key === 'X') && byName[selected]) { e.preventDefault(); setDecision(selected, decisions[selected]?.action === 'reject' ? null : { action: 'reject' }) }
+    else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); document.querySelector(`[data-field-row="${selected}"] input, [data-field-row="${selected}"] select`)?.focus() }
   }
   const loadTrail = () => api.audit({ entity_type: 'document', entity_id: doc.id }).then((r) => setTrail(r.items)).catch(setError)
 
@@ -243,8 +272,13 @@ export default function DocumentView() {
             <textarea className="input" rows={2} placeholder={t('Note for the audit trail (optional)')} value={note} onChange={(e) => setNote(e.target.value)} />
             <ErrorNote error={error} />
             <div className="flex gap-2">
-              <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> {t('Approve record')}</button>
+              <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> {t('Approve record')}{left > 0 && <span className="font-normal opacity-80"> · {left} {t('left')}</span>}</button>
               <button className="btn-danger" disabled={busy} onClick={() => submit('reject')}><X size={16} /> {t('Reject')}</button>
+            </div>
+            <div className="hidden flex-wrap gap-x-3 text-[11px] text-slate-500 lg:flex" aria-label="keyboard shortcuts">
+              <span><kbd className="kbd">↑</kbd><kbd className="kbd">↓</kbd> {t('move')}</span><span><kbd className="kbd">Enter</kbd> {t('confirm')}</span>
+              <span><kbd className="kbd">X</kbd> {t('reject field')}</span><span><kbd className="kbd">E</kbd> {t('edit')}</span>
+              <span><kbd className="kbd">Ctrl</kbd>+<kbd className="kbd">Enter</kbd> {t('approve')}</span>
             </div>
             <div className="text-[11px] text-slate-500">{t('Unmarked fields are confirmed as shown. Corrections are remembered and applied to future documents.')}</div>
           </div>}
