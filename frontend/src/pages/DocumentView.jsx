@@ -8,6 +8,7 @@ import { docTypeLabel, FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
 import { explainAdvice, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
+import { getQueueOrder, sortQueue } from '../queue'
 
 // preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
 const STEP_HI = { grayscale: 'धूसर', resize: 'आकार बदला', page_crop: 'पन्ना काटा', illumination: 'रोशनी समतल', rotate90: '90° घुमाया',
@@ -212,7 +213,8 @@ export default function DocumentView() {
           type: decision === 'approve' ? 'success' : 'info' })
       if (can('verifier')) {
         const q = await api.queue().catch(() => [])
-        const next = q.find((d) => d.id !== doc.id)
+        // the next document in the order the verifier chose on the queue page
+        const next = sortQueue(q, getQueueOrder()).find((d) => d.id !== doc.id)
         if (next) return nav(`/documents/${next.id}`)
         if (decision === 'approve') toast(t('All clear'), { type: 'info', body: t('The review queue is empty. Nice work.') })
       }
