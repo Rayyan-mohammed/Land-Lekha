@@ -66,6 +66,38 @@ def test_upright_confident_page_costs_nothing():
     assert not did and eng.recognized == 1  # no second recognition pass
 
 
+def test_text_layer_accepts_real_text_and_rejects_legacy_font_gibberish():
+    from backend.ocr.pipeline import text_layer_usable
+    hindi = "खातेदार का नाम : राम प्रसाद खाता संख्या 00245 खसरा संख्या 123/2 ग्राम रामपुर तहसील सदर जिला लखनऊ".split()
+    assert text_layer_usable(hindi)
+    english = "Name of Landowner Ram Prasad Khata No 00245 Khasra No 123/2 Village Rampur Tehsil Sadar District".split()
+    assert text_layer_usable(english)
+    kruti_dev = "[kkrsnkj dk uke jke izlkn [kkrk la[;k 00245 [kljk la[;k xzke jkeiqj rglhy lnj ftyk y[kuÅ".split()
+    assert not text_layer_usable(kruti_dev)   # pre-Unicode Hindi font: must go to OCR
+    assert not text_layer_usable(["Village", "Rampur"])  # too little text (e.g. a scan's stray layer)
+
+
+def test_digital_pdf_is_read_without_ocr():
+    import fitz
+    from backend.extraction.extractor import extract
+    from backend.ocr import engine as engine_mod
+    from backend.ocr.pipeline import run_ocr
+
+    doc = fitz.open()
+    page = doc.new_page(width=595, height=842)
+    lines = ["RECORD OF RIGHTS - EXTRACT", "Village : Nigoha    Tehsil : Mohanlalganj", "District : Lucknow    State : Uttar Pradesh",
+             "Name of Landowner : Ram Prasad Sharma", "Khata No. : 00245", "Khasra No. : 123/2", "Area : 0.412 Hectare"]
+    for i, text in enumerate(lines):
+        page.insert_text((50, 80 + 30 * i), text, fontsize=12)
+    loaded_before = dict(engine_mod._engines)
+    ocr = run_ocr(doc.tobytes(), "digital.pdf")
+    assert ocr["engine"] == "pdf-text" and ocr["pages"][0]["preprocess"]["steps"] == ["pdf_text_layer"]
+    assert engine_mod._engines == loaded_before  # the OCR model was never needed
+    f = {k: v["value"] for k, v in extract(ocr)["fields"].items()}
+    assert f["owner_name"] == "Ram Prasad Sharma" and f["khata_number"] == "00245" and f["khasra_number"] == "123/2"
+    assert (f["village"], f["district"]) == ("Nigoha", "Lucknow")
+
+
 def _tokens(conf, n=20, height=30):
     return [{"text": "t", "confidence": conf, "bbox": [0, 0, 50, height]} for _ in range(n)]
 
