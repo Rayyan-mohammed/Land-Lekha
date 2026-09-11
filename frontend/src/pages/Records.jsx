@@ -53,6 +53,19 @@ export default function Records() {
       await load()
     } catch (e) { toast(t('LRMS push failed'), { type: 'error', body: e.message }) } finally { setPushing(null) }
   }
+  // send every listed record that is not yet in LRMS, one after another, with one summary at the end
+  const pushAll = async (rows) => {
+    setPushing('all')
+    let sent = 0
+    for (const r of rows) {
+      try { await api.lrmsPush(r.record_id); sent += 1 } catch { /* counted below as not sent */ }
+    }
+    toast(`${sent} ${t('records sent to LRMS')}`, sent === rows.length
+      ? { body: t('simulated acknowledgement') }
+      : { type: 'error', body: `${rows.length - sent} ${t('could not be sent')}` })
+    await load()
+    setPushing(null)
+  }
   const style = useMemo(() => (f) => ({
     color: f.id === focus ? '#b91c1c' : '#0f3d3e', weight: f.id === focus ? 3 : 1.5, fillColor: '#f2c14e', fillOpacity: 0.45,
   }), [focus])
@@ -134,6 +147,9 @@ export default function Records() {
             className={`min-h-9 rounded-full border px-3 text-xs font-medium transition-colors duration-200 ${onlyUnpushed
               ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-brand-500 hover:text-brand-700'}`}>
             {t('Not sent to LRMS')}</button>
+          {onlyUnpushed && can('verifier') && shown.some((r) => !r.lrms_ref) &&
+            <button className="btn-primary" disabled={pushing != null} onClick={() => pushAll(shown.filter((r) => !r.lrms_ref))}>
+              <Send size={15} /> {pushing === 'all' ? t('Sending…') : `${t('Send all to LRMS')} (${shown.filter((r) => !r.lrms_ref).length})`}</button>}
           <button className="btn-outline" onClick={downloadCsv} disabled={!shown.length} title={t('Download these records as a spreadsheet (CSV)')}>
             <Download size={15} /> CSV</button>
         </div>
@@ -158,7 +174,7 @@ export default function Records() {
           </dl>
           <div className="mt-2.5 flex flex-wrap items-center gap-2">
             {r.lrms_ref ? <span className="text-xs font-mono text-ok">{r.lrms_ref}</span>
-              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id} onClick={() => push(r.record_id)}><Send size={13} /> {t('Push')}</button>
+              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id || pushing === 'all'} onClick={() => push(r.record_id)}><Send size={13} /> {t('Push')}</button>
                 : <span className="text-xs text-slate-500">{t('not pushed')}</span>}
             <Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>{t('Extract')}</Link>
             <Link className="ml-auto text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{t(r.provenance.verification === 'auto' ? 'auto' : 'human')} · {t('doc')} #{r.provenance.source_document_id}</Link>
@@ -179,7 +195,7 @@ export default function Records() {
             <td>{r.location.village}<div className="text-xs text-slate-500">{r.location.tehsil}, {r.location.district}</div></td>
             <td><Link className="text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{t(r.provenance.verification === 'auto' ? 'auto' : 'human')} · {t('doc')} #{r.provenance.source_document_id}</Link></td>
             <td>{r.lrms_ref ? <span className="text-xs font-mono text-ok">{r.lrms_ref}</span>
-              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id} onClick={() => push(r.record_id)}><Send size={13} /> {t('Push')}</button>
+              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id || pushing === 'all'} onClick={() => push(r.record_id)}><Send size={13} /> {t('Push')}</button>
                 : <span className="text-xs text-slate-500">{t('not pushed')}</span>}</td>
             <td><Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>{t('Extract')}</Link></td>
           </tr>)}</tbody>

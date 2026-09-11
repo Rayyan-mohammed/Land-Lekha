@@ -336,6 +336,10 @@ export const HI = {
   'Lowest confidence first': 'सबसे कम विश्वसनीयता पहले',
   'Fewest fields first': 'सबसे कम विवरण पहले',
   'Not sent to LRMS': 'LRMS को नहीं भेजे',
+  'Send all to LRMS': 'सभी LRMS को भेजें',
+  'Sending…': 'भेजा जा रहा है…',
+  'records sent to LRMS': 'अभिलेख LRMS को भेजे गए',
+  'could not be sent': 'नहीं भेजे जा सके',
   'field to check in all': 'विवरण कुल जाँचना है',
   'fields to check in all': 'विवरण कुल जाँचने हैं',
   'Documents with at least one uncertain field — fewest fields to check first':
