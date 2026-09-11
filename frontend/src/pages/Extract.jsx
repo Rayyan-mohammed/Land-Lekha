@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import QRCode from 'qrcode'
 import { Printer, ShieldCheck } from 'lucide-react'
 import { api } from '../api'
-import { ErrorNote, Spinner } from '../components/ui'
+import { ErrorNote, parseTs, Spinner } from '../components/ui'
 import { LAND_CLASSES } from '../constants'
 
 function Row({ label, hi, children }) {
@@ -77,7 +77,7 @@ export default function Extract() {
           <div className="flex items-center gap-1 font-medium text-slate-800"><ShieldCheck size={14} /> How this was verified</div>
           <div>{ex.verification === 'human' ? 'Checked and approved by a verifier' : 'Accepted automatically: every field passed validation'} ·
             source document #{ex.source_document_id}{ex.lrms_ref && ` · LRMS ${ex.lrms_ref}`}</div>
-          <div>Issued {new Date(ex.issued_at).toLocaleString()} by {ex.issued_by}</div>
+          <div>Issued {parseTs(ex.issued_at).toLocaleString()} by {ex.issued_by}</div>
         </div>
         <div>
           <div className="font-medium text-slate-800">Record fingerprint</div>

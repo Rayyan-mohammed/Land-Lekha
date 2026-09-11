@@ -134,8 +134,14 @@ export function useAuthImage(loader, deps) {
   return url
 }
 
+// The API stores times in UTC; SQLite drops the zone, so a bare "2026-09-11T16:25:00" is UTC, not local.
+export function parseTs(s) {
+  if (!s) return null
+  return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : `${s}Z`)
+}
+
 export function fmtDate(s) {
   if (!s) return '—'
-  const d = new Date(s)
+  const d = parseTs(s)
   return d.toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
