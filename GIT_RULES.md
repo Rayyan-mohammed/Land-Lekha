@@ -52,6 +52,42 @@ If attribution ever slips in, amend it out immediately before pushing:
 git commit --amend --reset-author --no-edit   # then re-edit message if a trailer is present
 ```
 
+### Never "X authored and Y committed" — one name per commit
+
+GitHub must show **one** person per commit ("lahari-66 committed"), never
+"lahari-66 authored and Mounika-Reddy-0802 committed". Author and committer are always the same person.
+
+How it goes wrong: `git pull --rebase` (and `rebase`, `amend`, `cherry-pick`) re-creates your
+commits, and the new *committer* is whatever identity is saved in git config, **not** the
+author. A one-off override like `git -c user.name=... commit` protects only that single commit,
+and the next rebase re-signs it with the saved identity.
+
+So:
+
+* Always set the identity **in the repo's git config** (`git config user.name/user.email`,
+  never `--global`) before working. Never rely on `-c` overrides.
+* Check after every pull and before every push. This must print nothing:
+
+  ```bash
+  git log -20 --format='%h|%an|%cn|%s' | awk -F'|' '$2!=$3'
+  ```
+
+  (or look at `git log --format='%h %an | %cn' -10`: both names must match on every line).
+* If a mixed commit slipped through and is not pushed yet, fix it with
+  `git commit --amend --reset-author --no-edit` (last commit) before pushing.
+
+### Switching members on a shared laptop
+
+When several members use the same laptop, one person commits a batch of about **6–7 commits**,
+then the laptop switches to the next member. Before switching, **ask the owner which member
+comes next**, then:
+
+```bash
+git config user.name "Next Member Name"
+git config user.email "ID+username@users.noreply.github.com"
+git config user.name && git config user.email   # confirm before the first commit
+```
+
 ---
 
 ## 2. One branch only: `main`
