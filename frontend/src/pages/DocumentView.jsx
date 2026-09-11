@@ -169,6 +169,31 @@ export default function DocumentView() {
     api.queue().then((q) => setLeft(q.filter((d) => d.id !== doc.id).length)).catch(() => {})
   }, [editable, doc?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Pending decisions are kept as a draft per document (for a day), so a reload, a closed tab or
+  // a click elsewhere does not throw away a verifier's corrections. Saving starts only after the
+  // saved draft has been read, so the reset on opening a document cannot wipe it first.
+  const draftKey = `landlekha.draft.${id}`
+  const restoredFor = useRef(null)
+  useEffect(() => {
+    if (!doc || String(doc.id) !== String(id) || restoredFor.current === id) return
+    restoredFor.current = id
+    if (!editable) return
+    try {
+      const saved = JSON.parse(localStorage.getItem(draftKey) || 'null')
+      if (saved && Date.now() - saved.at < 86400000 && Object.keys(saved.decisions || {}).length) {
+        setDecisions(saved.decisions)
+        toast(t('Your unsaved changes were restored'), { type: 'info', body: t('Review them and approve when ready.') })
+      }
+    } catch { /* storage blocked or an unreadable draft */ }
+  }, [doc, id]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (restoredFor.current !== id) return
+    try {
+      if (Object.keys(decisions).length) localStorage.setItem(draftKey, JSON.stringify({ at: Date.now(), decisions }))
+      else localStorage.removeItem(draftKey)
+    } catch { /* storage blocked */ }
+  }, [decisions]) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (error) return <ErrorNote error={error} />
   if (!doc) return <div className="flex justify-center p-16"><Spinner /></div>
 

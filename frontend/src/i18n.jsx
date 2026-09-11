@@ -328,6 +328,8 @@ export const HI = {
   'This file type is not supported. Use PDF, JPG, PNG or TIFF.': 'यह फ़ाइल प्रकार नहीं चलता। PDF, JPG, PNG या TIFF इस्तेमाल करें।',
   'File is larger than 20 MB. Scan at a lower resolution or split the PDF.':
     'फ़ाइल 20 MB से बड़ी है। कम रिज़ॉल्यूशन पर स्कैन करें या PDF को हिस्सों में बाँटें।',
+  'Your unsaved changes were restored': 'आपके बिना सहेजे बदलाव वापस लाए गए',
+  'Review them and approve when ready.': 'उन्हें देखें और तैयार होने पर स्वीकृत करें।',
 }
 
 const KEY = 'landlekha.lang'
