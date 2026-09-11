@@ -25,19 +25,24 @@ class QueueItem(DocumentSummary):
     flagged: int = 0  # fields a verifier should look at: still pending, below the threshold or failing a rule
 
 
+def flagged_counts(db: Session, doc_ids: list[int]) -> dict[int, int]:
+    """Per document, the fields a verifier should look at (the same rule as the review screen)."""
+    if not doc_ids:
+        return {}
+    thr = AUTO_ACCEPT_THRESHOLD or default_threshold()
+    return dict(db.execute(
+        select(ExtractedField.document_id, func.count())
+        .where(ExtractedField.document_id.in_(doc_ids), ExtractedField.status == "pending",
+               or_(ExtractedField.confidence < thr, ExtractedField.valid.is_(False)))
+        .group_by(ExtractedField.document_id)).all())
+
+
 @router.get("/review/queue", response_model=list[QueueItem])
 def queue(limit: int = 50, db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
     """Documents waiting for a human, lowest confidence first, with how many fields each needs checked."""
     docs = list(db.scalars(select(Document).where(Document.status == "needs_review")
                            .order_by(Document.overall_confidence.asc().nulls_first(), Document.created_at).limit(limit)))
-    if not docs:
-        return []
-    thr = AUTO_ACCEPT_THRESHOLD or default_threshold()
-    counts = dict(db.execute(
-        select(ExtractedField.document_id, func.count())
-        .where(ExtractedField.document_id.in_([d.id for d in docs]), ExtractedField.status == "pending",
-               or_(ExtractedField.confidence < thr, ExtractedField.valid.is_(False)))
-        .group_by(ExtractedField.document_id)).all())
+    counts = flagged_counts(db, [d.id for d in docs])
     out = []
     for d in docs:
         item = QueueItem.model_validate(d)

@@ -79,6 +79,7 @@ def test_full_flow(client):
 
     listing = client.get("/api/documents", headers=op).json()
     assert sum(listing["counts"].values()) == listing["total"] >= 1 and doc["status"] in listing["counts"]
+    assert all(isinstance(x["flagged"], int) for x in listing["items"])  # fields left to check, per document
     filtered = client.get("/api/documents", headers=op, params={"status": "failed"}).json()
     assert filtered["total"] == 0 and filtered["counts"] == listing["counts"]  # counts ignore the status filter
 

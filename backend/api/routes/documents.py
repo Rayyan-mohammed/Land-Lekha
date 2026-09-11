@@ -15,6 +15,7 @@ from ..db import get_db
 from ..models import Document, LandRecord, User
 from ..processing import enqueue
 from ..schemas import DocumentDetail, DocumentSummary
+from .review import flagged_counts
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -78,9 +79,10 @@ def list_documents(status_: str | None = Query(None, alias="status"), district: 
     if status_:
         stmt = stmt.where(Document.status.in_(status_.split(",")))
     total = db.scalar(select(func.count()).select_from(stmt.subquery()))
-    rows = db.scalars(stmt.order_by(Document.created_at.desc()).offset((page - 1) * page_size).limit(page_size))
+    rows = list(db.scalars(stmt.order_by(Document.created_at.desc()).offset((page - 1) * page_size).limit(page_size)))
+    flagged = flagged_counts(db, [d.id for d in rows])  # fields each document still needs checked
     return {"total": total, "page": page, "page_size": page_size, "counts": counts,
-            "items": [DocumentSummary.model_validate(d).model_dump(mode="json") for d in rows]}
+            "items": [{**DocumentSummary.model_validate(d).model_dump(mode="json"), "flagged": flagged.get(d.id, 0)} for d in rows]}
 
 
 @router.get("/{doc_id}", response_model=DocumentDetail)

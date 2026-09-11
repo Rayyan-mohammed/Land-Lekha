@@ -57,7 +57,8 @@ export default function Documents() {
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium text-brand-700">{d.filename}</div>
                 <div className="mt-0.5 text-xs text-slate-500">#{d.id} · {d.document_type ? docTypeLabel(d.document_type, lang) : '—'} · {d.district || '—'}</div>
-                <div className="mt-1.5 flex items-center gap-3"><ConfidenceBar value={d.overall_confidence} /><span className="text-xs text-slate-500">{fmtDate(d.created_at)}</span></div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1"><ConfidenceBar value={d.overall_confidence} /><span className="text-xs text-slate-500">{fmtDate(d.created_at)}</span>
+                  {d.status === 'needs_review' && d.flagged > 0 && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-warn">{d.flagged} {t('to check')}</span>}</div>
               </div>
               <StatusBadge status={d.status} />
             </Link></li>)}</ul>
@@ -68,7 +69,8 @@ export default function Documents() {
               <td><Link to={`/documents/${d.id}`} className="font-medium text-brand-700 hover:underline">{d.filename}</Link></td>
               <td className="text-slate-600">{d.document_type ? docTypeLabel(d.document_type, lang) : '—'}</td>
               <td>{d.district || '—'}{d.state && <span className="text-slate-500"> · {d.state}</span>}</td>
-              <td><StatusBadge status={d.status} /></td>
+              <td><StatusBadge status={d.status} />
+                {d.status === 'needs_review' && d.flagged > 0 && <div className="mt-0.5 text-xs text-warn">{d.flagged} {t('to check')}</div>}</td>
               <td><ConfidenceBar value={d.overall_confidence} /></td>
               <td className="tabular-nums text-slate-600">{d.processing_ms ? `${(d.processing_ms / 1000).toFixed(1)} s` : '—'}</td>
               <td className="text-slate-500 whitespace-nowrap">{fmtDate(d.created_at)}</td>
