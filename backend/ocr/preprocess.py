@@ -106,6 +106,22 @@ def estimate_skew(gray: np.ndarray, max_angle: float = 10.0) -> float:
     return round(float(best), 2)
 
 
+def _profile_sharpness(bw: np.ndarray, axis: int) -> float:
+    prof = bw.sum(axis=axis).astype(np.float64)
+    return float(np.sum(np.diff(prof) ** 2)) / (prof.sum() ** 2 + 1e-9) * len(prof)
+
+
+def is_sideways(gray: np.ndarray) -> bool:
+    """True when text lines run vertically (page photographed rotated by 90 degrees).
+
+    Horizontal text makes the row-ink profile sharply structured; on the dev set the
+    row/column ratio is >= 1.33 for upright pages and <= 0.75 for sideways ones."""
+    s = 800 / max(gray.shape)
+    small = cv2.resize(gray, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
+    bw = cv2.adaptiveThreshold(small, 1, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 25, 15)
+    return _profile_sharpness(bw, 1) / max(_profile_sharpness(bw, 0), 1e-9) < 1.0
+
+
 def rotate(gray: np.ndarray, angle: float) -> np.ndarray:
     h, w = gray.shape
     M = cv2.getRotationMatrix2D((w / 2, h / 2), angle, 1.0)
@@ -153,6 +169,11 @@ def preprocess(img: np.ndarray, *, do_binarize: bool = False) -> PreprocessResul
         steps.append("page_crop")
     gray = flatten_illumination(gray)
     steps.append("illumination")
+    if is_sideways(gray):
+        # direction is unknown here; an upside-down result is fixed after recognition
+        # (see pipeline.fix_upside_down)
+        gray = cv2.rotate(gray, cv2.ROTATE_90_CLOCKWISE)
+        steps.append("rotate90")
     angle = estimate_skew(gray)
     if abs(angle) >= 0.2:
         gray = rotate(gray, angle)

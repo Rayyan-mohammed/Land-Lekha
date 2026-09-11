@@ -39,6 +39,20 @@ class EasyOCREngine:
             # reads crops from the full-resolution image
             results = self._reader.readtext(gray, detail=1, paragraph=False, width_ths=0.7, text_threshold=0.6,
                                             canvas_size=DETECT_CANVAS, batch_size=16)
+        return self._tokens(results)
+
+    def sample_confidence(self, gray: np.ndarray, boxes: list[list[int]]) -> float:
+        """Mean recognition confidence on the given boxes only (no detection pass).
+        Cheap way to compare two orientations of the same page."""
+        if not boxes:
+            return 0.0
+        hl = [[b[0], b[2], b[1], b[3]] for b in boxes]  # easyocr wants x_min, x_max, y_min, y_max
+        with self._lock:
+            res = self._reader.recognize(gray, horizontal_list=hl, free_list=[], detail=1, batch_size=16)
+        return float(np.mean([r[2] for r in res])) if res else 0.0
+
+    @staticmethod
+    def _tokens(results) -> list[dict]:
         tokens = []
         for quad, text, conf in results:
             text = text.strip()
