@@ -24,6 +24,27 @@ def test_plot_ids_keep_suffix_and_repair_slash():
     assert parse_plot_id("810|5").value == "810/5"
 
 
+def test_plot_id_suffix_confusion_and_unreadable_sub_number():
+    assert parse_plot_id("1819/9स").value == "1819/9ख"
+    p = parse_plot_id("39/^")
+    assert p.value == "39" and not p.valid  # flagged, not silently trusted
+
+
+def test_area_without_decimal_point_is_recovered_or_flagged():
+    p = parse_area("089", unit_hint="acre")
+    assert p.normalized["value"] == 0.89 and "decimal point inferred" in p.issues
+    q = parse_area("183 bigha")
+    assert q.normalized["value"] == 183 and "no decimal point - check value" in q.issues and q.rule_score < 1
+    assert parse_area("5 bigha").issues == []  # small whole numbers are normal
+    assert parse_area("0.25", unit_hint=None, default_unit=None).normalized["unit"] == "hectare"
+
+
+def test_unit_word_with_one_misread_letter():
+    from backend.extraction.validate import find_unit
+    assert find_unit("(एझड") == "acre"
+    assert find_unit("(हेक्टेयर)") == "hectare"
+
+
 def test_dates_are_validated():
     assert parse_date("16/01/2008").value == "16/01/2008"
     assert parse_date("25/12|2006").value == "25/12/2006"

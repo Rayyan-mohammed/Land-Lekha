@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 
 from rapidfuzz import fuzz
+from rapidfuzz.distance import Levenshtein
 
 from . import names
 from .labels import AREA_UNIT_WORDS, LAND_CLASS_WORDS
@@ -53,11 +54,16 @@ def parse_plot_id(text: str) -> Parsed:
     parts = t.split()
     t = "".join(fix_digits(p) if not re.fullmatch(r"\d+/?\d*[A-Za-zकखगघ]", p) else p for p in parts)
     t = strip_separators(t)
+    # the suffix letter ख is often read as स (never a valid suffix) or रव
+    t = re.sub(r"(?<=\d)(स|रव)$", "ख", t)
     m = KHASRA_RE.fullmatch(t)
     if m:
         return Parsed(t, 1.0)
     m = KHASRA_RE.search(t)
     if m:
+        # "39/^": the sub-number after the slash is unreadable - don't silently drop it
+        if m.group(2) is None and t[m.end():m.end() + 1] == "/":
+            return Parsed(m.group(), 0.45, ["unreadable part after '/'"])
         return Parsed(m.group(), 0.65, ["extra characters around plot number"])
     return Parsed(None, 0.0, ["no plot number found"])
 
@@ -109,6 +115,14 @@ def find_unit(text: str) -> str | None:
                     return unit
             elif wk in key or fuzz.partial_ratio(wk, key) >= 88:
                 return unit
+    # one misread letter in a Devanagari unit word ("एझड" for "एकड़")
+    tokens = skeleton(key)[0].split()
+    for unit, words in AREA_UNIT_WORDS.items():
+        for w in words:
+            ws = skeleton(label_key(w))[0].strip()
+            if is_devanagari(ws) and len(ws) >= 3 and any(
+                    len(tok) == len(ws) and Levenshtein.distance(tok, ws) <= 1 for tok in tokens):
+                return unit
     return None
 
 
@@ -134,7 +148,19 @@ def parse_area(text: str, unit_hint: str | None = None, bigha_ha: float = 0.2529
             m = re.search(r"\d+", num_part)
             if not m:
                 return Parsed(None, 0.0, ["no area value found"])
-            value = float(m.group())
+            digits = m.group()
+            if len(digits) >= 2 and digits.startswith("0"):
+                # "089" can only be "0.89": the dot was lost
+                value = float(f"0.{digits[1:]}")
+                issues.append("decimal point inferred")
+                score = 0.75
+            else:
+                value = float(digits)
+                if value >= 10:
+                    # plot areas are almost always fractional; a large whole number usually
+                    # means the dot was lost ("183" for 18.3). Flag it rather than guess.
+                    issues.append("no decimal point - check value")
+                    score = 0.7
     unit = find_unit(num_part[m.end():]) or find_unit(t) or unit_hint
     if unit is None and default_unit:
         unit, score = default_unit, min(score, 0.75)
