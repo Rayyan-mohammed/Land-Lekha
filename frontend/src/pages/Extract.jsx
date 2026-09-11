@@ -31,6 +31,7 @@ export default function Extract() {
       setQr(await QRCode.toDataURL(window.location.origin + e.verify_path, { margin: 1, width: 180 }))
     }).catch(setError)
   }, [id])
+  useEffect(() => { if (ex) document.title = `${t('Extract')} #${ex.record.record_id} · LandLekha` }, [ex, t])
 
   if (error) return <ErrorNote error={error} />
   if (!ex) return <div className="flex justify-center p-16"><Spinner /></div>

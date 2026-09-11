@@ -138,6 +138,8 @@ export default function DocumentView() {
   const [doc, setDoc] = useState(null)
   const [error, setError] = useState(null)
   const [decisions, setDecisions] = useState({})
+  // the browser tab names the document, so several open reviews can be told apart
+  useEffect(() => { if (doc?.filename) document.title = `${doc.filename} · LandLekha` }, [doc?.filename])
   const [selected, setSelected] = useState(null)
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)

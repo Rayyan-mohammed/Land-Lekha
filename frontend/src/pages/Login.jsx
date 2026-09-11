@@ -41,6 +41,7 @@ export default function Login() {
   // in again returns the user to the page they were on
   const [expired] = useState(() => { try { return sessionStorage.getItem('landlekha.expired') === '1' } catch { return false } })
   useEffect(() => { try { sessionStorage.removeItem('landlekha.expired') } catch { /* storage blocked */ } }, [])
+  useEffect(() => { document.title = `${t('Sign in')} · LandLekha` }, [t])
 
   const signIn = async (u, p) => {
     setBusy(true)

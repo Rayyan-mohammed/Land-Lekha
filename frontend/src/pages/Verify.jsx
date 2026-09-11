@@ -21,6 +21,7 @@ export default function Verify() {
   useEffect(() => {
     api.publicVerify(id, params.get('fp') || '').then(setRes).catch(setError)
   }, [id, params])
+  useEffect(() => { document.title = 'Extract verification · अभिलेख सत्यापन · LandLekha' }, [])
 
   return <main className="min-h-full bg-slate-50 p-6">
     <div className="mx-auto max-w-lg">

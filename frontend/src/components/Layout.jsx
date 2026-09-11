@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BarChart3, CircleHelp, ClipboardCheck, FileStack, LogOut, Map, Menu, ScrollText, Upload, Users, X } from 'lucide-react'
 import { useAuth } from '../auth'
@@ -39,6 +39,10 @@ export default function Layout() {
   const { user, logout, can } = useAuth()
   const [open, setOpen] = useState(false)
   const items = NAV.filter((n) => can(...n.roles))
+  // name the browser tab after the screen; detail pages (a document, an extract) set their own
+  // title, and child effects run first, so only exact menu matches are handled here
+  const current = NAV.find((n) => n.to === location.pathname)
+  useEffect(() => { if (current) document.title = `${t(current.label)} · LandLekha` }, [current, t])
 
   const nav = <nav className="flex flex-col gap-1 p-3">
     {items.map(({ to, label, icon: Icon }) => (
