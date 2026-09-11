@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet'
-import { Map as MapIcon, Search, Send } from 'lucide-react'
+import { Download, Map as MapIcon, Search, Send } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth'
 import { Empty, EmptyState, ErrorNote, PageHeader, SkeletonRows } from '../components/ui'
@@ -59,6 +59,25 @@ export default function Records() {
   const q = query.trim().toLowerCase()
   const shown = !q ? recs : recs.filter((r) => [r.account.khata_no, r.parcel?.khasra_no, r.location.village, r.location.district,
     ...(r.parcels || []).map((p) => p.khasra_no), ...r.account.owners.map((o) => o.name)].some((v) => String(v || '').toLowerCase().includes(q)))
+
+  // the rows on screen (after search) as a spreadsheet; the BOM makes Excel read Hindi names correctly
+  const downloadCsv = () => {
+    const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const head = ['record', 'owners', 'father / husband', 'khata', 'khasra', 'area', 'area_ha', 'class', 'village', 'tehsil', 'district',
+      'verified by', 'source document', 'lrms ref']
+    const rows = shown.map((r) => [r.record_id, r.account.owners.map((o) => o.name).join('; '),
+      r.account.owners.map((o) => o.father_or_husband || '').join('; '), r.account.khata_no,
+      (r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join('; '), r.parcel.area, r.parcel.area_hectares,
+      r.parcel.land_class, r.location.village, r.location.tehsil, r.location.district, r.provenance.verification,
+      r.provenance.source_document_id, r.lrms_ref])
+    const csv = '﻿' + [head, ...rows].map((row) => row.map(cell).join(',')).join('\r\n')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+    a.download = `landlekha-records-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(a.href)
+    toast(t('Downloaded') + ` ${rows.length} ` + t('records'))
+  }
   return <div className="space-y-4">
     <PageHeader title={t('Records & GIS')} subtitle={t('Verified records in LRMS exchange format, parcel map, and DILRMP progress report')} />
     <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -101,8 +120,12 @@ export default function Records() {
     <div className="card">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <div className="font-medium">{t('Land records')} ({shown.length}{query && ` / ${recs.length}`})</div>
-        <div className="relative w-full sm:w-72"><Search size={15} className="absolute left-3 top-2.5 text-slate-500" />
-          <input className="input pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Owner, khata, khasra or village')} aria-label={t('Search records')} /></div>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          <div className="relative min-w-0 flex-1 sm:w-72 sm:flex-none"><Search size={15} className="absolute left-3 top-2.5 text-slate-500" />
+            <input className="input pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Owner, khata, khasra or village')} aria-label={t('Search records')} /></div>
+          <button className="btn-outline" onClick={downloadCsv} disabled={!shown.length} title={t('Download these records as a spreadsheet (CSV)')}>
+            <Download size={15} /> CSV</button>
+        </div>
       </div>
       {recs.length === 0 ? <EmptyState icon={MapIcon} title="No verified records yet">A record is created when a verifier approves a document, or when a document passes every check on its own.</EmptyState> :
         <div className="table-wrap"><table className="data">

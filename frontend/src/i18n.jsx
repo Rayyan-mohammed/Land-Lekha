@@ -175,6 +175,10 @@ const HI = {
   'Good image': 'चित्र अच्छा',
   'Fair image': 'चित्र औसत',
   'Poor image — retake': 'चित्र ख़राब — दोबारा लें',
+  // records export
+  'Downloaded': 'डाउनलोड हुए',
+  'records': 'अभिलेख',
+  'Download these records as a spreadsheet (CSV)': 'ये अभिलेख स्प्रेडशीट (CSV) में डाउनलोड करें',
 }
 
 const KEY = 'landlekha.lang'
