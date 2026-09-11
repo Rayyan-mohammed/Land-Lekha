@@ -295,6 +295,7 @@ const HI = {
   'Skip to content': 'मुख्य सामग्री पर जाएँ',
   'close menu': 'मेन्यू बंद करें',
   'Go to fields': 'विवरणों पर जाएँ',
+  'parcels': 'खसरे',
 }
 
 const KEY = 'landlekha.lang'

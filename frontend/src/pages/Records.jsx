@@ -35,7 +35,9 @@ export default function Records() {
   const [error, setError] = useState(null)
   const [pushing, setPushing] = useState(null)
   const [query, setQuery] = useState('')
-  const { t } = useT()
+  const { t, lang } = useT()
+  // LAND_CLASSES labels are "English · हिंदी"; show the half for the chosen language
+  const landClass = (k) => LAND_CLASSES[k]?.split(' · ')[lang === 'hi' ? 1 : 0] || '—'
 
   const load = () => Promise.all([api.lrmsRecords({ limit: 200 }), api.parcels(), api.dilrmp()])
     .then(([r, g, d]) => { setRecs(r.records); setGeo(g); setDilrmp(d) }).catch(setError)
@@ -127,8 +129,33 @@ export default function Records() {
             <Download size={15} /> CSV</button>
         </div>
       </div>
-      {recs.length === 0 ? <EmptyState icon={MapIcon} title={t('No verified records yet')}>{t('A record is created when a verifier approves a document, or when a document passes every check on its own.')}</EmptyState> :
-        <div className="table-wrap"><table className="data">
+      {recs.length === 0 ? <EmptyState icon={MapIcon} title={t('No verified records yet')}>{t('A record is created when a verifier approves a document, or when a document passes every check on its own.')}</EmptyState> : <>
+        {/* phones: one card per record, with its actions in reach instead of off-screen table columns */}
+        <ul className="divide-y divide-slate-100 sm:hidden">{shown.map((r) => <li key={r.record_id} className={`px-4 py-3 ${r.record_id === focus ? 'bg-amber-50' : ''}`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="font-medium text-slate-900">{r.account.owners[0].name}</div>
+              <div className="text-xs text-slate-500">{r.account.owners[0].father_or_husband}</div>
+              {r.account.owners.length > 1 && <div className="text-xs text-brand-700">+ {r.account.owners.slice(1).map((o) => o.name).join(', ')}</div>}
+            </div>
+            <button className="shrink-0 text-xs tabular-nums text-slate-500 hover:underline" onClick={() => setParams({ focus: r.record_id })}>#{r.record_id}</button>
+          </div>
+          <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+            <div><dt className="inline text-slate-500">{t('Khata')}: </dt><dd className="inline tabular-nums text-slate-800">{r.account.khata_no}</dd></div>
+            <div><dt className="inline text-slate-500">{t('Khasra')}: </dt><dd className="inline tabular-nums text-slate-800">{(r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join(', ')}</dd></div>
+            <div><dt className="inline text-slate-500">{t('Area')}: </dt><dd className="inline tabular-nums text-slate-800">{r.parcel.area}</dd></div>
+            <div><dt className="inline text-slate-500">{t('Class')}: </dt><dd className="inline text-slate-800">{landClass(r.parcel.land_class)}</dd></div>
+            <div className="col-span-2 text-slate-600">{r.location.village}, {r.location.tehsil}, {r.location.district}</div>
+          </dl>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {r.lrms_ref ? <span className="text-xs font-mono text-ok">{r.lrms_ref}</span>
+              : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id} onClick={() => push(r.record_id)}><Send size={13} /> {t('Push')}</button>
+                : <span className="text-xs text-slate-500">{t('not pushed')}</span>}
+            <Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>{t('Extract')}</Link>
+            <Link className="ml-auto text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{t(r.provenance.verification === 'auto' ? 'auto' : 'human')} · {t('doc')} #{r.provenance.source_document_id}</Link>
+          </div>
+        </li>)}</ul>
+        <div className="table-wrap hidden sm:block"><table className="data">
           <thead><tr><th>#</th><th>{t('Owner')}</th><th>{t('Khata')}</th><th>{t('Khasra')}</th><th>{t('Area')}</th><th>{t('Class')}</th><th>{t('Village / District')}</th><th>{t('Verified')}</th><th>LRMS</th><th /></tr></thead>
           <tbody>{shown.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
             <td className="tabular-nums text-slate-500"><button className="hover:underline" onClick={() => setParams({ focus: r.record_id })}>{r.record_id}</button></td>
@@ -137,9 +164,9 @@ export default function Records() {
                 + {r.account.owners.slice(1).map((o) => o.name).join(', ')}</div>}</td>
             <td className="tabular-nums">{r.account.khata_no}</td>
             <td className="tabular-nums">{(r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join(', ')}
-              {r.parcels?.length > 1 && <div className="text-xs text-slate-500">{r.parcels.length} parcels</div>}</td>
+              {r.parcels?.length > 1 && <div className="text-xs text-slate-500">{r.parcels.length} {t('parcels')}</div>}</td>
             <td className="tabular-nums whitespace-nowrap">{r.parcel.area}{r.parcel.area_hectares != null && <div className="text-xs text-slate-500">{r.parcel.area_hectares} ha</div>}</td>
-            <td className="text-xs">{LAND_CLASSES[r.parcel.land_class]?.split(' · ')[0] || '—'}</td>
+            <td className="text-xs">{landClass(r.parcel.land_class)}</td>
             <td>{r.location.village}<div className="text-xs text-slate-500">{r.location.tehsil}, {r.location.district}</div></td>
             <td><Link className="text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{t(r.provenance.verification === 'auto' ? 'auto' : 'human')} · {t('doc')} #{r.provenance.source_document_id}</Link></td>
             <td>{r.lrms_ref ? <span className="text-xs font-mono text-ok">{r.lrms_ref}</span>
@@ -147,7 +174,7 @@ export default function Records() {
                 : <span className="text-xs text-slate-500">{t('not pushed')}</span>}</td>
             <td><Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>{t('Extract')}</Link></td>
           </tr>)}</tbody>
-        </table></div>}
+        </table></div></>}
     </div>
   </div>
 }
