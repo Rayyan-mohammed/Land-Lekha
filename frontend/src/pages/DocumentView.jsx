@@ -12,16 +12,17 @@ import { useToast } from '../components/toast'
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
 
 function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
+  const { t } = useT()
   const url = useAuthImage(() => api.pageBlob(doc.id, page.page), [doc.id, page.page, doc.processed_at])
   const [zoom, setZoom] = useState(1)
   const boxes = fields.filter((f) => f.bbox && (f.page || 1) === page.page)
   return <div className="card overflow-hidden">
     <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 text-xs text-slate-500">
       <span className="flex flex-wrap items-center gap-2">
-        <span>Page {page.page}</span>
+        <span>{t('Page')} {page.page}</span>
         <QualityBadge quality={page.quality} />
         {page.preprocess?.steps?.includes('pdf_text_layer')
-          ? <span>read from the PDF's text layer (no OCR needed)</span>
+          ? <span>{t("read from the PDF's text layer (no OCR needed)")}</span>
           : <span>deskew {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.join(' → ')}</span>}
       </span>
       <div className="flex gap-1">
@@ -89,7 +90,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
         )
       ) : (
         <div className={`text-sm font-medium ${f?.status === 'rejected' ? 'line-through text-slate-500' : 'text-slate-900'}`}>
-          {display || value || <span className="text-slate-500 font-normal">not found</span>}
+          {display || value || <span className="text-slate-500 font-normal">{t('not found')}</span>}
           {hi && <span className="ml-2 font-normal text-slate-500">{hi}</span>}
         </div>
       )}
@@ -102,9 +103,9 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
     </div>
     {f && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
       {f.raw_value && <span>{t('OCR read')}: <span className="font-mono text-slate-700">{f.raw_value}</span></span>}
-      {f.source && <span>from {SOURCE_LABEL[f.source] || f.source}</span>}
+      {f.source && <span>{t('from')} {t(SOURCE_LABEL[f.source] || f.source)}</span>}
       {f.ocr_confidence != null && <span>OCR {Math.round(f.ocr_confidence * 100)}%</span>}
-      {f.original_value && f.status === 'corrected' && <span>was: {f.original_value}</span>}
+      {f.original_value && f.status === 'corrected' && <span>{t('was')}: {f.original_value}</span>}
     </div>}
     {f?.issues?.length > 0 && <div className="mt-1 flex flex-wrap gap-1">
       {f.issues.map((i) => <span key={i} className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] text-amber-800">{i}</span>)}
@@ -207,7 +208,7 @@ export default function DocumentView() {
       <button className="btn-ghost px-2" onClick={() => nav(-1)}><ArrowLeft size={16} /></button>
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-lg font-semibold text-slate-900">{doc.filename}</h1>
-        <div className="text-xs text-slate-500">#{doc.id} · {doc.document_type?.replaceAll('_', ' ') || 'unknown type'} · uploaded by {doc.uploader_name} · {fmtDate(doc.created_at)}
+        <div className="text-xs text-slate-500">#{doc.id} · {doc.document_type?.replaceAll('_', ' ') || 'unknown type'} · {t('uploaded by')} {doc.uploader_name} · {fmtDate(doc.created_at)}
           {doc.processing_ms && <> · processed in {(doc.processing_ms / 1000).toFixed(1)} s</>}</div>
       </div>
       <StatusBadge status={doc.status} />
@@ -217,7 +218,7 @@ export default function DocumentView() {
         <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(() => { toast('Processing again', { type: 'info', body: 'The page will update when it is done' }); load() })}><RotateCcw size={15} /> {t('Re-run')}</button>}
     </div>
 
-    {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…</div>}
+    {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> {t('Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…')}</div>}
     {doc.status === 'failed' && <ErrorNote error={doc.error || 'processing failed'} />}
 
     {!processing && doc.status !== 'failed' && <>
@@ -237,7 +238,7 @@ export default function DocumentView() {
         {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">Record #{d.record_id} — score {Math.round(d.score * 100)}% ({d.reasons.join(', ')})</div>)}
       </div>}
       {doc.status === 'auto_accepted' && <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 flex items-center gap-2">
-        <CheckCircle2 size={16} /> Every field passed validation with confidence above {Math.round(threshold * 100)}% — accepted without manual review. Verifiers can still audit and correct it.
+        <CheckCircle2 size={16} /> {t('Every field passed validation with confidence above')} {Math.round(threshold * 100)}% — {t('accepted without manual review. Verifiers can still audit and correct it.')}
       </div>}
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
