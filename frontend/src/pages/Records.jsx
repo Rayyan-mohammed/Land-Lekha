@@ -155,6 +155,9 @@ export default function Records() {
         </div>
       </div>
       {recs.length === 0 ? <EmptyState icon={MapIcon} title={t('No verified records yet')}>{t('A record is created when a verifier approves a document, or when a document passes every check on its own.')}</EmptyState> : <>
+        {/* a filter or search can leave nothing to show: say why instead of an empty list */}
+        {shown.length === 0 && <div className="px-4 py-8 text-center text-sm text-slate-500">
+          {onlyUnpushed && !query ? t('Every record has been sent to LRMS.') : t('Nothing matches this search.')}</div>}
         {/* phones: one card per record, with its actions in reach instead of off-screen table columns */}
         <ul className="divide-y divide-slate-100 sm:hidden">{shown.map((r) => <li key={r.record_id} className={`px-4 py-3 ${r.record_id === focus ? 'bg-amber-50' : ''}`}>
           <div className="flex items-start justify-between gap-3">
