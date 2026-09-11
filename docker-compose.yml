@@ -1,0 +1,45 @@
+# Postgres + API (serving the built UI) for a live demo link on a cloud VM.
+#
+#   echo "LL_JWT_SECRET=$(openssl rand -hex 32)" > .env
+#   echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
+#   docker compose up --build -d
+#
+# First start still downloads the EasyOCR models (~100 MB) into the ocr_models volume.
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: landlekha
+      POSTGRES_USER: landlekha
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U landlekha"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      LL_DATABASE_URL: postgresql+psycopg://landlekha:${POSTGRES_PASSWORD}@db:5432/landlekha
+      LL_JWT_SECRET: ${LL_JWT_SECRET:?set LL_JWT_SECRET in .env}
+      LL_CORS_ORIGINS: ${LL_CORS_ORIGINS:-http://localhost:8000}
+      LL_SEED_DEMO_USERS: ${LL_SEED_DEMO_USERS:-1}
+    ports:
+      - "8000:8000"
+    volumes:
+      - storage:/app/storage
+      - ocr_models:/root/.EasyOCR
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  storage:
+  ocr_models:
