@@ -57,7 +57,7 @@ export default function Login() {
           {STEPS.map(([Icon, title, text], i) => <li key={title} className="flex gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><Icon size={19} /></div>
             <div><div className="font-medium"><span className="mr-1.5 text-accent">{i + 1}.</span>{t(title)}</div>
-              <div className="text-sm text-brand-100">{text}</div></div>
+              <div className="text-sm text-brand-100">{t(text)}</div></div>
           </li>)}
         </ol>
       </div>
@@ -66,11 +66,11 @@ export default function Login() {
       </div>
     </div>
 
-    <div className="flex flex-col">
+    <div className="flex min-w-0 flex-col">
       <div className="relative overflow-hidden bg-brand-800 px-6 py-5 text-white lg:hidden">
         <ParcelPattern />
         <div className="relative"><Logo light /></div>
-        <p className="relative mt-3 text-sm text-brand-100">From handwritten registers to verified digital land records.</p>
+        <p className="relative mt-3 text-sm text-brand-100">{t('From handwritten registers to verified digital land records.')}</p>
       </div>
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
@@ -97,13 +97,13 @@ export default function Login() {
                   className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors duration-200 hover:border-brand-500 hover:bg-brand-50">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700 group-hover:bg-white"><Icon size={17} /></div>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium text-slate-900">{role} <span className="font-normal text-slate-500">· {u}</span></div>
-                    <div className="truncate text-xs text-slate-600">{what}</div>
+                    <div className="text-sm font-medium text-slate-900">{t(role)} <span className="font-normal text-slate-500">· {u}</span></div>
+                    <div className="truncate text-xs text-slate-600">{t(what)}</div>
                   </div>
                 </button>
               ))}
             </div>
-            <p className="mt-2 text-xs text-slate-500">Demo only: one click signs in. Real deployments turn these accounts off.</p>
+            <p className="mt-2 text-xs text-slate-500">{t('Demo only: one click signs in. Real deployments turn these accounts off.')}</p>
           </div>
         </div>
       </div>

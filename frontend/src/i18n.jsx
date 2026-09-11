@@ -279,6 +279,21 @@ const HI = {
   'Processing again': 'दोबारा संसाधन हो रहा है',
   'The page will update when it is done': 'पूरा होने पर पन्ना अपने आप अपडेट होगा',
   'match': 'मेल',
+  // sign-in page
+  'Field operator': 'फ़ील्ड ऑपरेटर',
+  'Tehsil verifier': 'तहसील जाँचकर्ता',
+  'uploads records from the counter or a phone': 'काउंटर या फ़ोन से अभिलेख अपलोड करता है',
+  'checks only the fields the system is unsure of': 'केवल वही विवरण जाँचता है जिन पर सिस्टम को भरोसा नहीं',
+  'dashboards, users and the audit trail': 'डैशबोर्ड, उपयोगकर्ता और ऑडिट लॉग',
+  'A scan, a PDF or a phone photo of a Khatauni, Jamabandi or Record of Rights.':
+    'खतौनी, जमाबंदी या अधिकार अभिलेख का स्कैन, PDF या फ़ोन से ली गई फ़ोटो।',
+  'Hindi and English text is read, every field is checked against rules and master data.':
+    'हिंदी और अंग्रेज़ी लिखावट पढ़ी जाती है, हर विवरण नियमों और मास्टर डेटा से जाँचा जाता है।',
+  'Confident records go straight through. A verifier looks only at what is flagged.':
+    'भरोसेमंद अभिलेख सीधे आगे बढ़ते हैं। जाँचकर्ता केवल संदिग्ध विवरण देखता है।',
+  'From handwritten registers to verified digital land records.': 'हस्तलिखित रजिस्टर से सत्यापित डिजिटल भूमि अभिलेख तक',
+  'Demo only: one click signs in. Real deployments turn these accounts off.':
+    'केवल डेमो के लिए: एक क्लिक में साइन इन। असली उपयोग में ये खाते बंद रहते हैं।',
 }
 
 const KEY = 'landlekha.lang'
