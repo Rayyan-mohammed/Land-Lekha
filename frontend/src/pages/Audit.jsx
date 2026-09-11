@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, FileText, FileUp, KeyRound, LogIn, Printer, RotateCcw, Send, ShieldAlert, UserCog, XCircle } from 'lucide-react'
 import { api } from '../api'
-import { EmptyState, ErrorNote, fmtDate, PageHeader, parseTs, SkeletonRows } from '../components/ui'
+import { EmptyState, ErrorNote, fmtDate, locale, PageHeader, parseTs, SkeletonRows } from '../components/ui'
 
 const FILTERS = [['', 'Everything'], ['document', 'Documents'], ['record', 'Extracts'], ['integration', 'LRMS / GIS'], ['user', 'Users'], ['auth', 'Sign-ins']]
 
@@ -73,7 +73,7 @@ export default function Audit() {
                 {r.details?.changes?.length > 0 && <div className="mt-0.5 text-xs text-slate-600">
                   {r.details.changes.map((c) => c.rejected ? `${c.field} rejected` : `${c.field}: ${c.from ?? '—'} → ${c.to}`).join(' · ')}</div>}
                 <div className="mt-0.5 text-xs text-slate-500">
-                  <time dateTime={r.ts} title={parseTs(r.ts).toLocaleString()}>{ago(r.ts)}</time>{r.ip && ` · ${r.ip}`}
+                  <time dateTime={r.ts} title={parseTs(r.ts).toLocaleString(locale())}>{ago(r.ts)}</time>{r.ip && ` · ${r.ip}`}
                   <span className="ml-2 font-mono text-[10px] text-slate-500">{r.action}</span></div>
               </div>
             </li>

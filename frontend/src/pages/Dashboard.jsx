@@ -3,7 +3,7 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, Brain, CheckCircle2, Clock, FileStack, Gauge, Hourglass, ScanText, Target } from 'lucide-react'
 import { api } from '../api'
-import { ErrorNote, PageHeader, SkeletonCards, Stat } from '../components/ui'
+import { ErrorNote, locale, PageHeader, SkeletonCards, Stat } from '../components/ui'
 import { useAuth } from '../auth'
 import { FIELD_MAP, STATUS } from '../constants'
 import { useT } from '../i18n'
@@ -27,7 +27,7 @@ function greeting(t) {
 }
 
 export default function Dashboard() {
-  const { t: tr } = useT()
+  const { t: tr, lang } = useT()
   const { user } = useAuth()
   const [s, setS] = useState(null)
   const [error, setError] = useState(null)
@@ -44,12 +44,12 @@ export default function Dashboard() {
   const bench = s.accuracy.benchmark
   const statusData = Object.entries(t.by_status).map(([k, v]) => ({ name: tr(STATUS[k]?.label || k), key: k, value: v }))
   const hist = s.confidence.histogram.map((n, i) => ({ bucket: `${i * 10}–${i * 10 + 10}%`, documents: n }))
-  const perField = Object.entries(s.accuracy.per_field).map(([k, v]) => ({ field: FIELD_MAP[k]?.en || k, accuracy: Math.round(v.accuracy * 100), n: v.confirmed + v.corrected + v.rejected }))
+  const perField = Object.entries(s.accuracy.per_field).map(([k, v]) => ({ field: FIELD_MAP[k]?.[lang === 'hi' ? 'hi' : 'en'] || k, accuracy: Math.round(v.accuracy * 100), n: v.confirmed + v.corrected + v.rejected }))
     .sort((a, b) => a.accuracy - b.accuracy)
 
   return <div className="space-y-4">
     <PageHeader title={`${greeting(tr)}, ${user?.full_name?.split(' ')[0] || ''}`}
-      subtitle={`${tr('Digitization dashboard')} · ${new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })} · ${tr('refreshes every 10 seconds')}`} />
+      subtitle={`${tr('Digitization dashboard')} · ${new Date().toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })} · ${tr('refreshes every 10 seconds')}`} />
     {(t.pending_verification > 0 || t.failed > 0) && <div className="flex flex-wrap gap-3">
       {t.pending_verification > 0 && <Link to="/review" className="card group flex flex-1 items-center gap-3 border-amber-200 bg-amber-50 p-4 transition-colors duration-200 hover:border-amber-300">
         <Hourglass size={20} className="text-warn" />
@@ -156,7 +156,7 @@ export default function Dashboard() {
         </div>
         {Object.keys(s.learning.adapted_thresholds).length > 0 && <div className="mt-3 text-xs text-slate-600">
           <span className="label">Adapted thresholds (fields often corrected)</span>
-          {Object.entries(s.learning.adapted_thresholds).map(([k, v]) => <span key={k} className="mr-3">{FIELD_MAP[k]?.en || k}: {pct(v, 0)}</span>)}
+          {Object.entries(s.learning.adapted_thresholds).map(([k, v]) => <span key={k} className="mr-3">{FIELD_MAP[k]?.[lang === 'hi' ? 'hi' : 'en'] || k}: {pct(v, 0)}</span>)}
         </div>}
       </Section>
     </div>

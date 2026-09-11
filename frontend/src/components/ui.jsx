@@ -140,8 +140,11 @@ export function parseTs(s) {
   return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : `${s}Z`)
 }
 
+// dates follow the language chosen in the app (LangProvider sets <html lang>), not the browser's
+export const locale = () => (document.documentElement.lang === 'hi' ? 'hi-IN' : 'en-IN')
+
 export function fmtDate(s) {
   if (!s) return '—'
   const d = parseTs(s)
-  return d.toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleString(locale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 }
