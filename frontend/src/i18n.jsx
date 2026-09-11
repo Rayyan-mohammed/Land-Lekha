@@ -325,6 +325,9 @@ export const HI = {
   'Zoom out': 'छोटा करें',
   'Fit to width': 'पूरा पन्ना दिखाएँ',
   'or paste a screenshot with Ctrl+V': 'या Ctrl+V से स्क्रीनशॉट चिपकाएँ',
+  'This file type is not supported. Use PDF, JPG, PNG or TIFF.': 'यह फ़ाइल प्रकार नहीं चलता। PDF, JPG, PNG या TIFF इस्तेमाल करें।',
+  'File is larger than 20 MB. Scan at a lower resolution or split the PDF.':
+    'फ़ाइल 20 MB से बड़ी है। कम रिज़ॉल्यूशन पर स्कैन करें या PDF को हिस्सों में बाँटें।',
 }
 
 const KEY = 'landlekha.lang'

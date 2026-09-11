@@ -10,6 +10,17 @@ import { useToast } from '../components/toast'
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
 const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
 
+// Checked before sending, so the operator gets a clear message at once instead of a server
+// error; the server still enforces both (backend/api/config.py MAX_UPLOAD_MB, ALLOWED_EXTENSIONS).
+const MAX_MB = 20
+const EXTS = ACCEPT.split(',')
+function fileProblem(file) {
+  const ext = file.name.includes('.') ? file.name.slice(file.name.lastIndexOf('.')).toLowerCase() : ''
+  if (!EXTS.includes(ext)) return 'This file type is not supported. Use PDF, JPG, PNG or TIFF.'
+  if (file.size > MAX_MB * 1024 * 1024) return 'File is larger than 20 MB. Scan at a lower resolution or split the PDF.'
+  return null
+}
+
 const STEPS = ['Uploaded', 'In queue', 'Reading and checking', 'Done']
 const TIPS = [
   [Maximize, 'Lay the page flat and fit the whole page in the frame'],
@@ -47,6 +58,11 @@ export default function UploadPage() {
   const add = async (files) => {
     for (const file of files) {
       const key = `${file.name}-${file.size}-${Math.random()}`
+      const problem = fileProblem(file)
+      if (problem) {
+        setItems((xs) => [{ key, file, doc: null, error: t(problem), started: Date.now() }, ...xs])
+        continue
+      }
       setItems((xs) => [{ key, file, doc: null, error: null, started: Date.now() }, ...xs])
       try {
         const doc = await api.upload(file)
