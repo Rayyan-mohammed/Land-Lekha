@@ -116,6 +116,11 @@ of fields unflagged:
 | Unflagged fields correct | 95.7% | **96.2%** |
 | Median CER | 11.3% | 11.1% |
 
+The multi-owner split (seed 5, 30 documents) was rebuilt the same way: on the old sample villages its
+village accuracy had fallen to 30%, and after the rebuild it is back to 83.3% (field accuracy 81.2%). The
+results now count multi-owner documents on their own ("every co-owner found: 3 of 6") instead of mixing
+them into the all-documents owner rate, which was misleadingly labelled before.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.

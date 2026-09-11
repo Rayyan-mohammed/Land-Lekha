@@ -152,14 +152,20 @@ def main() -> None:
             field_hits[name][1] += 1
         req_ok = all(correct.get(n, False) for n in REQUIRED_FIELDS if n in gt)
         if "owners" in meta["fields"]:
+            exact = owners_match(ext.get("owners"), meta["fields"]["owners"])
             list_stats["owner_docs"] += 1
-            list_stats["owners_exact"] += int(owners_match(ext.get("owners"), meta["fields"]["owners"]))
-            list_stats["multi_owner_docs"] += int(len(meta["fields"]["owners"]) > 1)
+            list_stats["owners_exact"] += int(exact)
+            if len(meta["fields"]["owners"]) > 1:
+                list_stats["multi_owner_docs"] += 1
+                list_stats["multi_owners_exact"] += int(exact)
         if "parcels" in meta["fields"]:
             hit, n_pred, n_gt = parcel_rows(ext.get("parcels"), meta["fields"]["parcels"])
             list_stats["rows_hit"] += hit
             list_stats["rows_pred"] += n_pred
             list_stats["rows_gt"] += n_gt
+            if n_gt > 1:  # tables with several khasra rows under one khata
+                list_stats["multi_rows_hit"] += hit
+                list_stats["multi_rows_gt"] += n_gt
         # human effort: which extracted fields would a verifier have to look at?
         thr = ext["threshold"]
         for name, f in ext["fields"].items():
@@ -207,6 +213,9 @@ def main() -> None:
         "ocr_seconds_mean": round(statistics.mean(d["ocr_ms"] for d in per_doc) / 1000, 2),
         "owners_exact_rate": round(list_stats["owners_exact"] / list_stats["owner_docs"], 4) if list_stats["owner_docs"] else None,
         "multi_owner_docs": list_stats["multi_owner_docs"],
+        "multi_owners_exact": list_stats["multi_owners_exact"],
+        "multi_row_hits": list_stats["multi_rows_hit"],
+        "multi_row_total": list_stats["multi_rows_gt"],
         "parcel_row_recall": round(list_stats["rows_hit"] / list_stats["rows_gt"], 4) if list_stats["rows_gt"] else None,
         "parcel_row_precision": round(list_stats["rows_hit"] / list_stats["rows_pred"], 4) if list_stats["rows_pred"] else None,
         "per_field": {n: {"accuracy": round(field_hits[n][0] / field_hits[n][1], 4), "n": field_hits[n][1]}
@@ -231,9 +240,11 @@ def main() -> None:
           f"| Auto-accept threshold (calibrated on dev) | {summary['threshold']} |",
           f"| OCR time per document (CPU) | {summary['ocr_seconds_mean']} s |", ""]
     if summary["owners_exact_rate"] is not None:
-        md[-1:-1] = [f"| All co-owners found ({summary['multi_owner_docs']} multi-owner docs) | {summary['owners_exact_rate']:.1%} |"]
+        md[-1:-1] = [f"| Owner list exactly right (all documents) | {summary['owners_exact_rate']:.1%} |",
+                     f"| Every co-owner found (multi-owner documents) | {summary['multi_owners_exact']} of {summary['multi_owner_docs']} |"]
     if summary["parcel_row_recall"] is not None:
-        md[-1:-1] = [f"| Parcel rows recovered (recall / precision) | {summary['parcel_row_recall']:.1%} / {summary['parcel_row_precision']:.1%} |"]
+        md[-1:-1] = [f"| Parcel rows recovered (recall / precision) | {summary['parcel_row_recall']:.1%} / {summary['parcel_row_precision']:.1%} |",
+                     f"| Rows recovered in multi-row tables | {summary['multi_row_hits']} of {summary['multi_row_total']} |"]
     md += [
           "## Per field", "", "| Field | Accuracy | n |", "| --- | --- | --- |"]
     md += [f"| {n} | {v['accuracy']:.1%} | {v['n']} |" for n, v in summary["per_field"].items()]

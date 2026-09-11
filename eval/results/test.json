@@ -14,6 +14,9 @@
   "ocr_seconds_mean": 14.51,
   "owners_exact_rate": 0.825,
   "multi_owner_docs": 9,
+  "multi_owners_exact": 5,
+  "multi_row_hits": 15,
+  "multi_row_total": 32,
   "parcel_row_recall": 0.5645,
   "parcel_row_precision": 0.5932,
   "per_field": {
@@ -110,7 +113,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 42689,
-   "extract_ms": 2126.6,
+   "extract_ms": 2175.0,
    "wrong": [
     "owner_name",
     "father_name",
@@ -142,7 +145,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13496,
-   "extract_ms": 132.8,
+   "extract_ms": 145.1,
    "wrong": [
     "khasra_number",
     "plot_area",
@@ -163,7 +166,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13423,
-   "extract_ms": 138.0,
+   "extract_ms": 140.8,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.87)",
@@ -182,7 +185,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11835,
-   "extract_ms": 149.3,
+   "extract_ms": 139.7,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.79)",
@@ -200,7 +203,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12947,
-   "extract_ms": 242.6,
+   "extract_ms": 263.2,
    "wrong": [
     "khata_number",
     "survey_number"
@@ -222,7 +225,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 11742,
-   "extract_ms": 123.9,
+   "extract_ms": 132.5,
    "wrong": [
     "khasra_number",
     "survey_number",
@@ -244,7 +247,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 14995,
-   "extract_ms": 151.5,
+   "extract_ms": 133.9,
    "wrong": [],
    "reasons": []
   },
@@ -258,7 +261,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12738,
-   "extract_ms": 659.8,
+   "extract_ms": 714.5,
    "wrong": [
     "khata_number",
     "survey_number",
@@ -281,7 +284,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13450,
-   "extract_ms": 130.9,
+   "extract_ms": 139.6,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.87)",
@@ -298,7 +301,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 14480,
-   "extract_ms": 135.4,
+   "extract_ms": 144.4,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.77)",
@@ -315,7 +318,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11222,
-   "extract_ms": 129.2,
+   "extract_ms": 132.3,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.87)",
@@ -333,7 +336,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12849,
-   "extract_ms": 127.4,
+   "extract_ms": 141.4,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.88)",
@@ -350,7 +353,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12359,
-   "extract_ms": 257.4,
+   "extract_ms": 261.6,
    "wrong": [
     "khata_number",
     "khasra_number",
@@ -373,7 +376,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 14456,
-   "extract_ms": 134.6,
+   "extract_ms": 139.8,
    "wrong": [],
    "reasons": [
     "low confidence: father_name (0.87)"
@@ -389,7 +392,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12984,
-   "extract_ms": 130.4,
+   "extract_ms": 122.7,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.88)"
@@ -405,7 +408,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13644,
-   "extract_ms": 135.2,
+   "extract_ms": 133.0,
    "wrong": [],
    "reasons": [
     "low confidence: father_name (0.85)"
@@ -421,7 +424,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13231,
-   "extract_ms": 433.7,
+   "extract_ms": 427.2,
    "wrong": [
     "survey_number"
    ],
@@ -439,7 +442,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13114,
-   "extract_ms": 137.5,
+   "extract_ms": 137.9,
    "wrong": [
     "khata_number",
     "mutation_number",
@@ -464,7 +467,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13578,
-   "extract_ms": 140.8,
+   "extract_ms": 132.5,
    "wrong": [
     "khasra_number"
    ],
@@ -482,7 +485,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12415,
-   "extract_ms": 126.7,
+   "extract_ms": 123.9,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.86)",
@@ -499,7 +502,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12893,
-   "extract_ms": 7.0,
+   "extract_ms": 7.2,
    "wrong": [
     "owner_name",
     "father_name",
@@ -522,7 +525,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 28828,
-   "extract_ms": 130.2,
+   "extract_ms": 128.9,
    "wrong": [
     "owner_name",
     "father_name",
@@ -555,7 +558,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12809,
-   "extract_ms": 252.4,
+   "extract_ms": 257.1,
    "wrong": [],
    "reasons": [
     "low confidence: tehsil (0.75)"
@@ -571,7 +574,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13111,
-   "extract_ms": 468.3,
+   "extract_ms": 456.1,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.87)",
@@ -588,7 +591,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 9561,
-   "extract_ms": 130.1,
+   "extract_ms": 127.5,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.83)",
@@ -606,7 +609,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 10794,
-   "extract_ms": 148.0,
+   "extract_ms": 131.2,
    "wrong": [
     "owner_name",
     "plot_area"
@@ -628,7 +631,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11194,
-   "extract_ms": 150.3,
+   "extract_ms": 137.4,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.88)",
@@ -647,7 +650,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 10740,
-   "extract_ms": 139.1,
+   "extract_ms": 164.9,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.89)",
@@ -666,7 +669,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 9206,
-   "extract_ms": 257.1,
+   "extract_ms": 279.3,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.76)",
@@ -683,7 +686,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12023,
-   "extract_ms": 300.9,
+   "extract_ms": 256.0,
    "wrong": [
     "father_name",
     "khasra_number",
@@ -706,7 +709,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 11702,
-   "extract_ms": 249.2,
+   "extract_ms": 255.0,
    "wrong": [],
    "reasons": []
   },
@@ -720,7 +723,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13427,
-   "extract_ms": 138.6,
+   "extract_ms": 127.5,
    "wrong": [
     "mutation_number"
    ],
@@ -740,7 +743,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 10208,
-   "extract_ms": 136.0,
+   "extract_ms": 149.4,
    "wrong": [
     "plot_area"
    ],
@@ -760,7 +763,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 22102,
-   "extract_ms": 157.7,
+   "extract_ms": 151.0,
    "wrong": [
     "owner_name",
     "father_name",
@@ -784,7 +787,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 12502,
-   "extract_ms": 130.6,
+   "extract_ms": 134.9,
    "wrong": [],
    "reasons": []
   },
@@ -798,7 +801,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 11716,
-   "extract_ms": 451.5,
+   "extract_ms": 430.2,
    "wrong": [
     "village"
    ],
@@ -816,7 +819,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 23300,
-   "extract_ms": 260.3,
+   "extract_ms": 251.3,
    "wrong": [
     "khata_number",
     "khasra_number",
@@ -842,7 +845,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11450,
-   "extract_ms": 128.9,
+   "extract_ms": 124.9,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.82)"
@@ -858,7 +861,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 31173,
-   "extract_ms": 450.5,
+   "extract_ms": 436.1,
    "wrong": [
     "owner_name",
     "father_name",
@@ -891,7 +894,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 10162,
-   "extract_ms": 263.7,
+   "extract_ms": 258.9,
    "wrong": [
     "khasra_number",
     "survey_number"

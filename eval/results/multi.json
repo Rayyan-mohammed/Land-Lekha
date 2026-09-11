@@ -2,43 +2,46 @@
  "summary": {
   "split": "multi",
   "documents": 30,
-  "cer_mean": 0.1683,
-  "cer_median": 0.1378,
-  "field_accuracy": 0.8218,
-  "required_field_accuracy": 0.8143,
-  "review_rate": 0.7333,
+  "cer_mean": 0.1665,
+  "cer_median": 0.1348,
+  "field_accuracy": 0.8117,
+  "required_field_accuracy": 0.7905,
+  "review_rate": 0.9667,
   "straight_through_accuracy": 1.0,
-  "field_flag_rate": 0.1522,
-  "trusted_field_precision": 0.9628,
-  "threshold": 0.88,
-  "ocr_seconds_mean": 29.57,
-  "owners_exact_rate": 0.7333,
-  "multi_owner_docs": 7,
-  "parcel_row_recall": 0.5952,
-  "parcel_row_precision": 0.6098,
+  "field_flag_rate": 0.2926,
+  "trusted_field_precision": 0.9474,
+  "threshold": 0.89,
+  "ocr_seconds_mean": 14.16,
+  "owners_exact_rate": 0.7667,
+  "multi_owner_docs": 6,
+  "multi_owners_exact": 3,
+  "multi_row_hits": 15,
+  "multi_row_total": 23,
+  "parcel_row_recall": 0.5333,
+  "parcel_row_precision": 0.5581,
   "per_field": {
    "owner_name": {
-    "accuracy": 0.7667,
+    "accuracy": 0.8,
     "n": 30
    },
    "father_name": {
-    "accuracy": 0.75,
-    "n": 28
+    "accuracy": 0.7692,
+    "n": 26
    },
    "khata_number": {
-    "accuracy": 0.8,
+    "accuracy": 0.8333,
     "n": 30
    },
    "khasra_number": {
-    "accuracy": 0.8,
+    "accuracy": 0.7,
     "n": 30
    },
    "survey_number": {
-    "accuracy": 0.7778,
-    "n": 18
+    "accuracy": 0.9412,
+    "n": 17
    },
    "plot_area": {
-    "accuracy": 0.6333,
+    "accuracy": 0.5333,
     "n": 30
    },
    "land_classification": {
@@ -46,15 +49,15 @@
     "n": 30
    },
    "village": {
-    "accuracy": 0.9333,
-    "n": 30
-   },
-   "tehsil": {
     "accuracy": 0.8333,
     "n": 30
    },
-   "district": {
+   "tehsil": {
     "accuracy": 0.9333,
+    "n": 30
+   },
+   "district": {
+    "accuracy": 0.9,
     "n": 30
    },
    "state": {
@@ -62,129 +65,127 @@
     "n": 30
    },
    "mutation_number": {
-    "accuracy": 0.9231,
-    "n": 26
+    "accuracy": 0.7826,
+    "n": 23
    },
    "mutation_date": {
-    "accuracy": 0.7308,
-    "n": 26
+    "accuracy": 0.6957,
+    "n": 23
    },
    "registration_number": {
-    "accuracy": 0.7778,
-    "n": 18
+    "accuracy": 0.8824,
+    "n": 17
    },
    "registration_date": {
-    "accuracy": 0.7222,
-    "n": 18
+    "accuracy": 0.7059,
+    "n": 17
    }
   },
   "by_group": {
-   "handwritten:False": 0.8587,
-   "handwritten:False:cer": 0.1728,
-   "handwritten:True": 0.7255,
-   "handwritten:True:cer": 0.1561,
-   "profile:clean": 0.9214,
-   "profile:clean:cer": 0.0965,
-   "profile:old": 0.7865,
-   "profile:old:cer": 0.203,
-   "profile:photo": 0.538,
-   "profile:photo:cer": 0.3084,
-   "profile:scan": 0.9045,
-   "profile:scan:cer": 0.1317,
-   "template:form_bilingual": 0.7911,
-   "template:form_bilingual:cer": 0.1637,
-   "template:khatauni_table": 0.6977,
-   "template:khatauni_table:cer": 0.2027,
-   "template:ror_english": 0.9466,
-   "template:ror_english:cer": 0.148
+   "handwritten:False": 0.8735,
+   "handwritten:False:cer": 0.1505,
+   "handwritten:True": 0.7186,
+   "handwritten:True:cer": 0.1903,
+   "profile:clean": 0.9667,
+   "profile:clean:cer": 0.1018,
+   "profile:old": 0.8441,
+   "profile:old:cer": 0.1808,
+   "profile:photo": 0.6109,
+   "profile:photo:cer": 0.2802,
+   "profile:scan": 0.7834,
+   "profile:scan:cer": 0.1468,
+   "template:form_bilingual": 0.856,
+   "template:form_bilingual:cer": 0.141,
+   "template:khatauni_table": 0.6978,
+   "template:khatauni_table:cer": 0.2055,
+   "template:ror_english": 0.9068,
+   "template:ror_english:cer": 0.1478
   }
  },
  "documents": [
   {
    "id": "multi-001",
    "template": "ror_english",
-   "profile": "scan",
+   "profile": "clean",
    "handwritten": false,
-   "cer": 0.1577,
+   "cer": 0.088,
    "field_acc": 1.0,
    "route": "review",
    "required_all_correct": true,
-   "ocr_ms": 51449,
-   "extract_ms": 9.1,
+   "ocr_ms": 19745,
+   "extract_ms": 151.3,
    "wrong": [],
    "reasons": [
-    "low confidence: plot_area (0.86)"
+    "low confidence: owner_name (0.86)",
+    "low confidence: father_name (0.86)"
    ]
   },
   {
    "id": "multi-002",
-   "template": "form_bilingual",
-   "profile": "scan",
+   "template": "ror_english",
+   "profile": "old",
    "handwritten": false,
-   "cer": 0.1477,
-   "field_acc": 0.7143,
+   "cer": 0.1457,
+   "field_acc": 0.9333,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 19204,
-   "extract_ms": 5.6,
+   "ocr_ms": 13130,
+   "extract_ms": 144.9,
    "wrong": [
-    "owner_name",
-    "father_name",
-    "plot_area",
-    "mutation_date"
+    "plot_area"
    ],
    "reasons": [
-    "low confidence: owner_name (0.74)",
-    "low confidence: father_name (0.71)",
-    "low confidence: khasra_number (0.73)",
-    "invalid mutation_date: no date found"
+    "low confidence: tehsil (0.83)",
+    "low confidence: father_name (0.84)",
+    "low confidence: plot_area (0.63)"
    ]
   },
   {
    "id": "multi-003",
-   "template": "khatauni_table",
-   "profile": "clean",
-   "handwritten": true,
-   "cer": 0.069,
-   "field_acc": 0.6667,
+   "template": "form_bilingual",
+   "profile": "photo",
+   "handwritten": false,
+   "cer": 0.1157,
+   "field_acc": 0.8667,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 19012,
-   "extract_ms": 7.0,
+   "ocr_ms": 13005,
+   "extract_ms": 144.9,
    "wrong": [
-    "khata_number",
-    "survey_number",
-    "mutation_number",
-    "mutation_date",
-    "registration_number"
+    "father_name",
+    "plot_area"
    ],
    "reasons": [
-    "low confidence: survey_number (0.84)",
-    "low confidence: registration_number (0.83)"
+    "low confidence: village (0.80)",
+    "low confidence: owner_name (0.56)",
+    "low confidence: father_name (0.84)",
+    "low confidence: plot_area (0.69)"
    ]
   },
   {
    "id": "multi-004",
-   "template": "form_bilingual",
+   "template": "khatauni_table",
    "profile": "scan",
    "handwritten": true,
-   "cer": 0.1853,
-   "field_acc": 0.6923,
+   "cer": 0.2488,
+   "field_acc": 0.5714,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 15219,
-   "extract_ms": 5.3,
+   "ocr_ms": 11648,
+   "extract_ms": 281.7,
    "wrong": [
-    "owner_name",
     "khata_number",
     "plot_area",
-    "mutation_date"
+    "mutation_number",
+    "mutation_date",
+    "registration_number",
+    "registration_date"
    ],
    "reasons": [
-    "low confidence: owner_name (0.88)",
-    "low confidence: father_name (0.88)",
-    "low confidence: khata_number (0.75)",
-    "low confidence: plot_area (0.75)"
+    "low confidence: owner_name (0.36)",
+    "low confidence: father_name (0.32)",
+    "low confidence: khasra_number (0.89)",
+    "low confidence: mutation_number (0.85)"
    ]
   },
   {
@@ -192,53 +193,195 @@
    "template": "ror_english",
    "profile": "scan",
    "handwritten": false,
-   "cer": 0.0801,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 18158,
-   "extract_ms": 4.7,
-   "wrong": [],
-   "reasons": []
-  },
-  {
-   "id": "multi-006",
-   "template": "khatauni_table",
-   "profile": "old",
-   "handwritten": false,
-   "cer": 0.2712,
-   "field_acc": 0.8571,
+   "cer": 0.1382,
+   "field_acc": 0.8667,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 95807,
-   "extract_ms": 9.5,
+   "ocr_ms": 14708,
+   "extract_ms": 138.3,
    "wrong": [
-    "father_name",
+    "khasra_number",
     "plot_area"
    ],
    "reasons": [
-    "low confidence: khata_number (0.74)",
-    "low confidence: owner_name (0.65)",
-    "low confidence: father_name (0.36)",
-    "low confidence: mutation_number (0.86)"
+    "low confidence: khasra_number (0.83)",
+    "low confidence: plot_area (0.54)"
+   ]
+  },
+  {
+   "id": "multi-006",
+   "template": "form_bilingual",
+   "profile": "old",
+   "handwritten": true,
+   "cer": 0.1868,
+   "field_acc": 0.8182,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 12101,
+   "extract_ms": 131.8,
+   "wrong": [
+    "plot_area",
+    "mutation_date"
+   ],
+   "reasons": [
+    "low confidence: tehsil (0.88)",
+    "low confidence: owner_name (0.64)",
+    "invalid mutation_date: impossible date",
+    "low confidence: plot_area (0.64)"
    ]
   },
   {
    "id": "multi-007",
    "template": "khatauni_table",
-   "profile": "photo",
+   "profile": "clean",
    "handwritten": false,
-   "cer": 0.6076,
+   "cer": 0.0477,
+   "field_acc": 1.0,
+   "route": "review",
+   "required_all_correct": true,
+   "ocr_ms": 13004,
+   "extract_ms": 149.2,
+   "wrong": [],
+   "reasons": [
+    "low confidence: owner_name (0.76)",
+    "low confidence: father_name (0.77)",
+    "low confidence: survey_number (0.88)",
+    "low confidence: khasra_number (0.88)"
+   ]
+  },
+  {
+   "id": "multi-008",
+   "template": "ror_english",
+   "profile": "clean",
+   "handwritten": false,
+   "cer": 0.09,
+   "field_acc": 1.0,
+   "route": "auto_accept",
+   "required_all_correct": true,
+   "ocr_ms": 12370,
+   "extract_ms": 441.8,
+   "wrong": [],
+   "reasons": []
+  },
+  {
+   "id": "multi-009",
+   "template": "form_bilingual",
+   "profile": "old",
+   "handwritten": true,
+   "cer": 0.2158,
+   "field_acc": 0.8,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 14916,
+   "extract_ms": 265.4,
+   "wrong": [
+    "khasra_number",
+    "plot_area",
+    "mutation_number"
+   ],
+   "reasons": [
+    "low confidence: state (0.65)",
+    "low confidence: owner_name (0.49)",
+    "low confidence: father_name (0.74)",
+    "low confidence: khata_number (0.80)"
+   ]
+  },
+  {
+   "id": "multi-010",
+   "template": "khatauni_table",
+   "profile": "scan",
+   "handwritten": false,
+   "cer": 0.2391,
+   "field_acc": 0.7333,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 12397,
+   "extract_ms": 264.1,
+   "wrong": [
+    "owner_name",
+    "plot_area",
+    "tehsil",
+    "registration_date"
+   ],
+   "reasons": [
+    "low confidence: village (0.67)",
+    "invalid tehsil: not found in master database",
+    "low confidence: owner_name (0.34)",
+    "low confidence: father_name (0.73)"
+   ]
+  },
+  {
+   "id": "multi-011",
+   "template": "khatauni_table",
+   "profile": "scan",
+   "handwritten": false,
+   "cer": 0.0427,
+   "field_acc": 0.9286,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 12706,
+   "extract_ms": 148.5,
+   "wrong": [
+    "village"
+   ],
+   "reasons": [
+    "low confidence: village (0.80)",
+    "low confidence: owner_name (0.87)",
+    "low confidence: father_name (0.77)",
+    "low confidence: khasra_number (0.84)"
+   ]
+  },
+  {
+   "id": "multi-012",
+   "template": "ror_english",
+   "profile": "clean",
+   "handwritten": false,
+   "cer": 0.0867,
+   "field_acc": 1.0,
+   "route": "review",
+   "required_all_correct": true,
+   "ocr_ms": 13183,
+   "extract_ms": 270.8,
+   "wrong": [],
+   "reasons": [
+    "low confidence: father_name (0.81)"
+   ]
+  },
+  {
+   "id": "multi-013",
+   "template": "khatauni_table",
+   "profile": "old",
+   "handwritten": false,
+   "cer": 0.0864,
+   "field_acc": 1.0,
+   "route": "review",
+   "required_all_correct": true,
+   "ocr_ms": 11271,
+   "extract_ms": 147.2,
+   "wrong": [],
+   "reasons": [
+    "low confidence: owner_name (0.40)",
+    "low confidence: father_name (0.50)",
+    "low confidence: mutation_number (0.85)"
+   ]
+  },
+  {
+   "id": "multi-014",
+   "template": "khatauni_table",
+   "profile": "photo",
+   "handwritten": true,
+   "cer": 0.5977,
    "field_acc": 0.0,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 45864,
-   "extract_ms": 3.4,
+   "ocr_ms": 25337,
+   "extract_ms": 3.5,
    "wrong": [
     "owner_name",
     "father_name",
     "khata_number",
     "khasra_number",
+    "survey_number",
     "plot_area",
     "land_classification",
     "village",
@@ -246,232 +389,121 @@
     "district",
     "state",
     "mutation_number",
-    "mutation_date",
-    "registration_number",
-    "registration_date"
-   ],
-   "reasons": [
-    "missing required field: khata_number",
-    "missing required field: khasra_number",
-    "missing required field: plot_area",
-    "missing required field: village"
-   ]
-  },
-  {
-   "id": "multi-008",
-   "template": "form_bilingual",
-   "profile": "scan",
-   "handwritten": false,
-   "cer": 0.1007,
-   "field_acc": 0.9333,
-   "route": "review",
-   "required_all_correct": true,
-   "ocr_ms": 41585,
-   "extract_ms": 6.7,
-   "wrong": [
-    "land_classification"
-   ],
-   "reasons": [
-    "low confidence: khasra_number (0.84)",
-    "invalid land_classification: unknown land class 'CIP|'"
-   ]
-  },
-  {
-   "id": "multi-009",
-   "template": "ror_english",
-   "profile": "scan",
-   "handwritten": false,
-   "cer": 0.0967,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 34592,
-   "extract_ms": 5.2,
-   "wrong": [],
-   "reasons": []
-  },
-  {
-   "id": "multi-010",
-   "template": "khatauni_table",
-   "profile": "old",
-   "handwritten": true,
-   "cer": 0.0631,
-   "field_acc": 0.75,
-   "route": "review",
-   "required_all_correct": false,
-   "ocr_ms": 16834,
-   "extract_ms": 9.9,
-   "wrong": [
-    "khata_number",
-    "plot_area",
     "mutation_date"
    ],
    "reasons": [
-    "low confidence: mutation_number (0.84)",
-    "invalid mutation_date: date out of range"
-   ]
-  },
-  {
-   "id": "multi-011",
-   "template": "form_bilingual",
-   "profile": "photo",
-   "handwritten": true,
-   "cer": 0.5015,
-   "field_acc": 0.2667,
-   "route": "review",
-   "required_all_correct": false,
-   "ocr_ms": 41313,
-   "extract_ms": 4.8,
-   "wrong": [
-    "owner_name",
-    "father_name",
-    "khata_number",
-    "khasra_number",
-    "plot_area",
-    "tehsil",
-    "district",
-    "state",
-    "mutation_date",
-    "registration_number",
-    "registration_date"
-   ],
-   "reasons": [
+    "missing required field: owner_name",
     "missing required field: khata_number",
     "missing required field: khasra_number",
-    "missing required field: plot_area",
-    "missing required field: tehsil"
-   ]
-  },
-  {
-   "id": "multi-012",
-   "template": "form_bilingual",
-   "profile": "photo",
-   "handwritten": true,
-   "cer": 0.1526,
-   "field_acc": 0.8333,
-   "route": "review",
-   "required_all_correct": true,
-   "ocr_ms": 15589,
-   "extract_ms": 5.0,
-   "wrong": [
-    "father_name",
-    "registration_date"
-   ],
-   "reasons": [
-    "low confidence: father_name (0.85)",
-    "low confidence: plot_area (0.83)"
-   ]
-  },
-  {
-   "id": "multi-013",
-   "template": "ror_english",
-   "profile": "old",
-   "handwritten": false,
-   "cer": 0.1581,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 19149,
-   "extract_ms": 4.9,
-   "wrong": [],
-   "reasons": []
-  },
-  {
-   "id": "multi-014",
-   "template": "khatauni_table",
-   "profile": "photo",
-   "handwritten": false,
-   "cer": 0.1741,
-   "field_acc": 0.9231,
-   "route": "review",
-   "required_all_correct": true,
-   "ocr_ms": 15299,
-   "extract_ms": 8.6,
-   "wrong": [
-    "survey_number"
-   ],
-   "reasons": [
-    "low confidence: survey_number (0.85)",
-    "low confidence: mutation_number (0.83)"
+    "missing required field: plot_area"
    ]
   },
   {
    "id": "multi-015",
-   "template": "ror_english",
-   "profile": "clean",
-   "handwritten": false,
-   "cer": 0.0877,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 16454,
-   "extract_ms": 4.9,
-   "wrong": [],
-   "reasons": []
-  },
-  {
-   "id": "multi-016",
    "template": "khatauni_table",
    "profile": "scan",
    "handwritten": true,
-   "cer": 0.0433,
+   "cer": 0.0915,
+   "field_acc": 0.7692,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 11644,
+   "extract_ms": 140.3,
+   "wrong": [
+    "khata_number",
+    "mutation_number",
+    "mutation_date"
+   ],
+   "reasons": [
+    "low confidence: owner_name (0.76)",
+    "low confidence: father_name (0.70)",
+    "low confidence: survey_number (0.87)",
+    "low confidence: khasra_number (0.79)"
+   ]
+  },
+  {
+   "id": "multi-016",
+   "template": "ror_english",
+   "profile": "old",
+   "handwritten": false,
+   "cer": 0.1186,
    "field_acc": 1.0,
    "route": "review",
    "required_all_correct": true,
-   "ocr_ms": 45666,
-   "extract_ms": 11.7,
+   "ocr_ms": 11463,
+   "extract_ms": 259.7,
    "wrong": [],
    "reasons": [
-    "low confidence: khata_number (0.86)"
+    "low confidence: plot_area (0.66)"
    ]
   },
   {
    "id": "multi-017",
-   "template": "ror_english",
-   "profile": "scan",
+   "template": "form_bilingual",
+   "profile": "clean",
    "handwritten": false,
-   "cer": 0.1949,
+   "cer": 0.1377,
    "field_acc": 1.0,
    "route": "review",
    "required_all_correct": true,
-   "ocr_ms": 68709,
-   "extract_ms": 3.9,
+   "ocr_ms": 9403,
+   "extract_ms": 266.0,
    "wrong": [],
    "reasons": [
-    "low confidence: father_name (0.75)"
+    "low confidence: plot_area (0.75)"
    ]
   },
   {
    "id": "multi-018",
    "template": "form_bilingual",
    "profile": "scan",
-   "handwritten": false,
-   "cer": 0.1098,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 32093,
-   "extract_ms": 5.8,
-   "wrong": [],
-   "reasons": []
+   "handwritten": true,
+   "cer": 0.1562,
+   "field_acc": 0.6667,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 13325,
+   "extract_ms": 138.6,
+   "wrong": [
+    "father_name",
+    "khasra_number",
+    "plot_area",
+    "mutation_date"
+   ],
+   "reasons": [
+    "low confidence: owner_name (0.53)",
+    "low confidence: father_name (0.88)",
+    "low confidence: khasra_number (0.30)",
+    "low confidence: plot_area (0.25)"
+   ]
   },
   {
    "id": "multi-019",
-   "template": "ror_english",
-   "profile": "scan",
+   "template": "khatauni_table",
+   "profile": "old",
    "handwritten": false,
-   "cer": 0.1731,
-   "field_acc": 0.8182,
+   "cer": 0.3725,
+   "field_acc": 0.3571,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 21398,
-   "extract_ms": 3.9,
+   "ocr_ms": 24426,
+   "extract_ms": 6.0,
    "wrong": [
-    "khata_number",
-    "khasra_number"
+    "owner_name",
+    "father_name",
+    "khasra_number",
+    "plot_area",
+    "land_classification",
+    "village",
+    "district",
+    "mutation_date",
+    "registration_date"
    ],
    "reasons": [
-    "low confidence: khata_number (0.86)"
+    "missing required field: khasra_number",
+    "missing required field: village",
+    "low confidence: tehsil (0.62)",
+    "invalid district: not found in master database"
    ]
   },
   {
@@ -479,22 +511,15 @@
    "template": "ror_english",
    "profile": "old",
    "handwritten": false,
-   "cer": 0.3319,
-   "field_acc": 0.7273,
+   "cer": 0.1396,
+   "field_acc": 1.0,
    "route": "review",
-   "required_all_correct": false,
-   "ocr_ms": 45382,
-   "extract_ms": 4.0,
-   "wrong": [
-    "owner_name",
-    "survey_number",
-    "plot_area"
-   ],
+   "required_all_correct": true,
+   "ocr_ms": 12978,
+   "extract_ms": 704.9,
+   "wrong": [],
    "reasons": [
-    "low confidence: owner_name (0.75)",
-    "low confidence: khasra_number (0.83)",
-    "low confidence: survey_number (0.88)",
-    "low confidence: plot_area (0.17)"
+    "low confidence: plot_area (0.64)"
    ]
   },
   {
@@ -502,187 +527,212 @@
    "template": "form_bilingual",
    "profile": "clean",
    "handwritten": true,
-   "cer": 0.1279,
-   "field_acc": 0.9286,
+   "cer": 0.125,
+   "field_acc": 0.9333,
    "route": "review",
-   "required_all_correct": true,
-   "ocr_ms": 20896,
-   "extract_ms": 5.9,
+   "required_all_correct": false,
+   "ocr_ms": 13402,
+   "extract_ms": 146.9,
    "wrong": [
-    "registration_date"
+    "khasra_number"
    ],
    "reasons": [
-    "low confidence: khasra_number (0.74)"
+    "low confidence: khasra_number (0.82)",
+    "low confidence: survey_number (0.87)"
    ]
   },
   {
    "id": "multi-022",
    "template": "form_bilingual",
-   "profile": "clean",
+   "profile": "photo",
    "handwritten": false,
-   "cer": 0.1099,
-   "field_acc": 0.9333,
+   "cer": 0.1321,
+   "field_acc": 1.0,
    "route": "review",
-   "required_all_correct": false,
-   "ocr_ms": 25715,
-   "extract_ms": 6.2,
-   "wrong": [
-    "tehsil"
-   ],
+   "required_all_correct": true,
+   "ocr_ms": 12712,
+   "extract_ms": 148.6,
+   "wrong": [],
    "reasons": [
-    "invalid tehsil: not found in master database"
+    "low confidence: owner_name (0.77)",
+    "low confidence: father_name (0.72)",
+    "low confidence: plot_area (0.27)"
    ]
   },
   {
    "id": "multi-023",
-   "template": "form_bilingual",
+   "template": "khatauni_table",
    "profile": "photo",
    "handwritten": true,
-   "cer": 0.1063,
-   "field_acc": 0.6667,
+   "cer": 0.18,
+   "field_acc": 0.7333,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 13844,
-   "extract_ms": 5.1,
+   "ocr_ms": 12163,
+   "extract_ms": 454.0,
    "wrong": [
-    "khasra_number",
-    "plot_area",
-    "registration_number",
+    "owner_name",
+    "village",
+    "mutation_date",
     "registration_date"
    ],
    "reasons": [
-    "low confidence: khasra_number (0.85)",
-    "low confidence: registration_number (0.43)",
-    "low confidence: plot_area (0.65)"
+    "low confidence: owner_name (0.46)",
+    "low confidence: father_name (0.86)",
+    "low confidence: survey_number (0.88)",
+    "invalid mutation_date: no date found"
    ]
   },
   {
    "id": "multi-024",
    "template": "ror_english",
-   "profile": "scan",
+   "profile": "photo",
    "handwritten": false,
-   "cer": 0.1551,
-   "field_acc": 0.8667,
+   "cer": 0.3755,
+   "field_acc": 0.4545,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 21548,
-   "extract_ms": 4.8,
+   "ocr_ms": 24589,
+   "extract_ms": 154.3,
    "wrong": [
+    "father_name",
+    "khata_number",
     "khasra_number",
-    "plot_area"
+    "plot_area",
+    "district",
+    "state"
    ],
    "reasons": [
-    "low confidence: plot_area (0.49)"
+    "missing required field: plot_area",
+    "missing required field: district",
+    "low confidence: tehsil (0.66)",
+    "invalid state: not found in master database"
    ]
   },
   {
    "id": "multi-025",
-   "template": "ror_english",
-   "profile": "clean",
-   "handwritten": false,
-   "cer": 0.0818,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 17065,
-   "extract_ms": 5.0,
-   "wrong": [],
-   "reasons": []
+   "template": "form_bilingual",
+   "profile": "scan",
+   "handwritten": true,
+   "cer": 0.1166,
+   "field_acc": 0.6923,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 11687,
+   "extract_ms": 7.0,
+   "wrong": [
+    "khasra_number",
+    "plot_area",
+    "village",
+    "mutation_number"
+   ],
+   "reasons": [
+    "missing required field: village",
+    "low confidence: father_name (0.45)",
+    "low confidence: khasra_number (0.84)",
+    "low confidence: mutation_number (0.77)"
+   ]
   },
   {
    "id": "multi-026",
    "template": "khatauni_table",
-   "profile": "old",
+   "profile": "scan",
    "handwritten": false,
-   "cer": 0.0341,
+   "cer": 0.0688,
    "field_acc": 1.0,
-   "route": "auto_accept",
+   "route": "review",
    "required_all_correct": true,
-   "ocr_ms": 16822,
-   "extract_ms": 11.4,
+   "ocr_ms": 11070,
+   "extract_ms": 466.8,
    "wrong": [],
-   "reasons": []
+   "reasons": [
+    "low confidence: owner_name (0.80)",
+    "low confidence: father_name (0.83)",
+    "low confidence: mutation_number (0.86)"
+   ]
   },
   {
    "id": "multi-027",
    "template": "form_bilingual",
    "profile": "scan",
-   "handwritten": false,
-   "cer": 0.1562,
-   "field_acc": 0.7333,
+   "handwritten": true,
+   "cer": 0.1043,
+   "field_acc": 0.8889,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 22845,
-   "extract_ms": 6.8,
+   "ocr_ms": 9137,
+   "extract_ms": 139.5,
    "wrong": [
-    "owner_name",
-    "father_name",
-    "plot_area",
-    "tehsil"
+    "plot_area"
    ],
    "reasons": [
-    "invalid tehsil: not found in master database",
-    "low confidence: father_name (0.78)",
-    "low confidence: plot_area (0.37)"
+    "low confidence: owner_name (0.87)",
+    "low confidence: khasra_number (0.80)"
    ]
   },
   {
    "id": "multi-028",
-   "template": "khatauni_table",
-   "profile": "old",
-   "handwritten": false,
-   "cer": 0.3595,
-   "field_acc": 0.3846,
+   "template": "form_bilingual",
+   "profile": "clean",
+   "handwritten": true,
+   "cer": 0.1375,
+   "field_acc": 0.8333,
    "route": "review",
    "required_all_correct": false,
-   "ocr_ms": 34995,
-   "extract_ms": 4.8,
+   "ocr_ms": 11018,
+   "extract_ms": 143.0,
    "wrong": [
-    "owner_name",
-    "father_name",
-    "khasra_number",
-    "survey_number",
-    "plot_area",
-    "village",
-    "tehsil",
-    "mutation_date"
+    "khata_number",
+    "plot_area"
    ],
    "reasons": [
-    "missing required field: khasra_number",
-    "missing required field: village",
-    "invalid tehsil: not found in master database",
-    "low confidence: district (0.88)"
+    "low confidence: khata_number (0.83)",
+    "low confidence: owner_name (0.89)",
+    "low confidence: father_name (0.85)"
    ]
   },
   {
    "id": "multi-029",
    "template": "form_bilingual",
-   "profile": "clean",
-   "handwritten": false,
-   "cer": 0.1026,
-   "field_acc": 1.0,
+   "profile": "scan",
+   "handwritten": true,
+   "cer": 0.1236,
+   "field_acc": 0.9167,
    "route": "review",
-   "required_all_correct": true,
-   "ocr_ms": 20833,
-   "extract_ms": 6.3,
-   "wrong": [],
+   "required_all_correct": false,
+   "ocr_ms": 11514,
+   "extract_ms": 131.8,
+   "wrong": [
+    "owner_name"
+   ],
    "reasons": [
-    "low confidence: khata_number (0.87)"
+    "low confidence: owner_name (0.80)"
    ]
   },
   {
    "id": "multi-030",
-   "template": "ror_english",
+   "template": "khatauni_table",
    "profile": "scan",
    "handwritten": false,
-   "cer": 0.1109,
-   "field_acc": 1.0,
-   "route": "auto_accept",
-   "required_all_correct": true,
-   "ocr_ms": 13670,
-   "extract_ms": 5.4,
-   "wrong": [],
-   "reasons": []
+   "cer": 0.2849,
+   "field_acc": 0.5833,
+   "route": "review",
+   "required_all_correct": false,
+   "ocr_ms": 24765,
+   "extract_ms": 136.7,
+   "wrong": [
+    "owner_name",
+    "father_name",
+    "khasra_number",
+    "registration_number",
+    "registration_date"
+   ],
+   "reasons": [
+    "low confidence: village (0.74)",
+    "low confidence: tehsil (0.72)",
+    "low confidence: state (0.81)",
+    "low confidence: khata_number (0.85)"
+   ]
   }
  ]
 }

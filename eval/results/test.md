@@ -11,8 +11,10 @@
 | Precision of fields *not* flagged | 96.2% |
 | Auto-accept threshold (calibrated on dev) | 0.89 |
 | OCR time per document (CPU) | 14.51 s |
-| All co-owners found (9 multi-owner docs) | 82.5% |
+| Owner list exactly right (all documents) | 82.5% |
+| Every co-owner found (multi-owner documents) | 5 of 9 |
 | Parcel rows recovered (recall / precision) | 56.5% / 59.3% |
+| Rows recovered in multi-row tables | 15 of 32 |
 
 ## Per field
 
