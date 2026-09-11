@@ -321,6 +321,9 @@ const HI = {
   'Your session has ended. Sign in again to carry on where you left off.':
     'आपका सत्र समाप्त हो गया। जहाँ छोड़ा था वहीं से जारी रखने के लिए फिर से साइन इन करें।',
   'Unknown': 'अज्ञात',
+  'Zoom in': 'बड़ा करें',
+  'Zoom out': 'छोटा करें',
+  'Fit to width': 'पूरा पन्ना दिखाएँ',
 }
 
 const KEY = 'landlekha.lang'

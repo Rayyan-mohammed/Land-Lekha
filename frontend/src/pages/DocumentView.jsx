@@ -26,6 +26,7 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
   const url = useAuthImage(() => api.pageBlob(doc.id, page.page), [doc.id, page.page, doc.processed_at])
   const [zoom, setZoom] = useState(1)
   const boxes = fields.filter((f) => f.bbox && (f.page || 1) === page.page)
+  const fieldLabel = (n) => FIELDS.find((d) => d.name === n)?.[lang === 'hi' ? 'hi' : 'en'] || n
   return <div className="card overflow-hidden">
     <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2 text-xs text-slate-500">
       <span className="flex flex-wrap items-center gap-2">
@@ -35,9 +36,13 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
           ? <span>{t("read from the PDF's text layer (no OCR needed)")}</span>
           : <span>{lang === 'hi' ? 'तिरछापन' : 'deskew'} {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.map((s) => stepLabel(s, lang)).join(' → ')}</span>}
       </span>
-      <div className="flex gap-1">
-        <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.max(1, z - 0.5))} aria-label="zoom out"><ZoomOut size={15} /></button>
-        <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.min(3, z + 0.5))} aria-label="zoom in"><ZoomIn size={15} /></button>
+      <div className="flex items-center gap-1">
+        {/* when zoomed in, the percentage doubles as a one-click way back to the whole page */}
+        {zoom > 1 && <button className="btn-ghost px-1.5 py-0.5 text-[11px] tabular-nums" onClick={() => setZoom(1)} title={t('Fit to width')}>{Math.round(zoom * 100)}%</button>}
+        <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.max(1, z - 0.5))} disabled={zoom <= 1}
+          aria-label={t('Zoom out')} title={t('Zoom out')}><ZoomOut size={15} /></button>
+        <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.min(3, z + 0.5))} disabled={zoom >= 3}
+          aria-label={t('Zoom in')} title={t('Zoom in')}><ZoomIn size={15} /></button>
       </div>
     </div>
     <div className="max-h-[78vh] overflow-auto bg-slate-100">
@@ -49,7 +54,8 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
             const c = f.status === 'corrected' || f.status === 'confirmed' ? 1 : f.confidence
             const col = c >= threshold ? '21,128,61' : c >= threshold - 0.2 ? '180,83,9' : '185,28,28'
             const active = selected === f.name
-            return <button key={f.name} title={`${f.name}: ${f.value ?? ''}`} onClick={() => onSelect(f.name)}
+            return <button key={f.name} title={`${fieldLabel(f.name)}: ${f.value ?? ''}`} aria-label={`${fieldLabel(f.name)}: ${f.value ?? ''}`}
+              onClick={() => onSelect(f.name)}
               className="absolute rounded-sm transition"
               style={{
                 left: `${(x0 / page.width) * 100}%`, top: `${(y0 / page.height) * 100}%`,
