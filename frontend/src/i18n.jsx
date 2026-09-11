@@ -271,6 +271,14 @@ const HI = {
   // printed extract toolbar (the sheet itself is always bilingual)
   'Check the details, then print or save as PDF.': 'विवरण जाँचें, फिर छापें या PDF में सहेजें।',
   'Print extract': 'नकल छापें',
+  // review screen details
+  'Confirm': 'पुष्टि करें',
+  'Reject this field': 'यह विवरण अस्वीकार करें',
+  'confirmed': 'पुष्टि हुई',
+  'corrected': 'सुधारा गया',
+  'Processing again': 'दोबारा संसाधन हो रहा है',
+  'The page will update when it is done': 'पूरा होने पर पन्ना अपने आप अपडेट होगा',
+  'match': 'मेल',
 }
 
 const KEY = 'landlekha.lang'

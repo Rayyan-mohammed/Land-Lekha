@@ -6,13 +6,32 @@ import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
-import { explainAdvice, explainReason } from '../reasons'
+import { explainAdvice, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
+
+// preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
+const STEP_HI = { grayscale: 'धूसर', resize: 'आकार बदला', page_crop: 'पन्ना काटा', illumination: 'रोशनी समतल', rotate90: '90° घुमाया',
+  rotate180: 'उल्टा सीधा किया', deskew: 'तिरछापन ठीक', denoise: 'शोर हटाया', sharpen: 'धार बढ़ाई', clahe: 'कंट्रास्ट बढ़ाया',
+  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने' }
+const stepLabel = (s, lang) => {
+  if (lang !== 'hi') return s
+  const [k, n] = s.split(/[: ]/)
+  return STEP_HI[k] ? `${STEP_HI[k]}${n ? ` ${n}` : ''}` : s
+}
+
+// document types from backend/extraction/labels.py DOC_TYPES
+const DOC_TYPE = { khatauni: ['Khatauni', 'खतौनी'], khasra_panchsala: ['Khasra Panchsala', 'खसरा पांचसाला'], jamabandi: ['Jamabandi', 'जमाबंदी'],
+  khatiyan: ['Khatiyan', 'खतियान'], record_of_rights: ['Record of Rights', 'अधिकार अभिलेख'], particulars_form: ['Particulars form', 'विवरण प्रपत्र'],
+  unknown: ['unknown type', 'अज्ञात प्रकार'] }
+const docTypeLabel = (k, lang) => {
+  const pair = DOC_TYPE[k || 'unknown']
+  return pair ? pair[lang === 'hi' ? 1 : 0] : k.replaceAll('_', ' ')
+}
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
 
 function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const url = useAuthImage(() => api.pageBlob(doc.id, page.page), [doc.id, page.page, doc.processed_at])
   const [zoom, setZoom] = useState(1)
   const boxes = fields.filter((f) => f.bbox && (f.page || 1) === page.page)
@@ -23,7 +42,7 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
         <QualityBadge quality={page.quality} />
         {page.preprocess?.steps?.includes('pdf_text_layer')
           ? <span>{t("read from the PDF's text layer (no OCR needed)")}</span>
-          : <span>deskew {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.join(' → ')}</span>}
+          : <span>{lang === 'hi' ? 'तिरछापन' : 'deskew'} {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.map((s) => stepLabel(s, lang)).join(' → ')}</span>}
       </span>
       <div className="flex gap-1">
         <button className="btn-ghost p-1" onClick={() => setZoom((z) => Math.max(1, z - 0.5))} aria-label="zoom out"><ZoomOut size={15} /></button>
@@ -54,7 +73,7 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
 }
 
 function FieldRow({ def, f, decision, onDecision, editable, threshold, selected, onSelect }) {
-  const { t } = useT()
+  const { t, lang } = useT()
   const ref = useRef()
   useEffect(() => { if (selected) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [selected])
   const d = decision || {}
@@ -71,7 +90,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
         {def.en} <span className="text-slate-500">· {def.hi}</span>{def.required && <span className="text-bad"> *</span>}
       </div>
       <div className="flex items-center gap-2">
-        {reviewedTag && <span className="text-[11px] rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">{reviewedTag}</span>}
+        {reviewedTag && <span className="text-[11px] rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">{t(reviewedTag)}</span>}
         {f && <ConfidenceBar value={f.status === 'corrected' ? 1 : f.confidence} threshold={threshold} />}
       </div>
     </div>
@@ -95,9 +114,9 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
         </div>
       )}
       {editable && f && <>
-        <button title="Confirm" aria-label={`Confirm ${def.en}`} onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'confirm' ? null : { action: 'confirm' }) }}
+        <button title={t('Confirm')} aria-label={`${t('Confirm')}: ${lang === 'hi' ? def.hi : def.en}`} onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'confirm' ? null : { action: 'confirm' }) }}
           className={`rounded-md p-1.5 ${d.action === 'confirm' ? 'bg-ok text-white' : 'text-slate-500 hover:bg-emerald-50 hover:text-ok'}`}><Check size={16} /></button>
-        <button title="Reject this field" aria-label={`Reject ${def.en}`} onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'reject' ? null : { action: 'reject' }) }}
+        <button title={t('Reject this field')} aria-label={`${t('Reject')}: ${lang === 'hi' ? def.hi : def.en}`} onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'reject' ? null : { action: 'reject' }) }}
           className={`rounded-md p-1.5 ${d.action === 'reject' ? 'bg-bad text-white' : 'text-slate-500 hover:bg-red-50 hover:text-bad'}`}><X size={16} /></button>
       </>}
     </div>
@@ -108,7 +127,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
       {f.original_value && f.status === 'corrected' && <span>{t('was')}: {f.original_value}</span>}
     </div>}
     {f?.issues?.length > 0 && <div className="mt-1 flex flex-wrap gap-1">
-      {f.issues.map((i) => <span key={i} className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] text-amber-800">{i}</span>)}
+      {f.issues.map((i) => <span key={i} className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] text-amber-800" title={i}>{explainIssue(i, lang)}</span>)}
     </div>}
   </div>
 }
@@ -208,14 +227,14 @@ export default function DocumentView() {
       <button className="btn-ghost px-2" onClick={() => nav(-1)}><ArrowLeft size={16} /></button>
       <div className="min-w-0 flex-1">
         <h1 className="truncate text-lg font-semibold text-slate-900">{doc.filename}</h1>
-        <div className="text-xs text-slate-500">#{doc.id} · {doc.document_type?.replaceAll('_', ' ') || 'unknown type'} · {t('uploaded by')} {doc.uploader_name} · {fmtDate(doc.created_at)}
-          {doc.processing_ms && <> · processed in {(doc.processing_ms / 1000).toFixed(1)} s</>}</div>
+        <div className="text-xs text-slate-500">#{doc.id} · {docTypeLabel(doc.document_type, lang)} · {t('uploaded by')} {doc.uploader_name} · {fmtDate(doc.created_at)}
+          {doc.processing_ms && <> · {t('processed in')} {(doc.processing_ms / 1000).toFixed(1)} s</>}</div>
       </div>
       <StatusBadge status={doc.status} />
       {doc.overall_confidence != null && <ConfidenceBar value={doc.overall_confidence} threshold={threshold} />}
       {doc.record_id && <Link to={`/records?focus=${doc.record_id}`} className="btn-outline py-1.5"><MapPin size={15} /> {t('Record')} #{doc.record_id}</Link>}
       {can() && !['verified', 'rejected'].includes(doc.status) && !processing &&
-        <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(() => { toast('Processing again', { type: 'info', body: 'The page will update when it is done' }); load() })}><RotateCcw size={15} /> {t('Re-run')}</button>}
+        <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(() => { toast(t('Processing again'), { type: 'info', body: t('The page will update when it is done') }); load() })}><RotateCcw size={15} /> {t('Re-run')}</button>}
     </div>
 
     {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> {t('Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…')}</div>}
@@ -235,7 +254,7 @@ export default function DocumentView() {
         </div>}
       {doc.duplicates?.length > 0 && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
         <div className="flex items-center gap-2 font-medium"><Copy size={16} /> {t('Possible duplicate of existing record')}</div>
-        {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">Record #{d.record_id} — score {Math.round(d.score * 100)}% ({d.reasons.join(', ')})</div>)}
+        {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">{t('Record')} #{d.record_id} — {t('match')} {Math.round(d.score * 100)}% ({d.reasons.join(', ')})</div>)}
       </div>}
       {doc.status === 'auto_accepted' && <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 flex items-center gap-2">
         <CheckCircle2 size={16} /> {t('Every field passed validation with confidence above')} {Math.round(threshold * 100)}% — {t('accepted without manual review. Verifiers can still audit and correct it.')}
