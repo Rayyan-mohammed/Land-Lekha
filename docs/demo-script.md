@@ -31,7 +31,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
   - Places are checked against the master database (village ∈ tehsil ∈ district).
 - Correct one flagged value and **Approve**. Say: *"the verifier doesn't retype the document, they check one or two fields"*.
 - Mention: the correction is stored, and the same misreading is fixed automatically next time (the learning loop).
-- Close the tab halfway through a review and open the document again: the unsaved corrections come back, so nothing is lost if the power or the connection drops.
+- Close the tab halfway through a review and open the document again: the unsaved corrections come back, so nothing is lost if the power or the connection drops. **Skip** leaves a hard document for later without losing those corrections.
 - Upload and open **`09-multi-owner-khatauni.jpg`**: one khata, three co-owners, three khasra rows. The review screen lists every co-owner with their father's name, and every parcel row. Real Khataunis look like this; a single "owner" field would lose two of the three owners.
 
 ## 4. Governance (1 min) — log in as `admin`

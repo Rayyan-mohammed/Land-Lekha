@@ -76,8 +76,8 @@ const FAQ = [
     ['On Records & GIS, press "Not sent to LRMS", then "Send all to LRMS". Each record is sent in turn and one message tells you how many went through.',
       'अभिलेख और मानचित्र पर "LRMS को नहीं भेजे" दबाएँ, फिर "सभी LRMS को भेजें"। हर अभिलेख बारी-बारी से भेजा जाता है और एक संदेश बताता है कि कितने गए।']],
   [['What if I close the tab in the middle of a review?', 'अगर जाँच के बीच टैब बंद हो जाए तो?'],
-    ['Your corrections are kept on this computer for a day. Open the same document again and they come back; approve when you are ready.',
-      'आपके सुधार इस कंप्यूटर पर एक दिन तक रखे जाते हैं। वही दस्तावेज़ फिर खोलें, वे वापस आ जाएँगे; तैयार होने पर स्वीकृत करें।']],
+    ['Your corrections are kept on this computer for a day. Open the same document again and they come back; approve when you are ready. To move on without deciding, press Skip.',
+      'आपके सुधार इस कंप्यूटर पर एक दिन तक रखे जाते हैं। वही दस्तावेज़ फिर खोलें, वे वापस आ जाएँगे; तैयार होने पर स्वीकृत करें। बिना निर्णय आगे बढ़ना हो तो छोड़ें दबाएँ।']],
 ]
 
 export default function Help() {
