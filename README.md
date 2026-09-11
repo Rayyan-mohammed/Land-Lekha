@@ -39,7 +39,7 @@ By document type (test): English Record of Rights 97.3%, scanner-quality pages 9
 
 Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the drop from dev to test is real: the label rules were tuned by looking at dev errors, so the test split is the honest number. OCR changes are A/B-tested before adoption; two that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
 
-**Multi-owner Khataunis** (separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 4 of 7 multi-owner documents, 11 of 18 parcel rows in multi-row tables recovered. The main miss: OCR drops the nasal mark, so the connector एवं ("and") is read as `एव` and the names aren't split.
+**Multi-owner Khataunis** (separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 5 of 7 multi-owner documents, 11 of 18 parcel rows in multi-row tables recovered. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
 
 The documents are deliberately hard: about 60% are degraded (faded/stained paper, scanner noise and skew, phone photos with perspective and uneven light), and some have handwritten entries or Devanagari digits. CER counts every character on the page, including stamps and footers, so it's a pessimistic number.
 

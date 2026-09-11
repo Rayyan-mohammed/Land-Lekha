@@ -160,6 +160,13 @@ def test_split_owners_on_whole_words_only():
     # "व" must not match mid-word inside a name like Shrivastava written in Devanagari
     assert split_owners("राजेश श्रीवास्तव") == ["राजेश श्रीवास्तव"]
     assert split_owners("1. Ram Lal  2. Shyam Lal") == ["Ram Lal", "Shyam Lal"]
+    # OCR drops the anusvara: "एवं" arrives as "एव" (seen on the multi-owner eval split)
+    assert split_owners("सुनीता त्रिपाठी एव सीता त्रिपाठी") == ["सुनीता त्रिपाठी", "सीता त्रिपाठी"]
+    assert split_owners("राम एवम् श्याम") == ["राम", "श्याम"]
+    assert split_owners("एच. आर. शर्मा") == ["एच. आर. शर्मा"]  # "एच" (H.) is a name initial, not "and"
+    assert split_owners("एच आर शर्मा") == ["एच आर शर्मा"]      # ...even without the full stop, at the start
+    assert split_owners("शिव प्रसाद अंसारी एच राम लाल अंसारी") == ["शिव प्रसाद अंसारी", "राम लाल अंसारी"]
+    assert split_owners("राम एच. आर. शर्मा") == ["राम एच. आर. शर्मा"]  # initial with a stop never splits
 
 
 def _multi_row_khatauni_ocr():

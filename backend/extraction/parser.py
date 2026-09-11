@@ -239,7 +239,8 @@ def generate_candidates(lines: list[Line]) -> tuple[list[Candidate], dict[int, l
     return cands, hits_by_line
 
 
-_OWNER_DELIMS = {"एवं", "व", "and", "&"}
+# "एव" is how OCR usually reads "एवं" (the anusvara dot is dropped); "एवम्" is the Sanskrit spelling
+_OWNER_DELIMS = {"एवं", "एव", "एवँ", "एवम", "एवम्", "व", "and", "&"}
 _OWNER_NUM_TOKEN = re.compile(r"^\d{1,2}[.)]$")
 
 
@@ -249,8 +250,12 @@ def split_owners(text: str) -> list[str]:
     containing "व" mid-word (e.g. "श्रीवास्तव") is never cut."""
     groups: list[str] = []
     cur: list[str] = []
-    for tok in clean(text).replace(",", " , ").split():
-        if tok == "," or tok in _OWNER_DELIMS or _OWNER_NUM_TOKEN.match(tok):
+    toks = clean(text).replace(",", " , ").split()
+    for i, tok in enumerate(toks):
+        # "एवं" is also misread as "एच". As a name initial it is written "एच." and starts
+        # a name, so only a bare "एच" between two names (2+ words before it) counts as "and"
+        misread_and = tok == "एच" and len(cur) >= 2 and i + 1 < len(toks)
+        if tok == "," or tok in _OWNER_DELIMS or misread_and or _OWNER_NUM_TOKEN.match(tok):
             if cur:
                 groups.append(" ".join(cur))
                 cur = []

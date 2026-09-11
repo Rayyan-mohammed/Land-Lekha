@@ -4,25 +4,25 @@
   "documents": 30,
   "cer_mean": 0.1683,
   "cer_median": 0.1378,
-  "field_accuracy": 0.8144,
-  "required_field_accuracy": 0.8048,
+  "field_accuracy": 0.8218,
+  "required_field_accuracy": 0.8143,
   "review_rate": 0.7333,
   "straight_through_accuracy": 1.0,
-  "field_flag_rate": 0.1575,
-  "trusted_field_precision": 0.9626,
+  "field_flag_rate": 0.1522,
+  "trusted_field_precision": 0.9628,
   "threshold": 0.88,
   "ocr_seconds_mean": 29.57,
-  "owners_exact_rate": 0.7,
+  "owners_exact_rate": 0.7333,
   "multi_owner_docs": 7,
   "parcel_row_recall": 0.5952,
   "parcel_row_precision": 0.6098,
   "per_field": {
    "owner_name": {
-    "accuracy": 0.7,
+    "accuracy": 0.7667,
     "n": 30
    },
    "father_name": {
-    "accuracy": 0.7143,
+    "accuracy": 0.75,
     "n": 28
    },
    "khata_number": {
@@ -79,21 +79,21 @@
    }
   },
   "by_group": {
-   "handwritten:False": 0.8485,
+   "handwritten:False": 0.8587,
    "handwritten:False:cer": 0.1728,
    "handwritten:True": 0.7255,
    "handwritten:True:cer": 0.1561,
    "profile:clean": 0.9214,
    "profile:clean:cer": 0.0965,
-   "profile:old": 0.7746,
+   "profile:old": 0.7865,
    "profile:old:cer": 0.203,
-   "profile:photo": 0.5072,
+   "profile:photo": 0.538,
    "profile:photo:cer": 0.3084,
    "profile:scan": 0.9045,
    "profile:scan:cer": 0.1317,
    "template:form_bilingual": 0.7911,
    "template:form_bilingual:cer": 0.1637,
-   "template:khatauni_table": 0.6695,
+   "template:khatauni_table": 0.6977,
    "template:khatauni_table:cer": 0.2027,
    "template:ror_english": 0.9466,
    "template:ror_english:cer": 0.148
@@ -110,7 +110,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 51449,
-   "extract_ms": 50.6,
+   "extract_ms": 9.1,
    "wrong": [],
    "reasons": [
     "low confidence: plot_area (0.86)"
@@ -126,7 +126,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 19204,
-   "extract_ms": 15.3,
+   "extract_ms": 5.6,
    "wrong": [
     "owner_name",
     "father_name",
@@ -150,7 +150,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 19012,
-   "extract_ms": 19.3,
+   "extract_ms": 7.0,
    "wrong": [
     "khata_number",
     "survey_number",
@@ -173,7 +173,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 15219,
-   "extract_ms": 11.2,
+   "extract_ms": 5.3,
    "wrong": [
     "owner_name",
     "khata_number",
@@ -197,7 +197,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 18158,
-   "extract_ms": 11.8,
+   "extract_ms": 4.7,
    "wrong": [],
    "reasons": []
   },
@@ -207,20 +207,19 @@
    "profile": "old",
    "handwritten": false,
    "cer": 0.2712,
-   "field_acc": 0.7857,
+   "field_acc": 0.8571,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 95807,
-   "extract_ms": 76.4,
+   "extract_ms": 9.5,
    "wrong": [
-    "owner_name",
     "father_name",
     "plot_area"
    ],
    "reasons": [
     "low confidence: khata_number (0.74)",
-    "low confidence: owner_name (0.43)",
-    "low confidence: father_name (0.29)",
+    "low confidence: owner_name (0.65)",
+    "low confidence: father_name (0.36)",
     "low confidence: mutation_number (0.86)"
    ]
   },
@@ -234,7 +233,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 45864,
-   "extract_ms": 11.3,
+   "extract_ms": 3.4,
    "wrong": [
     "owner_name",
     "father_name",
@@ -268,7 +267,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 41585,
-   "extract_ms": 43.9,
+   "extract_ms": 6.7,
    "wrong": [
     "land_classification"
    ],
@@ -287,7 +286,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 34592,
-   "extract_ms": 10.1,
+   "extract_ms": 5.2,
    "wrong": [],
    "reasons": []
   },
@@ -301,7 +300,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 16834,
-   "extract_ms": 14.9,
+   "extract_ms": 9.9,
    "wrong": [
     "khata_number",
     "plot_area",
@@ -322,7 +321,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 41313,
-   "extract_ms": 13.1,
+   "extract_ms": 4.8,
    "wrong": [
     "owner_name",
     "father_name",
@@ -353,7 +352,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 15589,
-   "extract_ms": 11.2,
+   "extract_ms": 5.0,
    "wrong": [
     "father_name",
     "registration_date"
@@ -373,7 +372,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 19149,
-   "extract_ms": 11.9,
+   "extract_ms": 4.9,
    "wrong": [],
    "reasons": []
   },
@@ -383,19 +382,15 @@
    "profile": "photo",
    "handwritten": false,
    "cer": 0.1741,
-   "field_acc": 0.7692,
+   "field_acc": 0.9231,
    "route": "review",
-   "required_all_correct": false,
+   "required_all_correct": true,
    "ocr_ms": 15299,
-   "extract_ms": 28.3,
+   "extract_ms": 8.6,
    "wrong": [
-    "owner_name",
-    "father_name",
     "survey_number"
    ],
    "reasons": [
-    "low confidence: owner_name (0.53)",
-    "low confidence: father_name (0.80)",
     "low confidence: survey_number (0.85)",
     "low confidence: mutation_number (0.83)"
    ]
@@ -410,7 +405,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 16454,
-   "extract_ms": 10.0,
+   "extract_ms": 4.9,
    "wrong": [],
    "reasons": []
   },
@@ -424,7 +419,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 45666,
-   "extract_ms": 112.6,
+   "extract_ms": 11.7,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.86)"
@@ -440,7 +435,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 68709,
-   "extract_ms": 26.5,
+   "extract_ms": 3.9,
    "wrong": [],
    "reasons": [
     "low confidence: father_name (0.75)"
@@ -456,7 +451,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 32093,
-   "extract_ms": 24.3,
+   "extract_ms": 5.8,
    "wrong": [],
    "reasons": []
   },
@@ -470,7 +465,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 21398,
-   "extract_ms": 117.0,
+   "extract_ms": 3.9,
    "wrong": [
     "khata_number",
     "khasra_number"
@@ -489,7 +484,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 45382,
-   "extract_ms": 54.5,
+   "extract_ms": 4.0,
    "wrong": [
     "owner_name",
     "survey_number",
@@ -512,7 +507,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 20896,
-   "extract_ms": 22.4,
+   "extract_ms": 5.9,
    "wrong": [
     "registration_date"
    ],
@@ -530,7 +525,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 25715,
-   "extract_ms": 32.1,
+   "extract_ms": 6.2,
    "wrong": [
     "tehsil"
    ],
@@ -548,7 +543,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13844,
-   "extract_ms": 16.4,
+   "extract_ms": 5.1,
    "wrong": [
     "khasra_number",
     "plot_area",
@@ -571,7 +566,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 21548,
-   "extract_ms": 12.6,
+   "extract_ms": 4.8,
    "wrong": [
     "khasra_number",
     "plot_area"
@@ -590,7 +585,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 17065,
-   "extract_ms": 11.8,
+   "extract_ms": 5.0,
    "wrong": [],
    "reasons": []
   },
@@ -604,7 +599,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 16822,
-   "extract_ms": 26.8,
+   "extract_ms": 11.4,
    "wrong": [],
    "reasons": []
   },
@@ -618,7 +613,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 22845,
-   "extract_ms": 20.0,
+   "extract_ms": 6.8,
    "wrong": [
     "owner_name",
     "father_name",
@@ -641,7 +636,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 34995,
-   "extract_ms": 17.2,
+   "extract_ms": 4.8,
    "wrong": [
     "owner_name",
     "father_name",
@@ -669,7 +664,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 20833,
-   "extract_ms": 14.7,
+   "extract_ms": 6.3,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.87)"
@@ -685,7 +680,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 13670,
-   "extract_ms": 7.7,
+   "extract_ms": 5.4,
    "wrong": [],
    "reasons": []
   }
