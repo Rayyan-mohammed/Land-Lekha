@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
@@ -13,7 +13,7 @@ from ..auth import current_user, require
 from ..config import ALLOWED_EXTENSIONS, MAX_UPLOAD_MB, STORAGE_DIR
 from ..db import get_db
 from ..models import Document, LandRecord, User
-from ..processing import process_document
+from ..processing import enqueue
 from ..schemas import DocumentDetail, DocumentSummary
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -29,7 +29,7 @@ def _get_visible(db: Session, doc_id: int, user: User) -> Document:
 
 
 @router.post("", status_code=status.HTTP_202_ACCEPTED, response_model=DocumentSummary)
-async def upload(request: Request, background: BackgroundTasks, file: UploadFile = File(...),
+async def upload(request: Request, file: UploadFile = File(...),
                  db: Session = Depends(get_db), user: User = Depends(require("operator", "verifier"))):
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -57,7 +57,7 @@ async def upload(request: Request, background: BackgroundTasks, file: UploadFile
     doc.stored_path = str(path)
     audit.log(db, "document.uploaded", user, "document", doc.id, {"filename": doc.filename, "bytes": len(data)}, request)
     db.commit()
-    background.add_task(process_document, doc.id)
+    enqueue(doc.id)
     return doc
 
 
@@ -119,7 +119,7 @@ def ocr_output(doc_id: int, db: Session = Depends(get_db), user: User = Depends(
 
 
 @router.post("/{doc_id}/reprocess", status_code=202, response_model=DocumentSummary)
-def reprocess(doc_id: int, request: Request, background: BackgroundTasks, db: Session = Depends(get_db),
+def reprocess(doc_id: int, request: Request, db: Session = Depends(get_db),
               user: User = Depends(require("admin"))):
     doc = _get_visible(db, doc_id, user)
     if doc.status in ("verified", "rejected"):
@@ -127,5 +127,5 @@ def reprocess(doc_id: int, request: Request, background: BackgroundTasks, db: Se
     doc.status = "queued"
     audit.log(db, "document.reprocess", user, "document", doc.id, None, request)
     db.commit()
-    background.add_task(process_document, doc.id)
+    enqueue(doc.id)
     return doc

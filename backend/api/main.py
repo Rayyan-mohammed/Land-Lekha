@@ -45,12 +45,10 @@ def _init_db() -> None:
             d.status = "queued"
         db.commit()
     if stuck:
-        from .processing import process_document
+        from .processing import enqueue
 
-        def resume():
-            for d in stuck:
-                process_document(d.id)
-        threading.Thread(target=resume, daemon=True).start()
+        for d in stuck:
+            enqueue(d.id)
 
 
 def _warm_ocr() -> None:
@@ -84,7 +82,9 @@ for r in (auth.router, documents.router, review.router, admin.router, integratio
 def health():
     from backend.ocr import engine as ocr_engine
 
-    return {"status": "ok", "ocr_ready": bool(ocr_engine._engines)}
+    from .processing import queue_length
+
+    return {"status": "ok", "ocr_ready": bool(ocr_engine._engines), "queue": queue_length()}
 
 
 # serve the built frontend (npm run build) from the same origin, if present

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import queue
 import threading
 import time
 import traceback
@@ -27,6 +28,35 @@ RECORD_FIELDS = ["owner_name", "father_name", "khata_number", "khasra_number", "
 
 _memory: CorrectionMemory | None = None
 _memory_lock = threading.Lock()
+
+# One worker thread processes documents in upload order. OCR is CPU-bound and the
+# engine is shared, so parallel threads would only wait on each other (and make the
+# per-document timings meaningless).
+_queue: queue.Queue[int] = queue.Queue()
+_worker: threading.Thread | None = None
+_worker_lock = threading.Lock()
+
+
+def _work() -> None:
+    while True:
+        doc_id = _queue.get()
+        try:
+            process_document(doc_id)
+        finally:
+            _queue.task_done()
+
+
+def enqueue(doc_id: int) -> None:
+    global _worker
+    with _worker_lock:
+        if _worker is None or not _worker.is_alive():
+            _worker = threading.Thread(target=_work, name="landlekha-worker", daemon=True)
+            _worker.start()
+    _queue.put(doc_id)
+
+
+def queue_length() -> int:
+    return _queue.qsize()
 
 
 def get_memory(db: Session) -> CorrectionMemory:
