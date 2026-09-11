@@ -1,19 +1,23 @@
+import { lazy } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth'
 import Layout from './components/Layout'
 import { Spinner } from './components/ui'
-import Audit from './pages/Audit'
-import Dashboard from './pages/Dashboard'
-import DocumentView from './pages/DocumentView'
-import Documents from './pages/Documents'
-import Extract from './pages/Extract'
-import Help from './pages/Help'
 import Login from './pages/Login'
-import Records from './pages/Records'
-import ReviewQueue from './pages/ReviewQueue'
-import UploadPage from './pages/Upload'
-import UsersPage from './pages/Users'
 import Verify from './pages/Verify'
+
+// Each screen is its own chunk: the charts (dashboard), the map (records) and the QR code
+// (extract) download only when someone opens that screen, so sign-in stays fast on slow links.
+const Audit = lazy(() => import('./pages/Audit'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const DocumentView = lazy(() => import('./pages/DocumentView'))
+const Documents = lazy(() => import('./pages/Documents'))
+const Extract = lazy(() => import('./pages/Extract'))
+const Help = lazy(() => import('./pages/Help'))
+const Records = lazy(() => import('./pages/Records'))
+const ReviewQueue = lazy(() => import('./pages/ReviewQueue'))
+const UploadPage = lazy(() => import('./pages/Upload'))
+const UsersPage = lazy(() => import('./pages/Users'))
 
 function Guard({ roles, children }) {
   const { can } = useAuth()

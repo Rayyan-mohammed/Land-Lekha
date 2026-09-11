@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BarChart3, CircleHelp, ClipboardCheck, FileStack, LogOut, Map, Menu, ScrollText, Upload, Users, X } from 'lucide-react'
 import { useAuth } from '../auth'
 import { ROLE_LABEL } from '../constants'
 import { LangToggle, useT } from '../i18n'
 import { ErrorBoundary, OfflineBanner } from './Resilience'
+import { Spinner } from './ui'
 
 const NAV = [
   { to: '/upload', label: 'Upload', icon: Upload, roles: ['operator', 'verifier'] },
@@ -77,7 +78,9 @@ export default function Layout() {
       <OfflineBanner />
       <main id="main" tabIndex={-1} className="mx-auto max-w-7xl p-4 outline-none sm:p-6">
         {/* keyed by path: moving to another page clears a crash */}
-        <ErrorBoundary key={location.pathname}><Outlet /></ErrorBoundary>
+        <ErrorBoundary key={location.pathname}>
+          <Suspense fallback={<div className="flex justify-center py-16"><Spinner /></div>}><Outlet /></Suspense>
+        </ErrorBoundary>
       </main>
     </div>
   </div>
