@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Brain, CheckCircle2, Clock, FileStack, Gauge, Hourglass, ScanText, Target } from 'lucide-react'
 import { api } from '../api'
-import { ErrorNote, PageHeader, Spinner, Stat } from '../components/ui'
+import { ErrorNote, PageHeader, SkeletonCards, Stat } from '../components/ui'
 import { FIELD_MAP, STATUS } from '../constants'
 
 const pct = (v, d = 1) => (v == null ? '—' : `${(v * 100).toFixed(d)}%`)
 const STATUS_COLORS = { auto_accepted: '#15803d', verified: '#1f6f69', needs_review: '#d97706', rejected: '#b91c1c', failed: '#7f1d1d', processing: '#0284c7', queued: '#94a3b8' }
 
 function Section({ title, subtitle, children, className = '' }) {
-  return <div className={`card p-4 ${className}`}>
+  return <div className={`card min-w-0 p-4 ${className}`}>
     <div className="mb-3"><div className="font-medium text-slate-900">{title}</div>{subtitle && <div className="text-xs text-slate-500">{subtitle}</div>}</div>
     {children}
   </div>
@@ -25,7 +25,7 @@ export default function Dashboard() {
     return () => clearInterval(t)
   }, [])
   if (error) return <ErrorNote error={error} />
-  if (!s) return <div className="flex justify-center p-16"><Spinner /></div>
+  if (!s) return <div className="space-y-4"><PageHeader title="Digitization dashboard" subtitle="Loading live figures…" /><SkeletonCards n={8} /></div>
 
   const t = s.totals
   const bench = s.accuracy.benchmark

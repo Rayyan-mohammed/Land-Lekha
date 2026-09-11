@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { UserPlus } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import { ErrorNote, PageHeader, Spinner } from '../components/ui'
+import { ErrorNote, PageHeader, SkeletonRows } from '../components/ui'
 import { ROLE_LABEL } from '../constants'
 import { useToast } from '../components/toast'
 
@@ -34,7 +34,7 @@ export default function UsersPage() {
     <ErrorNote error={error} />
     <div className="grid gap-4 lg:grid-cols-[1fr_320px] mt-3">
       <div className="card">
-        {!users ? <div className="p-10 flex justify-center"><Spinner /></div> :
+        {!users ? <SkeletonRows cols={4} rows={4} /> :
           <div className="table-wrap"><table className="data">
             <thead><tr><th>User</th><th>Role</th><th>Status</th><th /></tr></thead>
             <tbody>{users.map((u) => <tr key={u.id}>

@@ -85,6 +85,37 @@ export function Empty({ children }) {
   return <div className="py-12 text-center text-sm text-slate-500">{children}</div>
 }
 
+// Friendly empty screen: an icon, what it means, and what to do next.
+export function EmptyState({ icon: Icon, title, children, action, tone = 'brand' }) {
+  const tones = { brand: 'bg-brand-50 text-brand-600', ok: 'bg-emerald-50 text-ok' }
+  return <div className="flex flex-col items-center px-6 py-14 text-center">
+    {Icon && <div className={`mb-3 rounded-full p-3 ${tones[tone]}`}><Icon size={26} /></div>}
+    <div className="font-medium text-slate-900">{title}</div>
+    {children && <div className="mt-1 max-w-md text-sm text-slate-600">{children}</div>}
+    {action && <div className="mt-4">{action}</div>}
+  </div>
+}
+
+// Placeholder rows while a table loads, so the layout doesn't jump.
+export function SkeletonRows({ rows = 6, cols = 5 }) {
+  return <div className="divide-y divide-slate-100" aria-busy="true" aria-label="loading">
+    {Array.from({ length: rows }, (_, r) => <div key={r} className="flex items-center gap-4 px-4 py-3.5">
+      {Array.from({ length: cols }, (_, c) => <div key={c} className="h-3 animate-pulse rounded bg-slate-200"
+        style={{ width: `${c === 1 ? 28 : 10 + ((r * 7 + c * 13) % 14)}%` }} />)}
+    </div>)}
+  </div>
+}
+
+export function SkeletonCards({ n = 4 }) {
+  return <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-busy="true" aria-label="loading">
+    {Array.from({ length: n }, (_, i) => <div key={i} className="card p-4">
+      <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+      <div className="mt-3 h-6 w-16 animate-pulse rounded bg-slate-200" />
+      <div className="mt-2 h-2.5 w-32 animate-pulse rounded bg-slate-100" />
+    </div>)}
+  </div>
+}
+
 // Loads an authenticated image (Authorization header) as an object URL.
 export function useAuthImage(loader, deps) {
   const [url, setUrl] = useState(null)

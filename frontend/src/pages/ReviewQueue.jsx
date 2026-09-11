@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardCheck } from 'lucide-react'
+import { ClipboardCheck, PartyPopper } from 'lucide-react'
 import { api } from '../api'
-import { ConfidenceBar, Empty, ErrorNote, fmtDate, PageHeader, Spinner } from '../components/ui'
+import { ConfidenceBar, EmptyState, ErrorNote, fmtDate, PageHeader, SkeletonRows } from '../components/ui'
 import { useT } from '../i18n'
 
 export default function ReviewQueue() {
@@ -21,8 +21,9 @@ export default function ReviewQueue() {
       actions={rows?.length > 0 && <Link to={`/documents/${rows[0].id}`} className="btn-primary"><ClipboardCheck size={16} /> {t('Start reviewing')}</Link>} />
     <ErrorNote error={error} />
     <div className="card">
-      {!rows ? <div className="p-10 flex justify-center"><Spinner /></div>
-        : rows.length === 0 ? <Empty>{t('Nothing waiting. Every processed document is either verified or passed automatically.')}</Empty>
+      {!rows ? <SkeletonRows cols={5} />
+        : rows.length === 0 ? <EmptyState icon={PartyPopper} tone="ok" title={t('All clear')}
+          action={<Link className="btn-outline" to="/documents">{t('Documents')}</Link>}>{t('Nothing waiting. Every processed document is either verified or passed automatically.')}</EmptyState>
           : <div className="table-wrap"><table className="data">
             <thead><tr><th>#</th><th>{t('File')}</th><th>{t('District')}</th><th>{t('Confidence')}</th><th>{t('Uploaded')}</th><th /></tr></thead>
             <tbody>{rows.map((d) => <tr key={d.id}>

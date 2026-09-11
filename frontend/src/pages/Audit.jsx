@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import { Empty, ErrorNote, fmtDate, PageHeader, Spinner } from '../components/ui'
+import { Empty, ErrorNote, fmtDate, PageHeader, SkeletonRows } from '../components/ui'
 
 const ACTIONS = ['', 'auth', 'document', 'user', 'integration']
 
@@ -22,7 +22,7 @@ export default function Audit() {
       </select>} />
     <ErrorNote error={error} />
     <div className="card">
-      {!rows ? <div className="p-10 flex justify-center"><Spinner /></div> : rows.length === 0 ? <Empty>No events.</Empty> :
+      {!rows ? <SkeletonRows cols={6} /> : rows.length === 0 ? <Empty>No events.</Empty> :
         <div className="table-wrap"><table className="data">
           <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th><th>IP</th></tr></thead>
           <tbody>{rows.map((r) => <tr key={r.id}>

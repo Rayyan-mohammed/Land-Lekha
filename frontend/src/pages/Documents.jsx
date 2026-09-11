@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { RefreshCw, Search } from 'lucide-react'
+import { FileUp, RefreshCw, Search } from 'lucide-react'
 import { api } from '../api'
-import { ConfidenceBar, Empty, ErrorNote, fmtDate, PageHeader, Spinner, StatusBadge } from '../components/ui'
+import { ConfidenceBar, EmptyState, ErrorNote, fmtDate, PageHeader, SkeletonRows, StatusBadge } from '../components/ui'
 import { STATUS } from '../constants'
 import { useT } from '../i18n'
 
@@ -41,8 +41,10 @@ export default function Documents() {
         </select>
       </div>
       <ErrorNote error={error} />
-      {!data ? <div className="p-10 flex justify-center"><Spinner /></div>
-        : data.items.length === 0 ? <Empty>No documents yet. <Link className="text-brand-700 underline" to="/upload">Upload one</Link>.</Empty>
+      {!data ? <SkeletonRows cols={6} />
+        : data.items.length === 0 ? <EmptyState icon={FileUp} title={status || params.get('q') ? 'Nothing matches this filter' : 'No documents yet'}
+          action={!status && !params.get('q') && <Link className="btn-primary" to="/upload"><FileUp size={16} /> {t('Upload land records')}</Link>}>
+          {status || params.get('q') ? 'Try another status or search term.' : 'Scanned records you upload will appear here with their status and confidence.'}</EmptyState>
           : <div className="table-wrap"><table className="data">
             <thead><tr><th>#</th><th>{t('File')}</th><th>{t('Type')}</th><th>{t('District')}</th><th>{t('Status')}</th><th>{t('Confidence')}</th><th>{t('Time')}</th><th>{t('Uploaded')}</th></tr></thead>
             <tbody>{data.items.map((d) => <tr key={d.id}>

@@ -52,6 +52,7 @@ const HI = {
   'Uploaded': 'अपलोड',
   'Review': 'जाँचें',
   'Start reviewing': 'जाँच शुरू करें',
+  'All clear': 'सब पूरा हो गया',
   'Documents with at least one uncertain field — lowest confidence first': 'जिन दस्तावेज़ों में कम से कम एक विवरण अनिश्चित है — सबसे कम विश्वसनीयता पहले',
   'Nothing waiting. Every processed document is either verified or passed automatically.': 'कुछ भी लंबित नहीं है। सभी दस्तावेज़ सत्यापित या स्वतः स्वीकृत हैं।',
   'Previous': 'पिछला',

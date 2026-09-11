@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet'
-import { Send } from 'lucide-react'
+import { Map as MapIcon, Send } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import { Empty, ErrorNote, PageHeader, Spinner } from '../components/ui'
+import { Empty, EmptyState, ErrorNote, PageHeader, SkeletonRows } from '../components/ui'
 import { LAND_CLASSES } from '../constants'
 import { useToast } from '../components/toast'
 
@@ -51,7 +51,7 @@ export default function Records() {
   }), [focus])
 
   if (error) return <ErrorNote error={error} />
-  if (!recs) return <div className="flex justify-center p-16"><Spinner /></div>
+  if (!recs) return <div className="space-y-4"><PageHeader title="Digitized records & GIS" /><div className="card"><SkeletonRows cols={7} /></div></div>
 
   return <div className="space-y-4">
     <PageHeader title="Digitized records & GIS" subtitle="Verified records in LRMS exchange format, parcel map, and DILRMP progress report" />
@@ -94,7 +94,7 @@ export default function Records() {
 
     <div className="card">
       <div className="border-b border-slate-100 px-4 py-3 font-medium">Land records ({recs.length})</div>
-      {recs.length === 0 ? <Empty>No verified records yet.</Empty> :
+      {recs.length === 0 ? <EmptyState icon={MapIcon} title="No verified records yet">A record is created when a verifier approves a document, or when a document passes every check on its own.</EmptyState> :
         <div className="table-wrap"><table className="data">
           <thead><tr><th>#</th><th>Owner</th><th>Khata</th><th>Khasra</th><th>Area</th><th>Class</th><th>Village / District</th><th>Verified</th><th>LRMS</th><th /></tr></thead>
           <tbody>{recs.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
