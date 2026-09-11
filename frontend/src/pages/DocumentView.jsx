@@ -200,6 +200,13 @@ export default function DocumentView() {
 
   const setDecision = (name, dec) => setDecisions((ds) => { const n = { ...ds }; if (dec) n[name] = dec; else delete n[name]; return n })
   const flagged = FIELDS.filter((d) => byName[d.name] && byName[d.name].status === 'pending' && (byName[d.name].confidence < threshold || !byName[d.name].valid))
+  // leave this document for later and open the next one in the chosen queue order;
+  // any unsaved corrections here stay as a draft
+  const skip = async () => {
+    const q = await api.queue().catch(() => [])
+    const next = sortQueue(q, getQueueOrder()).find((d) => d.id !== doc.id)
+    if (next) nav(`/documents/${next.id}`)
+  }
   const submit = async (decision) => {
     setBusy(true)
     setError(null)
@@ -362,6 +369,8 @@ export default function DocumentView() {
             <div className="flex gap-2">
               <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> {t('Approve record')}{left > 0 && <span className="font-normal opacity-80"> · {left} {t('left')}</span>}</button>
               <button className="btn-danger" disabled={busy} onClick={() => submit('reject')}><X size={16} /> {t('Reject')}</button>
+              {left > 0 && <button className="btn-outline" disabled={busy} onClick={skip}
+                title={t('Leave this one for later; your changes stay as a draft')}>{t('Skip')}</button>}
             </div>
             <div className="hidden flex-wrap gap-x-3 text-[11px] text-slate-500 lg:flex" aria-label="keyboard shortcuts">
               <span><kbd className="kbd">↑</kbd><kbd className="kbd">↓</kbd> {t('move')}</span><span><kbd className="kbd">Enter</kbd> {t('confirm')}</span>

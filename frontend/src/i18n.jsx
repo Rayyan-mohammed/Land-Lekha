@@ -342,6 +342,8 @@ export const HI = {
   'could not be sent': 'नहीं भेजे जा सके',
   'Every record has been sent to LRMS.': 'सभी अभिलेख LRMS को भेजे जा चुके हैं।',
   'Nothing matches this search.': 'इस खोज से कुछ नहीं मिला।',
+  'Skip': 'छोड़ें',
+  'Leave this one for later; your changes stay as a draft': 'इसे बाद के लिए छोड़ें; आपके बदलाव मसौदे के रूप में रहेंगे',
   'field to check in all': 'विवरण कुल जाँचना है',
   'fields to check in all': 'विवरण कुल जाँचने हैं',
   'Documents with at least one uncertain field — fewest fields to check first':
