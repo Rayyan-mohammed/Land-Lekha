@@ -88,9 +88,10 @@ export default function Records() {
         <div className="h-96">
           <MapContainer center={[25.5, 80]} zoom={5} className="h-full w-full" scrollWheelZoom>
             <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {geo && <GeoJSON key={`${geo.features.length}-${focus}`} data={geo} style={style}
+            {/* lang in the key: Leaflet popups are plain HTML built once, so rebuild them on a language switch */}
+            {geo && <GeoJSON key={`${geo.features.length}-${focus}-${lang}`} data={geo} style={style}
               onEachFeature={(f, layer) => layer.bindPopup(
-                `<b>Khasra ${f.properties.khasra_no}</b> · Khata ${f.properties.khata_no}<br/>${f.properties.owner}<br/>${f.properties.village}, ${f.properties.district}<br/>${f.properties.area_hectares ?? '?'} ha`)} />}
+                `<b>${t('Khasra')} ${f.properties.khasra_no}</b> · ${t('Khata')} ${f.properties.khata_no}<br/>${f.properties.owner}<br/>${f.properties.village}, ${f.properties.district}<br/>${f.properties.area_hectares ?? '?'} ha`)} />}
             {/* parcels are a few hectares: invisible at state zoom, so also mark their centroids */}
             {geo?.features.map((f) => {
               const ring = f.geometry.coordinates[0]
@@ -99,7 +100,7 @@ export default function Records() {
               return <CircleMarker key={f.id} center={[lat, lon]} radius={f.id === focus ? 9 : 6}
                 pathOptions={{ color: f.id === focus ? '#b91c1c' : '#0f3d3e', fillColor: '#f2c14e', fillOpacity: 0.9, weight: 2 }}
                 eventHandlers={{ click: () => setParams({ focus: f.id }) }}>
-                <Popup><b>Khasra {f.properties.khasra_no}</b> · Khata {f.properties.khata_no}<br />{f.properties.owner}<br />
+                <Popup><b>{t('Khasra')} {f.properties.khasra_no}</b> · {t('Khata')} {f.properties.khata_no}<br />{f.properties.owner}<br />
                   {f.properties.village}, {f.properties.district} · {f.properties.area_hectares ?? '?'} ha</Popup>
               </CircleMarker>
             })}
