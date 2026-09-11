@@ -92,6 +92,30 @@ first 10 dev documents, field accuracy dropped from 85.8% to 82.1%: the extra no
 through costs more than the detail it keeps. Stopped early; the strength stays at 12
 (`LL_OCR_DENOISE_H` is kept for future tuning).
 
+## 9. Official LGD village list: dataset rebuilt and recalibrated
+
+L2 replaced the 92 sample villages with the official LGD directory (4,876 villages for the 10
+districts). Measured on the old test set, village accuracy fell from 90% to 37.5%. The cause was
+the synthetic ground truth, not the lookup: 59 of the 92 sample villages the documents used do
+not exist in the official list. The lookup itself still found the right village for 31 of 33
+villages present in both lists, even though the official Hindi names are machine-transliterated.
+
+So the dev and test sets were regenerated from the official list (same seeds), OCR re-run, and
+the confidence model refitted on dev.
+
+The new data is harder (real village names, more multi-owner Khataunis), and 98% precision on
+unflagged fields was only reachable by flagging two thirds of all fields (dev: 33% of fields
+above a 0.96 threshold). The target was therefore set to **95% on dev**, which keeps about 70%
+of fields unflagged:
+
+| Held-out test | Sample villages (old) | LGD villages (now) |
+| --- | --- | --- |
+| Field accuracy | 82.9% | **84.4%** |
+| Village accuracy | 90.0% | **85.0%** |
+| Fields flagged for a person | 16.3% | 21.8% |
+| Unflagged fields correct | 95.7% | **96.2%** |
+| Median CER | 11.3% | 11.1% |
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.

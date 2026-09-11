@@ -2,46 +2,48 @@
 
 | Metric | Value |
 | --- | --- |
-| CER (mean / median) | 16.7% / 11.3% |
-| Field accuracy (all fields) | 82.9% |
-| Field accuracy (required fields) | 83.2% |
-| Review rate | 82.5% |
+| CER (mean / median) | 15.7% / 11.1% |
+| Field accuracy (all fields) | 84.4% |
+| Field accuracy (required fields) | 83.6% |
+| Review rate | 92.5% |
 | Straight-through accuracy (auto-accepted docs fully correct) | 100.0% |
-| Fields flagged for a human (all extracted fields) | 16.3% |
-| Precision of fields *not* flagged | 95.7% |
-| Auto-accept threshold (calibrated on dev) | 0.88 |
-| OCR time per document (CPU) | 33.53 s |
+| Fields flagged for a human (all extracted fields) | 21.8% |
+| Precision of fields *not* flagged | 96.2% |
+| Auto-accept threshold (calibrated on dev) | 0.89 |
+| OCR time per document (CPU) | 14.51 s |
+| All co-owners found (9 multi-owner docs) | 82.5% |
+| Parcel rows recovered (recall / precision) | 56.5% / 59.3% |
 
 ## Per field
 
 | Field | Accuracy | n |
 | --- | --- | --- |
-| owner_name | 80.0% | 40 |
-| father_name | 67.6% | 37 |
-| khata_number | 82.5% | 40 |
+| owner_name | 85.0% | 40 |
+| father_name | 83.3% | 36 |
+| khata_number | 80.0% | 40 |
 | khasra_number | 72.5% | 40 |
-| survey_number | 80.8% | 26 |
-| plot_area | 72.5% | 40 |
-| land_classification | 87.5% | 40 |
-| village | 90.0% | 40 |
-| tehsil | 90.0% | 40 |
-| district | 95.0% | 40 |
-| state | 95.0% | 40 |
-| mutation_number | 82.1% | 28 |
-| mutation_date | 78.6% | 28 |
-| registration_number | 84.6% | 26 |
-| registration_date | 80.8% | 26 |
+| survey_number | 69.2% | 26 |
+| plot_area | 77.5% | 40 |
+| land_classification | 92.5% | 40 |
+| village | 85.0% | 40 |
+| tehsil | 92.5% | 40 |
+| district | 92.5% | 40 |
+| state | 92.5% | 40 |
+| mutation_number | 85.7% | 35 |
+| mutation_date | 82.9% | 35 |
+| registration_number | 87.0% | 23 |
+| registration_date | 82.6% | 23 |
 
 ## By document group (field accuracy / CER)
 
 | Group | Field acc. | CER |
 | --- | --- | --- |
-| handwritten:False | 85.3% | 16.7% |
-| handwritten:True | 75.4% | 16.5% |
-| profile:clean | 88.0% | 10.2% |
-| profile:old | 84.4% | 17.6% |
-| profile:photo | 58.6% | 30.6% |
-| profile:scan | 92.3% | 11.7% |
-| template:form_bilingual | 82.0% | 16.2% |
-| template:khatauni_table | 70.5% | 22.0% |
-| template:ror_english | 97.3% | 11.4% |
+| handwritten:False | 88.6% | 14.9% |
+| handwritten:True | 67.7% | 18.5% |
+| profile:clean | 97.2% | 10.1% |
+| profile:old | 94.4% | 9.4% |
+| profile:photo | 43.9% | 38.4% |
+| profile:scan | 85.9% | 13.7% |
+| template:form_bilingual | 75.3% | 18.2% |
+| template:khatauni_table | 82.4% | 16.2% |
+| template:ror_english | 94.6% | 12.4% |
