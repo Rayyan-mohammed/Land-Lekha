@@ -5,6 +5,7 @@ import { api } from '../api'
 import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { FIELDS, LAND_CLASSES } from '../constants'
+import { useT } from '../i18n'
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
 
@@ -50,6 +51,7 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
 }
 
 function FieldRow({ def, f, decision, onDecision, editable, threshold, selected, onSelect }) {
+  const { t } = useT()
   const ref = useRef()
   useEffect(() => { if (selected) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [selected])
   const d = decision || {}
@@ -80,7 +82,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
           </select>
         ) : (
           <input className={`input ${d.action === 'reject' ? 'line-through opacity-50' : ''} ${d.action === 'correct' ? 'border-brand-500 bg-brand-50' : ''}`}
-            value={value || ''} placeholder={f ? '' : 'not found — type to add'}
+            value={value || ''} placeholder={f ? '' : t('not found — type to add')}
             onChange={(e) => onDecision(e.target.value === (f?.value ?? '') ? null : { action: 'correct', value: e.target.value })} />
         )
       ) : (
@@ -97,7 +99,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
       </>}
     </div>
     {f && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
-      {f.raw_value && <span>OCR read: <span className="font-mono text-slate-700">{f.raw_value}</span></span>}
+      {f.raw_value && <span>{t('OCR read')}: <span className="font-mono text-slate-700">{f.raw_value}</span></span>}
       {f.source && <span>from {SOURCE_LABEL[f.source] || f.source}</span>}
       {f.ocr_confidence != null && <span>OCR {Math.round(f.ocr_confidence * 100)}%</span>}
       {f.original_value && f.status === 'corrected' && <span>was: {f.original_value}</span>}
@@ -109,6 +111,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
 }
 
 export default function DocumentView() {
+  const { t } = useT()
   const { id } = useParams()
   const nav = useNavigate()
   const { can } = useAuth()
@@ -165,9 +168,9 @@ export default function DocumentView() {
       </div>
       <StatusBadge status={doc.status} />
       {doc.overall_confidence != null && <ConfidenceBar value={doc.overall_confidence} threshold={threshold} />}
-      {doc.record_id && <Link to={`/records?focus=${doc.record_id}`} className="btn-outline py-1.5"><MapPin size={15} /> Record #{doc.record_id}</Link>}
+      {doc.record_id && <Link to={`/records?focus=${doc.record_id}`} className="btn-outline py-1.5"><MapPin size={15} /> {t('Record')} #{doc.record_id}</Link>}
       {can() && !['verified', 'rejected'].includes(doc.status) && !processing &&
-        <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(load)}><RotateCcw size={15} /> Re-run</button>}
+        <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(load)}><RotateCcw size={15} /> {t('Re-run')}</button>}
     </div>
 
     {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…</div>}
@@ -177,16 +180,16 @@ export default function DocumentView() {
       {quality && quality.verdict !== 'good' &&
         <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
           <div className="flex items-center gap-2 font-medium"><Camera size={16} />
-            {quality.verdict === 'poor' ? 'The image is too poor to read reliably — please rescan or retake it' : 'Image quality is only fair — check the flagged fields carefully'}</div>
+            {quality.verdict === 'poor' ? t('The image is too poor to read reliably — please rescan or retake it') : t('Image quality is only fair — check the flagged fields carefully')}</div>
           <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{a}</li>)}</ul>
         </div>}
       {(doc.route_reasons?.length > 0 || doc.duplicates?.length > 0 || doc.consistency?.some((c) => !c.ok)) && doc.status === 'needs_review' &&
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-          <div className="flex items-center gap-2 font-medium"><AlertTriangle size={16} /> Why this needs a human</div>
+          <div className="flex items-center gap-2 font-medium"><AlertTriangle size={16} /> {t('Why this needs a human')}</div>
           <ul className="mt-1 list-disc pl-6 text-[13px]">{doc.route_reasons.slice(0, 8).map((r) => <li key={r}>{r}</li>)}</ul>
         </div>}
       {doc.duplicates?.length > 0 && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
-        <div className="flex items-center gap-2 font-medium"><Copy size={16} /> Possible duplicate of existing record</div>
+        <div className="flex items-center gap-2 font-medium"><Copy size={16} /> {t('Possible duplicate of existing record')}</div>
         {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">Record #{d.record_id} — score {Math.round(d.score * 100)}% ({d.reasons.join(', ')})</div>)}
       </div>}
       {doc.status === 'auto_accepted' && <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 flex items-center gap-2">
@@ -199,22 +202,22 @@ export default function DocumentView() {
         </div>
         <div className="card flex flex-col lg:max-h-[86vh]">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <div className="font-medium">Extracted fields</div>
-            <div className="text-xs text-slate-500">{flagged.length} flagged · auto-accept ≥ {Math.round(threshold * 100)}%</div>
+            <div className="font-medium">{t('Extracted fields')}</div>
+            <div className="text-xs text-slate-500">{flagged.length} {t('flagged')} · {t('auto-accept')} ≥ {Math.round(threshold * 100)}%</div>
           </div>
           <div className="flex-1 overflow-y-auto">
             {FIELDS.map((def) => (byName[def.name] || editable) &&
               <FieldRow key={def.name} def={def} f={byName[def.name]} decision={decisions[def.name]} editable={editable}
                 onDecision={(dec) => setDecision(def.name, dec)} threshold={threshold} selected={selected === def.name} onSelect={setSelected} />)}
             {doc.owners?.length > 1 && <div className="border-b border-slate-100 px-4 py-3">
-              <div className="label flex items-center gap-1"><Users size={12} /> Co-owners on this khata ({doc.owners.length})</div>
+              <div className="label flex items-center gap-1"><Users size={12} /> {t('Co-owners on this khata')} ({doc.owners.length})</div>
               <ol className="mt-1 space-y-0.5 text-sm">
                 {doc.owners.map((o, i) => <li key={i}><span className="text-slate-400 tabular-nums">{i + 1}.</span> <span className="font-medium">{o.owner_name || '—'}</span>
                   {o.father_name && <span className="text-slate-500"> · {o.father_name}</span>}</li>)}
               </ol>
             </div>}
             {doc.parcels?.length > 1 && <div className="border-b border-slate-100 px-4 py-3">
-              <div className="label flex items-center gap-1"><LayoutList size={12} /> Parcels under this khata ({doc.parcels.length})</div>
+              <div className="label flex items-center gap-1"><LayoutList size={12} /> {t('Parcels under this khata')} ({doc.parcels.length})</div>
               <table className="mt-1 w-full text-sm">
                 <thead><tr className="text-left text-[11px] uppercase text-slate-500"><th className="py-1 font-medium">Khasra</th><th className="font-medium">Area</th><th className="font-medium">Class</th></tr></thead>
                 <tbody>{doc.parcels.map((p, i) => <tr key={i} className="border-t border-slate-100">
@@ -226,25 +229,25 @@ export default function DocumentView() {
               <div className="mt-1 text-[11px] text-slate-500">The fields above show the first row; correct individual rows on the scan if needed.</div>
             </div>}
             {doc.consistency?.length > 0 && <div className="px-4 py-3 text-xs text-slate-600">
-              <div className="label flex items-center gap-1"><Info size={12} /> Master data checks</div>
+              <div className="label flex items-center gap-1"><Info size={12} /> {t('Master data checks')}</div>
               {doc.consistency.map((c) => <div key={c.check} className={c.ok ? 'text-ok' : 'text-bad'}>{c.ok ? '✓' : '✗'} {c.check.replaceAll('_', ' ')} — {c.detail}</div>)}
             </div>}
           </div>
           {editable && <div className="border-t border-slate-100 p-3 space-y-2">
-            <textarea className="input" rows={2} placeholder="Note for the audit trail (optional)" value={note} onChange={(e) => setNote(e.target.value)} />
+            <textarea className="input" rows={2} placeholder={t('Note for the audit trail (optional)')} value={note} onChange={(e) => setNote(e.target.value)} />
             <ErrorNote error={error} />
             <div className="flex gap-2">
-              <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> Approve record</button>
-              <button className="btn-danger" disabled={busy} onClick={() => submit('reject')}><X size={16} /> Reject</button>
+              <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> {t('Approve record')}</button>
+              <button className="btn-danger" disabled={busy} onClick={() => submit('reject')}><X size={16} /> {t('Reject')}</button>
             </div>
-            <div className="text-[11px] text-slate-500">Unmarked fields are confirmed as shown. Corrections are remembered and applied to future documents.</div>
+            <div className="text-[11px] text-slate-500">{t('Unmarked fields are confirmed as shown. Corrections are remembered and applied to future documents.')}</div>
           </div>}
           {!editable && doc.review_note && <div className="border-t border-slate-100 p-3 text-sm"><span className="label">Reviewer note</span>{doc.review_note}</div>}
         </div>
       </div>
 
       <div className="mt-4 card p-4">
-        <button className="btn-ghost px-0 text-sm" onClick={loadTrail}><History size={15} /> Audit trail for this document</button>
+        <button className="btn-ghost px-0 text-sm" onClick={loadTrail}><History size={15} /> {t('Audit trail for this document')}</button>
         {trail && <ul className="mt-2 space-y-1 text-sm">
           {trail.map((t) => <li key={t.id} className="flex gap-3"><span className="text-slate-400 w-32 shrink-0">{fmtDate(t.ts)}</span>
             <span className="font-medium">{t.user}</span><span className="text-slate-600">{t.action}</span>

@@ -3,6 +3,7 @@ import { ShieldCheck } from 'lucide-react'
 import { useAuth } from '../auth'
 import { Logo } from '../components/Layout'
 import { ErrorNote } from '../components/ui'
+import { LangToggle, useT } from '../i18n'
 
 const DEMO = [
   ['operator', 'upload@123', 'Field operator — uploads records'],
@@ -11,6 +12,7 @@ const DEMO = [
 ]
 
 export default function Login() {
+  const { t } = useT()
   const { login } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -42,18 +44,18 @@ export default function Login() {
     <div className="flex items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="lg:hidden mb-8"><Logo /></div>
-        <h1 className="text-2xl font-semibold text-slate-900">Sign in</h1>
-        <p className="text-sm text-slate-500 mt-1">Use your department account.</p>
+        <div className="flex items-center justify-between"><h1 className="text-2xl font-semibold text-slate-900">{t('Sign in')}</h1><LangToggle className="border-slate-300 text-slate-700" /></div>
+        <p className="text-sm text-slate-500 mt-1">{t('Use your department account.')}</p>
         <form onSubmit={submit} className="mt-6 space-y-4">
-          <div><label className="label" htmlFor="u">Username</label>
+          <div><label className="label" htmlFor="u">{t('Username')}</label>
             <input id="u" className="input" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoFocus /></div>
-          <div><label className="label" htmlFor="p">Password</label>
+          <div><label className="label" htmlFor="p">{t('Password')}</label>
             <input id="p" type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></div>
           <ErrorNote error={error} />
-          <button className="btn-primary w-full" disabled={busy || !username || !password}><ShieldCheck size={16} /> {busy ? 'Signing in…' : 'Sign in'}</button>
+          <button className="btn-primary w-full" disabled={busy || !username || !password}><ShieldCheck size={16} /> {busy ? t('Signing in…') : t('Sign in')}</button>
         </form>
         <div className="mt-8 card p-3">
-          <div className="label">Demo accounts</div>
+          <div className="label">{t('Demo accounts')}</div>
           <div className="space-y-1">
             {DEMO.map(([u, p, d]) => (
               <button key={u} type="button" onClick={() => { setUsername(u); setPassword(p) }}

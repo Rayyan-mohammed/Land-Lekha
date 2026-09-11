@@ -4,8 +4,10 @@ import { RefreshCw, Search } from 'lucide-react'
 import { api } from '../api'
 import { ConfidenceBar, Empty, ErrorNote, fmtDate, PageHeader, Spinner, StatusBadge } from '../components/ui'
 import { STATUS } from '../constants'
+import { useT } from '../i18n'
 
 export default function Documents() {
+  const { t } = useT()
   const [params, setParams] = useSearchParams()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -25,24 +27,24 @@ export default function Documents() {
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
 
   return <div>
-    <PageHeader title="Documents" subtitle={data ? `${data.total} document${data.total === 1 ? '' : 's'}` : ' '}
-      actions={<button className="btn-outline" onClick={load}><RefreshCw size={15} /> Refresh</button>} />
+    <PageHeader title={t('Documents')} subtitle={data ? `${data.total} document${data.total === 1 ? '' : 's'}` : ' '}
+      actions={<button className="btn-outline" onClick={load}><RefreshCw size={15} /> {t('Refresh')}</button>} />
     <div className="card">
       <div className="flex flex-wrap gap-2 border-b border-slate-100 p-3">
         <form onSubmit={(e) => { e.preventDefault(); set('q', q) }} className="relative flex-1 min-w-48">
           <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
-          <input className="input pl-9" placeholder="Search file name or district" value={q} onChange={(e) => setQ(e.target.value)} />
+          <input className="input pl-9" placeholder={t('Search file name or district')} value={q} onChange={(e) => setQ(e.target.value)} />
         </form>
         <select className="input w-auto" value={status} onChange={(e) => set('status', e.target.value)}>
-          <option value="">All statuses</option>
-          {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+          <option value="">{t('All statuses')}</option>
+          {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{t(v.label)}</option>)}
         </select>
       </div>
       <ErrorNote error={error} />
       {!data ? <div className="p-10 flex justify-center"><Spinner /></div>
         : data.items.length === 0 ? <Empty>No documents yet. <Link className="text-brand-700 underline" to="/upload">Upload one</Link>.</Empty>
           : <div className="table-wrap"><table className="data">
-            <thead><tr><th>#</th><th>File</th><th>Type</th><th>District</th><th>Status</th><th>Confidence</th><th>Time</th><th>Uploaded</th></tr></thead>
+            <thead><tr><th>#</th><th>{t('File')}</th><th>{t('Type')}</th><th>{t('District')}</th><th>{t('Status')}</th><th>{t('Confidence')}</th><th>{t('Time')}</th><th>{t('Uploaded')}</th></tr></thead>
             <tbody>{data.items.map((d) => <tr key={d.id}>
               <td className="text-slate-400 tabular-nums">{d.id}</td>
               <td><Link to={`/documents/${d.id}`} className="font-medium text-brand-700 hover:underline">{d.filename}</Link></td>
@@ -55,9 +57,9 @@ export default function Documents() {
             </tr>)}</tbody>
           </table></div>}
       {pages > 1 && <div className="flex items-center justify-end gap-2 p-3 text-sm">
-        <button className="btn-outline py-1" disabled={page <= 1} onClick={() => set('page', page - 1)}>Previous</button>
+        <button className="btn-outline py-1" disabled={page <= 1} onClick={() => set('page', page - 1)}>{t('Previous')}</button>
         <span className="text-slate-500">Page {page} of {pages}</span>
-        <button className="btn-outline py-1" disabled={page >= pages} onClick={() => set('page', page + 1)}>Next</button>
+        <button className="btn-outline py-1" disabled={page >= pages} onClick={() => set('page', page + 1)}>{t('Next')}</button>
       </div>}
     </div>
   </div>

@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { STATUS } from '../constants'
+import { useT } from '../i18n'
 
 export function StatusBadge({ status }) {
+  const { t } = useT()
   const s = STATUS[status] || { label: status, cls: 'bg-slate-100 text-slate-700' }
   return <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>
     {(status === 'processing' || status === 'queued') && <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />}
-    {s.label}
+    {t(s.label)}
   </span>
 }
 
@@ -16,10 +18,11 @@ const QUALITY = {
 }
 
 export function QualityBadge({ quality }) {
+  const { t } = useT()
   if (!quality) return null
   const q = QUALITY[quality.verdict] || { label: quality.verdict, cls: 'bg-slate-100 text-slate-700' }
   return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${q.cls}`}
-    title={`median OCR confidence ${Math.round((quality.median_confidence || 0) * 100)}%, sharpness ${quality.sharpness}`}>{q.label}</span>
+    title={`median OCR confidence ${Math.round((quality.median_confidence || 0) * 100)}%, sharpness ${quality.sharpness}`}>{t(q.label)}</span>
 }
 
 // the worst page decides what the operator is told

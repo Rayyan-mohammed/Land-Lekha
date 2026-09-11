@@ -5,13 +5,16 @@ import 'leaflet/dist/leaflet.css'
 import './index.css'
 import App from './App'
 import { AuthProvider } from './auth'
+import { LangProvider } from './i18n'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <LangProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </LangProvider>
     </BrowserRouter>
   </StrictMode>,
 )
