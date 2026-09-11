@@ -225,7 +225,8 @@ export default function DocumentView() {
   return <div>
     <div className="mb-4 flex flex-wrap items-center gap-3">
       <button className="btn-ghost px-2" onClick={() => nav(-1)}><ArrowLeft size={16} /></button>
-      <div className="min-w-0 flex-1">
+      {/* basis-60: on a phone the title keeps a usable width and the badges wrap below it */}
+      <div className="min-w-0 flex-1 basis-60">
         <h1 className="truncate text-lg font-semibold text-slate-900">{doc.filename}</h1>
         <div className="text-xs text-slate-500">#{doc.id} · {docTypeLabel(doc.document_type, lang)} · {t('uploaded by')} {doc.uploader_name} · {fmtDate(doc.created_at)}
           {doc.processing_ms && <> · {t('processed in')} {(doc.processing_ms / 1000).toFixed(1)} s</>}</div>
@@ -269,10 +270,13 @@ export default function DocumentView() {
             <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-warn bg-amber-50" /> {t('please check')}</span>
             <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-bad bg-red-50" /> {t('probably wrong')}</span>
             <span className="text-slate-500">{t('click a box to jump to its field')}</span>
+            {/* on phones the fields come after the whole scan; one tap gets there */}
+            <button type="button" className="btn-outline min-h-8 px-2.5 py-1 text-xs lg:hidden"
+              onClick={() => document.getElementById('fields')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{t('Go to fields')} ↓</button>
           </div>
           {doc.pages.map((p) => <PageImage key={p.page} doc={doc} page={p} fields={doc.fields} selected={selected} onSelect={setSelected} threshold={threshold} />)}
         </div>
-        <div className="card flex flex-col lg:max-h-[86vh]">
+        <div id="fields" className="card flex scroll-mt-4 flex-col lg:max-h-[86vh]">
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
             <div className="font-medium">{t('Extracted fields')}</div>
             <div className="text-xs text-slate-500">{flagged.length} {t('flagged')} · {t('auto-accept')} ≥ {Math.round(threshold * 100)}%</div>
