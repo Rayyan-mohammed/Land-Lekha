@@ -6,6 +6,7 @@ import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
+import { useToast } from '../components/toast'
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
 
@@ -112,6 +113,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
 
 export default function DocumentView() {
   const { t } = useT()
+  const toast = useToast()
   const { id } = useParams()
   const nav = useNavigate()
   const { can } = useAuth()
@@ -145,6 +147,10 @@ export default function DocumentView() {
     setError(null)
     try {
       await api.verify(doc.id, { decision, fields: decisions, note: note || null })
+      const nChanged = Object.values(decisions).filter((d) => d.action !== 'confirm').length
+      toast(decision === 'approve' ? `Record approved: ${doc.filename}` : `Document rejected: ${doc.filename}`,
+        { body: decision === 'approve' ? (nChanged ? `${nChanged} correction${nChanged > 1 ? 's' : ''} saved and learned` : 'All fields confirmed as read') : 'Kept in the audit trail with your note',
+          type: decision === 'approve' ? 'success' : 'info' })
       if (can('verifier')) {
         const q = await api.queue().catch(() => [])
         const next = q.find((d) => d.id !== doc.id)
@@ -152,7 +158,7 @@ export default function DocumentView() {
       }
       setDecisions({})
       await load()
-    } catch (e) { setError(e) } finally { setBusy(false) }
+    } catch (e) { setError(e); toast('Could not save the review', { type: 'error', body: e.message }) } finally { setBusy(false) }
   }
   const loadTrail = () => api.audit({ entity_type: 'document', entity_id: doc.id }).then((r) => setTrail(r.items)).catch(setError)
 
@@ -170,7 +176,7 @@ export default function DocumentView() {
       {doc.overall_confidence != null && <ConfidenceBar value={doc.overall_confidence} threshold={threshold} />}
       {doc.record_id && <Link to={`/records?focus=${doc.record_id}`} className="btn-outline py-1.5"><MapPin size={15} /> {t('Record')} #{doc.record_id}</Link>}
       {can() && !['verified', 'rejected'].includes(doc.status) && !processing &&
-        <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(load)}><RotateCcw size={15} /> {t('Re-run')}</button>}
+        <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(() => { toast('Processing again', { type: 'info', body: 'The page will update when it is done' }); load() })}><RotateCcw size={15} /> {t('Re-run')}</button>}
     </div>
 
     {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…</div>}

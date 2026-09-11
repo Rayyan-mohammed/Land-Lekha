@@ -4,12 +4,14 @@ import { Camera, CheckCircle2, FileUp, Loader2, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { ConfidenceBar, PageHeader, StatusBadge, worstQuality } from '../components/ui'
 import { useT } from '../i18n'
+import { useToast } from '../components/toast'
 
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
 const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
 
 export default function UploadPage() {
   const { t } = useT()
+  const toast = useToast()
   const [items, setItems] = useState([]) // {key, file, doc, error}
   const [drag, setDrag] = useState(false)
   const fileRef = useRef()
@@ -25,6 +27,7 @@ export default function UploadPage() {
       } catch (e) {
         const dupId = e.detail?.document_id
         setItems((xs) => xs.map((x) => (x.key === key ? { ...x, error: e.message, dupId } : x)))
+        toast(dupId ? `${file.name} was already uploaded` : `${file.name} could not be uploaded`, { type: dupId ? 'info' : 'error', body: e.message })
       }
     }
   }

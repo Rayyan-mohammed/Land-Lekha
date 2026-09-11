@@ -4,9 +4,11 @@ import { api } from '../api'
 import { useAuth } from '../auth'
 import { ErrorNote, PageHeader, Spinner } from '../components/ui'
 import { ROLE_LABEL } from '../constants'
+import { useToast } from '../components/toast'
 
 export default function UsersPage() {
   const { user: me } = useAuth()
+  const toast = useToast()
   const [users, setUsers] = useState(null)
   const [form, setForm] = useState({ username: '', full_name: '', role: 'operator', password: '' })
   const [error, setError] = useState(null)
@@ -16,9 +18,16 @@ export default function UsersPage() {
   const create = async (e) => {
     e.preventDefault()
     setError(null)
-    try { await api.createUser(form); setForm({ username: '', full_name: '', role: 'operator', password: '' }); load() } catch (err) { setError(err) }
+    try {
+      await api.createUser(form)
+      toast(`Account created for ${form.full_name}`, { body: `${form.username} · ${ROLE_LABEL[form.role]}` })
+      setForm({ username: '', full_name: '', role: 'operator', password: '' }); load()
+    } catch (err) { setError(err) }
   }
-  const update = (u, body) => api.updateUser(u.id, body).then(load).catch(setError)
+  const update = (u, body) => api.updateUser(u.id, body).then(() => {
+    toast(`${u.full_name} updated`, { body: body.active === false ? 'Account disabled' : body.active ? 'Account enabled' : `Role: ${ROLE_LABEL[body.role] || ''}` })
+    load()
+  }).catch(setError)
 
   return <div>
     <PageHeader title="Users & roles" subtitle="Operators upload · verifiers review and approve · administrators manage everything" />

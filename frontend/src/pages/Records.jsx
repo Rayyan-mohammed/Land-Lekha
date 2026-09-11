@@ -6,6 +6,7 @@ import { api } from '../api'
 import { useAuth } from '../auth'
 import { Empty, ErrorNote, PageHeader, Spinner } from '../components/ui'
 import { LAND_CLASSES } from '../constants'
+import { useToast } from '../components/toast'
 
 function FitBounds({ data, focus }) {
   const map = useMap()
@@ -24,6 +25,7 @@ function FitBounds({ data, focus }) {
 
 export default function Records() {
   const { can } = useAuth()
+  const toast = useToast()
   const [params, setParams] = useSearchParams()
   const focus = params.get('focus') ? Number(params.get('focus')) : null
   const [recs, setRecs] = useState(null)
@@ -38,7 +40,11 @@ export default function Records() {
 
   const push = async (id) => {
     setPushing(id)
-    try { await api.lrmsPush(id); await load() } catch (e) { setError(e) } finally { setPushing(null) }
+    try {
+      const r = await api.lrmsPush(id)
+      toast(`Record #${id} sent to LRMS`, { body: `Reference ${r.lrms_ref} (simulated acknowledgement)` })
+      await load()
+    } catch (e) { toast('LRMS push failed', { type: 'error', body: e.message }) } finally { setPushing(null) }
   }
   const style = useMemo(() => (f) => ({
     color: f.id === focus ? '#b91c1c' : '#0f3d3e', weight: f.id === focus ? 3 : 1.5, fillColor: '#f2c14e', fillOpacity: 0.45,
