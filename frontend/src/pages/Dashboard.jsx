@@ -1,21 +1,34 @@
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Brain, CheckCircle2, Clock, FileStack, Gauge, Hourglass, ScanText, Target } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { AlertTriangle, ArrowRight, Brain, CheckCircle2, Clock, FileStack, Gauge, Hourglass, ScanText, Target } from 'lucide-react'
 import { api } from '../api'
 import { ErrorNote, PageHeader, SkeletonCards, Stat } from '../components/ui'
+import { useAuth } from '../auth'
 import { FIELD_MAP, STATUS } from '../constants'
+import { useT } from '../i18n'
 
 const pct = (v, d = 1) => (v == null ? '—' : `${(v * 100).toFixed(d)}%`)
 const STATUS_COLORS = { auto_accepted: '#15803d', verified: '#1f6f69', needs_review: '#d97706', rejected: '#b91c1c', failed: '#7f1d1d', processing: '#0284c7', queued: '#94a3b8' }
 
 function Section({ title, subtitle, children, className = '' }) {
+  const { t } = useT()
+  title = t(title)
+  subtitle = subtitle && t(subtitle)
   return <div className={`card min-w-0 p-4 ${className}`}>
     <div className="mb-3"><div className="font-medium text-slate-900">{title}</div>{subtitle && <div className="text-xs text-slate-500">{subtitle}</div>}</div>
     {children}
   </div>
 }
 
+function greeting(t) {
+  const h = new Date().getHours()
+  return t(h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening')
+}
+
 export default function Dashboard() {
+  const { t: tr } = useT()
+  const { user } = useAuth()
   const [s, setS] = useState(null)
   const [error, setError] = useState(null)
   useEffect(() => {
@@ -25,27 +38,42 @@ export default function Dashboard() {
     return () => clearInterval(t)
   }, [])
   if (error) return <ErrorNote error={error} />
-  if (!s) return <div className="space-y-4"><PageHeader title="Digitization dashboard" subtitle="Loading live figures…" /><SkeletonCards n={8} /></div>
+  if (!s) return <div className="space-y-4"><PageHeader title={tr('Digitization dashboard')} subtitle={tr('Loading live figures…')} /><SkeletonCards n={8} /></div>
 
   const t = s.totals
   const bench = s.accuracy.benchmark
-  const statusData = Object.entries(t.by_status).map(([k, v]) => ({ name: STATUS[k]?.label || k, key: k, value: v }))
+  const statusData = Object.entries(t.by_status).map(([k, v]) => ({ name: tr(STATUS[k]?.label || k), key: k, value: v }))
   const hist = s.confidence.histogram.map((n, i) => ({ bucket: `${i * 10}–${i * 10 + 10}%`, documents: n }))
   const perField = Object.entries(s.accuracy.per_field).map(([k, v]) => ({ field: FIELD_MAP[k]?.en || k, accuracy: Math.round(v.accuracy * 100), n: v.confirmed + v.corrected + v.rejected }))
     .sort((a, b) => a.accuracy - b.accuracy)
 
   return <div className="space-y-4">
-    <PageHeader title="Digitization dashboard" subtitle="Live MIS view — refreshes every 10 seconds" />
+    <PageHeader title={`${greeting(tr)}, ${user?.full_name?.split(' ')[0] || ''}`}
+      subtitle={`${tr('Digitization dashboard')} · ${new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })} · ${tr('refreshes every 10 seconds')}`} />
+    {(t.pending_verification > 0 || t.failed > 0) && <div className="flex flex-wrap gap-3">
+      {t.pending_verification > 0 && <Link to="/review" className="card group flex flex-1 items-center gap-3 border-amber-200 bg-amber-50 p-4 transition-colors duration-200 hover:border-amber-300">
+        <Hourglass size={20} className="text-warn" />
+        <div className="flex-1"><div className="font-medium text-slate-900">{t.pending_verification} {tr(t.pending_verification === 1 ? 'document waits for a verifier' : 'documents wait for a verifier')}</div>
+          <div className="text-xs text-slate-600">{tr('Lowest confidence first; usually one or two fields each')}</div></div>
+        <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-700">{tr('Start reviewing')} <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" /></span>
+      </Link>}
+      {t.failed > 0 && <Link to="/documents?status=failed" className="card group flex flex-1 items-center gap-3 border-red-200 bg-red-50 p-4 transition-colors duration-200 hover:border-red-300">
+        <AlertTriangle size={20} className="text-bad" />
+        <div className="flex-1"><div className="font-medium text-slate-900">{t.failed} {tr(t.failed === 1 ? 'file could not be processed' : 'files could not be processed')}</div>
+          <div className="text-xs text-slate-600">{tr('Usually unreadable or corrupt uploads')}</div></div>
+        <ArrowRight size={15} className="text-bad" />
+      </Link>}
+    </div>}
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Stat icon={FileStack} label="Documents processed" value={t.processed} sub={`${t.documents} received · ${t.land_records} records created`} />
-      <Stat icon={CheckCircle2} tone="ok" label="Auto-accepted" value={pct(t.auto_accept_rate, 0)} sub="no human needed" />
-      <Stat icon={Hourglass} tone="warn" label="Pending verification" value={t.pending_verification} sub={`${t.failed} failed`} />
-      <Stat icon={Clock} tone="slate" label="Avg. processing" value={s.processing.avg_seconds ? `${s.processing.avg_seconds} s` : '—'} sub="upload → structured record" />
-      <Stat icon={Target} tone="ok" label="Field accuracy (reviewed)" value={pct(s.accuracy.field_accuracy)} sub={`${s.accuracy.reviewed_fields} fields checked by verifiers`} />
-      <Stat icon={ScanText} label="Benchmark CER" value={bench ? pct(bench.cer_median) : '—'} sub={bench ? `median, ${bench.documents} held-out test docs` : 'run eval/evaluate.py'} />
-      <Stat icon={Gauge} label="Benchmark field accuracy" value={bench ? pct(bench.field_accuracy) : '—'}
+      <Stat icon={FileStack} label={tr('Documents processed')} value={t.processed} sub={`${t.documents} received · ${t.land_records} records created`} />
+      <Stat icon={CheckCircle2} tone="ok" label={tr('Auto-accepted')} value={pct(t.auto_accept_rate, 0)} sub="no human needed" />
+      <Stat icon={Hourglass} tone="warn" label={tr('Pending verification')} value={t.pending_verification} sub={`${t.failed} failed`} />
+      <Stat icon={Clock} tone="slate" label={tr('Avg. processing')} value={s.processing.avg_seconds ? `${s.processing.avg_seconds} s` : '—'} sub="upload → structured record" />
+      <Stat icon={Target} tone="ok" label={tr('Field accuracy (reviewed)')} value={pct(s.accuracy.field_accuracy)} sub={`${s.accuracy.reviewed_fields} fields checked by verifiers`} />
+      <Stat icon={ScanText} label={tr('Benchmark CER')} value={bench ? pct(bench.cer_median) : '—'} sub={bench ? `median, ${bench.documents} held-out test docs` : 'run eval/evaluate.py'} />
+      <Stat icon={Gauge} label={tr('Benchmark field accuracy')} value={bench ? pct(bench.field_accuracy) : '—'}
         sub={bench?.straight_through_accuracy != null ? `${pct(bench.straight_through_accuracy)} correct when auto-accepted` : ''} />
-      <Stat icon={Brain} tone="slate" label="Learned from verifiers" value={s.learning.corrections} sub={`${s.learning.learned_patterns} correction patterns active`} />
+      <Stat icon={Brain} tone="slate" label={tr('Learned from verifiers')} value={s.learning.corrections} sub={`${s.learning.learned_patterns} correction patterns active`} />
     </div>
 
     <div className="grid gap-4 lg:grid-cols-3">
