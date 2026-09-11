@@ -255,6 +255,19 @@ const HI = {
   'Password (min 8)': 'पासवर्ड (कम से कम 8)',
   'Generate': 'बनाएँ',
   'Create user': 'उपयोगकर्ता बनाएँ',
+  // audit trail
+  'Everything': 'सब कुछ',
+  'Extracts': 'नकलें',
+  'LRMS / GIS': 'LRMS / GIS',
+  'Sign-ins': 'साइन इन',
+  'events': 'घटनाएँ',
+  'every upload, decision, correction, sign-in and integration call, with who and when':
+    'हर अपलोड, निर्णय, सुधार, साइन इन और एकीकरण कॉल — किसने और कब',
+  'filter events': 'घटनाएँ छाँटें',
+  'No events here yet': 'यहाँ अभी कोई घटना नहीं',
+  'system': 'सिस्टम',
+  'rejected': 'अस्वीकृत',
+  'of': 'में से',
 }
 
 const KEY = 'landlekha.lang'
