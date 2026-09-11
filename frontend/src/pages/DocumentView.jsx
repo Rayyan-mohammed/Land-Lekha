@@ -182,12 +182,20 @@ export default function DocumentView() {
     if (typing) { if (e.key === 'Escape') document.activeElement.blur(); return }
     const i = present.indexOf(selected)
     const move = (d) => { e.preventDefault(); setSelected(present[Math.min(present.length - 1, Math.max(0, (i < 0 ? -1 : i) + d))]) }
+    if (e.key === 'n' || e.key === 'N') { e.preventDefault(); return nextFlagged() }
     if (e.key === 'ArrowDown' || e.key === 'j') return move(1)
     if (e.key === 'ArrowUp' || e.key === 'k') return move(-1)
     if (!selected) return
     if (e.key === 'Enter' && byName[selected]) { e.preventDefault(); setDecision(selected, decisions[selected]?.action === 'confirm' ? null : { action: 'confirm' }) }
     else if ((e.key === 'x' || e.key === 'X') && byName[selected]) { e.preventDefault(); setDecision(selected, decisions[selected]?.action === 'reject' ? null : { action: 'reject' }) }
     else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); document.querySelector(`[data-field-row="${selected}"] input, [data-field-row="${selected}"] select`)?.focus() }
+  }
+  // flagged fields the verifier has not decided on yet, and a jump to the next one
+  const open = flagged.filter((d) => !decisions[d.name]).map((d) => d.name)
+  const nextFlagged = () => {
+    if (!open.length) return
+    const after = open.find((n) => FIELDS.findIndex((d) => d.name === n) > FIELDS.findIndex((d) => d.name === selected))
+    setSelected(after || open[0])
   }
   const loadTrail = () => api.audit({ entity_type: 'document', entity_id: doc.id }).then((r) => setTrail(r.items)).catch(setError)
 
@@ -233,6 +241,12 @@ export default function DocumentView() {
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-slate-600" aria-label="box colours">
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-ok bg-emerald-50" /> {t('confident')}</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-warn bg-amber-50" /> {t('please check')}</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-bad bg-red-50" /> {t('probably wrong')}</span>
+            <span className="text-slate-500">{t('click a box to jump to its field')}</span>
+          </div>
           {doc.pages.map((p) => <PageImage key={p.page} doc={doc} page={p} fields={doc.fields} selected={selected} onSelect={setSelected} threshold={threshold} />)}
         </div>
         <div className="card flex flex-col lg:max-h-[86vh]">
@@ -240,6 +254,13 @@ export default function DocumentView() {
             <div className="font-medium">{t('Extracted fields')}</div>
             <div className="text-xs text-slate-500">{flagged.length} {t('flagged')} · {t('auto-accept')} ≥ {Math.round(threshold * 100)}%</div>
           </div>
+          {editable && flagged.length > 0 && <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-2">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={0} aria-valuemax={flagged.length} aria-valuenow={flagged.length - open.length}>
+              <div className="h-full rounded-full bg-ok transition-[width] duration-300" style={{ width: `${((flagged.length - open.length) / flagged.length) * 100}%` }} />
+            </div>
+            <span className="text-xs tabular-nums text-slate-600">{flagged.length - open.length}/{flagged.length} {t('checked')}</span>
+            <button className="btn-outline min-h-8 px-2.5 py-1 text-xs" disabled={!open.length} onClick={nextFlagged}>{open.length ? t('Next flagged') : t('All flagged fields checked')}</button>
+          </div>}
           <div className="flex-1 overflow-y-auto">
             {FIELDS.map((def) => (byName[def.name] || editable) &&
               <FieldRow key={def.name} def={def} f={byName[def.name]} decision={decisions[def.name]} editable={editable}
@@ -277,7 +298,7 @@ export default function DocumentView() {
             </div>
             <div className="hidden flex-wrap gap-x-3 text-[11px] text-slate-500 lg:flex" aria-label="keyboard shortcuts">
               <span><kbd className="kbd">↑</kbd><kbd className="kbd">↓</kbd> {t('move')}</span><span><kbd className="kbd">Enter</kbd> {t('confirm')}</span>
-              <span><kbd className="kbd">X</kbd> {t('reject field')}</span><span><kbd className="kbd">E</kbd> {t('edit')}</span>
+              <span><kbd className="kbd">N</kbd> {t('next flagged')}</span><span><kbd className="kbd">X</kbd> {t('reject field')}</span><span><kbd className="kbd">E</kbd> {t('edit')}</span>
               <span><kbd className="kbd">Ctrl</kbd>+<kbd className="kbd">Enter</kbd> {t('approve')}</span>
             </div>
             <div className="text-[11px] text-slate-500">{t('Unmarked fields are confirmed as shown. Corrections are remembered and applied to future documents.')}</div>
