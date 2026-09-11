@@ -16,11 +16,12 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 - Point out: works on a phone too (the **Take photo** button), and takes PDF, JPG and TIFF.
 - **`08-born-digital.pdf` is done in about a second**: PDFs exported by a land portal already contain the text, so no OCR is needed and the text is exact.
 - **`07-sideways-photo.jpg`** was photographed sideways: it's turned upright automatically and reads as well as `01`.
-- If a photo is too blurred, the upload screen says so straight away (**"please retake: image is blurred…"**), so the operator fixes it at the counter instead of creating a case nobody can resolve. `05-phone-photo.jpg` shows the check.
+- If a photo is too blurred, the upload screen says so straight away (**poor quality, with what to fix and a request to retake**), so the operator fixes it at the counter instead of creating a case nobody can resolve. `05-phone-photo.jpg` shows the check.
 - While it runs: *"preprocessing → OCR in Hindi and English → field extraction → validation against master data → confidence scoring"*.
 
 ## 3. What the machine decided (2 min) — log in as `verifier`
-- The English Record of Rights is **auto-accepted**: every field passed validation above the calibrated threshold.
+- The born-digital PDF (`08`) is **auto-accepted**: every field passed validation above the calibrated threshold.
+- The English Record of Rights (`01`) needs **one field** checked (the father's name); everything else is trusted. Most documents land in between: a handful of flagged fields, not a full retype.
 - Open the handwritten form from the **review queue**:
   - Left: the cleaned, deskewed scan with a box on every field (green = confident, amber or red = check it).
   - Right: each value, the raw OCR text, and *why* it was flagged.

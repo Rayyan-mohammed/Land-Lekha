@@ -21,7 +21,9 @@ SRC = ROOT / "data" / "generated" / "demo"
 PICKS = [
     ("01-ror-english-clean", lambda m: m["template"] == "ror_english" and m["degradation"]["profile"] == "clean"),
     ("02-khatauni-table-scan", lambda m: m["template"] == "khatauni_table" and m["degradation"]["profile"] == "scan"),
-    ("03-form-handwritten", lambda m: m["template"] == "form_bilingual" and m["handwritten"]),
+    # the verifier demo corrects one flagged field, so take a legible scan rather than a blurred photo
+    ("03-form-handwritten", lambda m: m["template"] == "form_bilingual" and m["handwritten"]
+     and m["degradation"]["profile"] != "photo"),
     ("04-old-faded-record", lambda m: m["degradation"]["profile"] == "old"),
     ("05-phone-photo", lambda m: m["degradation"]["profile"] == "photo"),
     ("06-scanned-pdf", lambda m: m["degradation"]["profile"] == "scan" and any(f.endswith(".pdf") for f in m["files"])),
@@ -33,6 +35,7 @@ def main() -> None:
         subprocess.run([sys.executable, str(ROOT / "data/generator/generate.py"), "--count", "24", "--split", "demo",
                         "--seed", "26018", "--pdf-ratio", "0.25"], check=True)
     metas = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(SRC.glob("demo-*.json"))]
+    picked: dict[str, str] = {}
     used, lines = set(), ["# Demo documents — expected values", "",
                           "Ground truth for each demo file (generated with seed 26018).", ""]
     for name, pred in PICKS:
@@ -41,6 +44,7 @@ def main() -> None:
             print(f"no document for {name}")
             continue
         used.add(m["id"])
+        picked[name] = m["id"]
         if name.endswith("pdf"):
             out = DEMO / f"{name}.pdf"
             shutil.copy(SRC / f"{m['id']}.pdf", out)
@@ -55,7 +59,7 @@ def main() -> None:
             lines.append(f"| {k} | {v} |")
         lines.append("")
         print(f"{out.name:32s} <- {m['id']}  {out.stat().st_size // 1024} KB")
-    lines += extras()
+    lines += extras(picked["01-ror-english-clean"])
     (DEMO / "expected.md").write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -73,7 +77,7 @@ def _table(fields: dict) -> list[str]:
     return out + [""]
 
 
-def extras() -> list[str]:
+def extras(clean_id: str) -> list[str]:
     """Samples for today's capabilities: sideways photo, born-digital PDF, multi-owner khata."""
     sys.path.insert(0, str(ROOT / "data" / "generator"))
     import random
@@ -83,13 +87,13 @@ def extras() -> list[str]:
 
     lines = []
     # 07: the clean English record photographed sideways -> auto-rotated
-    first = json.loads((SRC / "demo-023.json").read_text(encoding="utf-8"))
-    img = cv2.imread(str(SRC / "demo-023.png"))
+    first = json.loads((SRC / f"{clean_id}.json").read_text(encoding="utf-8"))
+    img = cv2.imread(str(SRC / f"{clean_id}.png"))
     out = DEMO / "07-sideways-photo.jpg"
     cv2.imwrite(str(out), cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE), [cv2.IMWRITE_JPEG_QUALITY, 90])
     lines += [f"## {out.name}", "Same record as 01, photographed sideways: the pipeline turns it upright (`rotate90`).", ""]
     lines += _table(first["fields"])
-    print(f"{out.name:32s} <- demo-023 rotated  {out.stat().st_size // 1024} KB")
+    print(f"{out.name:32s} <- {clean_id} rotated  {out.stat().st_size // 1024} KB")
 
     # 08 + 09: a born-digital PDF and a multi-owner Khatauni, freshly rendered
     g.ensure_fonts()
