@@ -65,15 +65,15 @@ export default function Dashboard() {
       </Link>}
     </div>}
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Stat icon={FileStack} label={tr('Documents processed')} value={t.processed} sub={`${t.documents} received · ${t.land_records} records created`} />
-      <Stat icon={CheckCircle2} tone="ok" label={tr('Auto-accepted')} value={pct(t.auto_accept_rate, 0)} sub="no human needed" />
-      <Stat icon={Hourglass} tone="warn" label={tr('Pending verification')} value={t.pending_verification} sub={`${t.failed} failed`} />
-      <Stat icon={Clock} tone="slate" label={tr('Avg. processing')} value={s.processing.avg_seconds ? `${s.processing.avg_seconds} s` : '—'} sub="upload → structured record" />
-      <Stat icon={Target} tone="ok" label={tr('Field accuracy (reviewed)')} value={pct(s.accuracy.field_accuracy)} sub={`${s.accuracy.reviewed_fields} fields checked by verifiers`} />
-      <Stat icon={ScanText} label={tr('Benchmark CER')} value={bench ? pct(bench.cer_median) : '—'} sub={bench ? `median, ${bench.documents} held-out test docs` : 'run eval/evaluate.py'} />
+      <Stat icon={FileStack} label={tr('Documents processed')} value={t.processed} sub={`${t.documents} ${tr('received')} · ${t.land_records} ${tr('records created')}`} />
+      <Stat icon={CheckCircle2} tone="ok" label={tr('Auto-accepted')} value={pct(t.auto_accept_rate, 0)} sub={tr('no human needed')} />
+      <Stat icon={Hourglass} tone="warn" label={tr('Pending verification')} value={t.pending_verification} sub={`${t.failed} ${tr('failed')}`} />
+      <Stat icon={Clock} tone="slate" label={tr('Avg. processing')} value={s.processing.avg_seconds ? `${s.processing.avg_seconds} s` : '—'} sub={tr('upload → structured record')} />
+      <Stat icon={Target} tone="ok" label={tr('Field accuracy (reviewed)')} value={pct(s.accuracy.field_accuracy)} sub={`${s.accuracy.reviewed_fields} ${tr('fields checked by verifiers')}`} />
+      <Stat icon={ScanText} label={tr('Benchmark CER')} value={bench ? pct(bench.cer_median) : '—'} sub={bench ? `${tr('median')}, ${bench.documents} ${tr('held-out test docs')}` : 'run eval/evaluate.py'} />
       <Stat icon={Gauge} label={tr('Benchmark field accuracy')} value={bench ? pct(bench.field_accuracy) : '—'}
-        sub={bench?.straight_through_accuracy != null ? `${pct(bench.straight_through_accuracy)} correct when auto-accepted` : ''} />
-      <Stat icon={Brain} tone="slate" label={tr('Learned from verifiers')} value={s.learning.corrections} sub={`${s.learning.learned_patterns} correction patterns active`} />
+        sub={bench?.straight_through_accuracy != null ? `${pct(bench.straight_through_accuracy)} ${tr('correct when auto-accepted')}` : ''} />
+      <Stat icon={Brain} tone="slate" label={tr('Learned from verifiers')} value={s.learning.corrections} sub={`${s.learning.learned_patterns} ${tr('correction patterns active')}`} />
     </div>
 
     <div className="grid gap-4 lg:grid-cols-3">
@@ -83,7 +83,7 @@ export default function Dashboard() {
             <div className="flex justify-between text-sm"><span>{d.name}</span><span className="tabular-nums font-medium">{d.value}</span></div>
             <div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full" style={{ width: `${(d.value / Math.max(1, t.documents)) * 100}%`, background: STATUS_COLORS[d.key] }} /></div>
           </div>)}
-          {statusData.length === 0 && <div className="text-sm text-slate-500">No documents yet.</div>}
+          {statusData.length === 0 && <div className="text-sm text-slate-500">{tr('No documents yet.')}</div>}
         </div>
       </Section>
       <Section title="Uploads, last 14 days" className="lg:col-span-2">
@@ -93,8 +93,8 @@ export default function Dashboard() {
             <XAxis dataKey="day" tickFormatter={(d) => d.slice(5)} fontSize={11} />
             <YAxis allowDecimals={false} fontSize={11} />
             <Tooltip /><Legend />
-            <Line type="monotone" dataKey="uploaded" stroke="#1f6f69" strokeWidth={2} dot={false} name="Uploaded" />
-            <Line type="monotone" dataKey="auto_accepted" stroke="#15803d" strokeWidth={2} strokeDasharray="4 3" dot={false} name="Auto-accepted" />
+            <Line type="monotone" dataKey="uploaded" stroke="#1f6f69" strokeWidth={2} dot={false} name={tr('Uploaded')} />
+            <Line type="monotone" dataKey="auto_accepted" stroke="#15803d" strokeWidth={2} strokeDasharray="4 3" dot={false} name={tr('Auto-accepted')} />
           </LineChart>
         </ResponsiveContainer>
       </Section>
@@ -103,7 +103,7 @@ export default function Dashboard() {
     <div className="grid gap-4 lg:grid-cols-2">
       <Section title="State-wise and district-wise progress" subtitle="Digitized = auto-accepted + verified">
         <div className="table-wrap"><table className="data">
-          <thead><tr><th>State / District</th><th className="text-right">Received</th><th className="text-right">Pending</th><th>Digitized</th></tr></thead>
+          <thead><tr><th>{tr('State / District')}</th><th className="text-right">{tr('Received')}</th><th className="text-right">{tr('Pending')}</th><th>{tr('Digitized')}</th></tr></thead>
           <tbody>{s.geography.flatMap((g) => [
             <tr key={g.state}><td className="font-medium">{g.state}</td><td className="text-right tabular-nums">{g.total}</td><td /><td /></tr>,
             ...g.districts.map((d) => {
@@ -118,16 +118,16 @@ export default function Dashboard() {
             }),
           ])}</tbody>
         </table></div>
-        {s.geography.length === 0 && <div className="text-sm text-slate-500">No data yet.</div>}
+        {s.geography.length === 0 && <div className="text-sm text-slate-500">{tr('No data yet.')}</div>}
       </Section>
-      <Section title="Confidence distribution" subtitle={`Documents by overall confidence · auto-accept threshold ${pct(s.confidence.threshold, 0)} per field`}>
+      <Section title="Confidence distribution" subtitle={`${tr('Documents by overall confidence')} · ${tr('auto-accept threshold')} ${pct(s.confidence.threshold, 0)} ${tr('per field')}`}>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={hist} margin={{ left: -20, right: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="bucket" fontSize={10} interval={1} />
             <YAxis allowDecimals={false} fontSize={11} />
             <Tooltip />
-            <Bar dataKey="documents" fill="#2a8a82" radius={[3, 3, 0, 0]} />
+            <Bar dataKey="documents" name={tr('documents')} fill="#2a8a82" radius={[3, 3, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Section>
@@ -135,27 +135,27 @@ export default function Dashboard() {
 
     <div className="grid gap-4 lg:grid-cols-2">
       <Section title="Accuracy by field" subtitle="Share of reviewed fields the verifier left unchanged">
-        {perField.length === 0 ? <div className="text-sm text-slate-500">No reviewed fields yet.</div> :
+        {perField.length === 0 ? <div className="text-sm text-slate-500">{tr('No reviewed fields yet.')}</div> :
           <ResponsiveContainer width="100%" height={Math.max(160, perField.length * 26)}>
             <BarChart data={perField} layout="vertical" margin={{ left: 40, right: 16 }}>
               <XAxis type="number" domain={[0, 100]} fontSize={11} unit="%" />
               <YAxis type="category" dataKey="field" fontSize={11} width={110} />
-              <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.n} reviewed)`, 'accuracy']} />
+              <Tooltip formatter={(v, _, p) => [`${v}% (${p.payload.n} ${tr('reviewed')})`, tr('accuracy')]} />
               <Bar dataKey="accuracy" fill="#1f6f69" radius={[0, 3, 3, 0]} />
             </BarChart>
           </ResponsiveContainer>}
       </Section>
       <Section title="Error statistics" subtitle="Most common validation issues and review reasons">
         <div className="grid gap-4 sm:grid-cols-2">
-          <div><div className="label">Field issues</div>
+          <div><div className="label">{tr('Field issues')}</div>
             {s.errors.issues.map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="truncate">{k}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
-            {s.errors.issues.length === 0 && <div className="text-sm text-slate-500">None</div>}</div>
-          <div><div className="label">Why sent to review</div>
+            {s.errors.issues.length === 0 && <div className="text-sm text-slate-500">{tr('None')}</div>}</div>
+          <div><div className="label">{tr('Why sent to review')}</div>
             {s.errors.review_reasons.map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="truncate">{k}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
-            {s.errors.review_reasons.length === 0 && <div className="text-sm text-slate-500">None</div>}</div>
+            {s.errors.review_reasons.length === 0 && <div className="text-sm text-slate-500">{tr('None')}</div>}</div>
         </div>
         {Object.keys(s.learning.adapted_thresholds).length > 0 && <div className="mt-3 text-xs text-slate-600">
-          <span className="label">Adapted thresholds (fields often corrected)</span>
+          <span className="label">{tr('Adapted thresholds (fields often corrected)')}</span>
           {Object.entries(s.learning.adapted_thresholds).map(([k, v]) => <span key={k} className="mr-3">{FIELD_MAP[k]?.[lang === 'hi' ? 'hi' : 'en'] || k}: {pct(v, 0)}</span>)}
         </div>}
       </Section>
