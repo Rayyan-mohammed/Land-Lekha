@@ -10,6 +10,7 @@ import numpy as np
 from .engine import get_engine, group_lines
 from .preprocess import preprocess
 from .quality import assess
+from .tables import TABLE_CELLS, read_table_cells
 
 PDF_DPI = 200
 MAX_PAGES = 10
@@ -115,6 +116,10 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
             pre.image, tokens, flipped = fix_upside_down(pre.image, tokens, eng)
             if flipped:
                 pre.steps.append("rotate180")
+            if TABLE_CELLS:
+                tokens, n_cells = read_table_cells(pre.image, tokens, eng)
+                if n_cells:
+                    pre.steps.append(f"table_cells:{n_cells}")
             page_img = pre.image
             preprocess_info = {"deskew_angle": pre.deskew_angle, "steps": pre.steps, "scale": pre.scale}
             used = eng.name

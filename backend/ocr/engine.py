@@ -51,6 +51,15 @@ class EasyOCREngine:
             res = self._reader.recognize(gray, horizontal_list=hl, free_list=[], detail=1, batch_size=16)
         return float(np.mean([r[2] for r in res])) if res else 0.0
 
+    def read_boxes(self, gray: np.ndarray, boxes: list[list[int]]) -> list[dict]:
+        """Recognise the given boxes ([x0, y0, x1, y1]) directly, one token per box."""
+        if not boxes:
+            return []
+        hl = [[b[0], b[2], b[1], b[3]] for b in boxes]
+        with self._lock:
+            res = self._reader.recognize(gray, horizontal_list=hl, free_list=[], detail=1, batch_size=16)
+        return self._tokens(res)
+
     @staticmethod
     def _tokens(results) -> list[dict]:
         tokens = []

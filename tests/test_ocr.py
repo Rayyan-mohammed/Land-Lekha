@@ -98,6 +98,52 @@ def test_digital_pdf_is_read_without_ocr():
     assert (f["village"], f["district"]) == ("Nigoha", "Lucknow")
 
 
+def _ruled_table():
+    """1200x900 page with a 2-row x 4-column ruled table and a digit-like blob per cell."""
+    img = np.full((900, 1200), 255, np.uint8)
+    xs, ys = [80, 330, 580, 880, 1120], [300, 370, 440]
+    for x in xs:
+        cv2.line(img, (x, ys[0]), (x, ys[-1]), 0, 2)
+    for y in ys:
+        cv2.line(img, (xs[0], y), (xs[-1], y), 0, 2)
+    for i in range(2):
+        for j in range(4):
+            cv2.putText(img, "123", (xs[j] + 60, ys[i] + 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, 0, 2)
+    return img, xs, ys
+
+
+def test_table_grid_detection():
+    from backend.ocr.tables import cells_of, detect_tables
+    img, xs, ys = _ruled_table()
+    tables = detect_tables(img)
+    assert len(tables) == 1
+    t = tables[0]
+    assert len(t["rows"]) == 3 and len(t["cols"]) == 5
+    assert all(abs(a - b) <= 4 for a, b in zip(t["cols"], xs)) and all(abs(a - b) <= 4 for a, b in zip(t["rows"], ys))
+    assert len(cells_of(t)) == 8
+    assert detect_tables(_text_page()) == []  # plain text page: no table
+
+
+class CellEngine:
+    def __init__(self, conf):
+        self.conf = conf
+
+    def read_boxes(self, gray, boxes):
+        return [{"text": "cell", "confidence": self.conf, "bbox": list(b)} for b in boxes]
+
+
+def test_cell_reading_keeps_the_more_confident_reading():
+    from backend.ocr.tables import read_table_cells
+    img, xs, ys = _ruled_table()
+    free = [{"text": "free", "confidence": 0.6, "bbox": [xs[j] + 55, ys[i] + 25, xs[j] + 120, ys[i] + 55]}
+            for i in range(2) for j in range(4)]
+    outside = {"text": "title", "confidence": 0.9, "bbox": [100, 100, 300, 130]}
+    better, used = read_table_cells(img, free + [outside], CellEngine(0.9))
+    assert used == 8 and sum(t["text"] == "cell" for t in better) == 8 and outside in better
+    worse, used = read_table_cells(img, free + [outside], CellEngine(0.3))
+    assert used == 0 and sorted(t["text"] for t in worse) == sorted(t["text"] for t in free + [outside])
+
+
 def _tokens(conf, n=20, height=30):
     return [{"text": "t", "confidence": conf, "bbox": [0, 0, 50, height]} for _ in range(n)]
 
