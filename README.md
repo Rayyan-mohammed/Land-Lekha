@@ -35,9 +35,11 @@ Measured on 40 **held-out** synthetic documents (`test` split). The confidence m
 | Auto-accepted documents with every required field correct | **100%** (7 of 7) | 100% (13 of 13) |
 | Documents needing a human look | 82.5% | 67.5% |
 
-By document type (test): English Record of Rights 97.3%, scanner-quality pages 92.3%, clean pages 88.0%, old faded paper 84.4%, handwritten entries 75.4%, Khatauni tables 70.5%, **phone photos 58.6%** (the weakest case).
+By document type (test): English Record of Rights 97.3%, scanner-quality pages 92.3%, clean pages 88.0%, old faded paper 84.4%, handwritten entries 75.4%, Khatauni tables 70.5%, **phone photos 58.6%** (the weakest case). For photos the text is located correctly but the recogniser can't read blurred strokes. Rather than guess, the page quality check tells the operator to retake the photo.
 
 Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the drop from dev to test is real: the label rules were tuned by looking at dev errors, so the test split is the honest number. OCR changes are A/B-tested before adoption; two that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
+
+**Multi-owner Khataunis** (separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 4 of 7 multi-owner documents, 11 of 18 parcel rows in multi-row tables recovered. The main miss: OCR drops the nasal mark, so the connector एवं ("and") is read as `एव` and the names aren't split.
 
 The documents are deliberately hard: about 60% are degraded (faded/stained paper, scanner noise and skew, phone photos with perspective and uneven light), and some have handwritten entries or Devanagari digits. CER counts every character on the page, including stamps and footers, so it's a pessimistic number.
 
@@ -46,8 +48,8 @@ The documents are deliberately hard: about 60% are degraded (faded/stained paper
 | PS 26018 asks for | In LandLekha |
 | --- | --- |
 | Multilingual recognition | Hindi (Devanagari) + English, in one model; Devanagari digits; bilingual labels |
-| Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs |
-| Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables |
+| Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs are read from their text layer (0.5 s, exact). Pages photographed sideways or upside down are turned automatically (18/18 test pages recovered). Each page gets a quality verdict with retake advice |
+| Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables; every co-owner and parcel row under a khata (`owners` / `parcels` lists) |
 | Validation: business rules, cross-database, duplicates | Format rules per field, master gazetteer (state → district → tehsil → village) with hierarchy checks, duplicate detection on parcel/account + exact-file hash |
 | Confidence scoring, uncertain fields flagged | Logistic calibration over OCR, rule, label and source evidence; per-field threshold |
 | Human-assisted verification | Side-by-side review screen, confirm / correct / reject per field, lowest-confidence-first queue |
@@ -107,7 +109,7 @@ python -m pytest tests -q                  # fast extraction tests (no OCR)
 - **External systems are simulated.** The LRMS/DILRMP/GIS APIs are real and documented, but pushes return a mock acknowledgement and parcel geometry is synthetic (placed near the district HQ and sized by area).
 - **Master data** covers 4 states, 10 districts and a sample of villages. Production would load the official LGD village directory.
 - **The name lexicon** (`backend/extraction/master/name_tokens.json`) restores diacritics the OCR drops (सिह → सिंह). It overlaps with the generator's name lists, so name accuracy on synthetic data is somewhat optimistic.
-- **Speed:** on this laptop's CPU (i7-13700H, no GPU) a page takes 11–24 s end to end, above the 10 s target. Most of that is the neural OCR. Levers already identified: a 1024 px detection canvas halves detection time with similar boxes (needs re-validation), and any CUDA GPU brings a page to about 1–2 s. Documents go through a single worker queue, so uploads never block the UI.
+- **Speed:** scanned pages take 11–24 s on this laptop's CPU (i7-13700H, no GPU), above the 10 s target; most of that is the neural OCR. Born-digital PDFs take 0.5 s. A CUDA GPU brings scanned pages to about 1–2 s. A smaller detection canvas was tested and rejected: it lost accuracy with no real speed-up. Documents go through a single worker queue, so uploads never block the UI.
 
 ## Repository layout
 
