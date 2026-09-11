@@ -84,7 +84,8 @@ def existing_records(db: Session, district: str | None, village: str | None, exc
     if not district or not village:
         return []
     rows = db.scalars(select(LandRecord).where(LandRecord.district == district, LandRecord.village == village))
-    return [{"record_id": r.id, "document_id": r.document_id, **{f: getattr(r, f) for f in RECORD_FIELDS}}
+    return [{"record_id": r.id, "document_id": r.document_id, "owners": r.owners, "parcels": r.parcels,
+             **{f: getattr(r, f) for f in RECORD_FIELDS}}
             for r in rows if r.document_id != exclude_doc]
 
 

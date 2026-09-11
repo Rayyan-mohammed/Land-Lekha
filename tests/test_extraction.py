@@ -143,6 +143,17 @@ def test_duplicates_same_parcel():
     assert [d["record_id"] for d in dups] == [7]
 
 
+def test_duplicates_match_any_parcel_row_and_any_owner():
+    # a multi-row khata: only the second parcel and second owner match an existing record
+    rec = {"district": "Lucknow", "village": "Nigoha", "khata_number": "00245",
+           "owners": [{"owner_name": "राम प्रसाद शर्मा"}, {"owner_name": "श्याम लाल शर्मा"}],
+           "parcels": [{"khasra_number": "123/1"}, {"khasra_number": "456/2"}]}
+    existing = {"record_id": 9, "district": "Lucknow", "village": "Nigoha", "khata_number": "99999",
+                "owners": [{"owner_name": "श्याम लाल शर्मा"}], "parcels": [{"khasra_number": "456/2"}]}
+    dups = find_duplicates(rec, [existing])
+    assert [d["record_id"] for d in dups] == [9]
+
+
 def test_split_owners_on_whole_words_only():
     assert split_owners("राम प्रसाद शर्मा एवं श्याम लाल शर्मा") == ["राम प्रसाद शर्मा", "श्याम लाल शर्मा"]
     assert split_owners("Ram Sharma, Shyam Sharma and Gita Devi") == ["Ram Sharma", "Shyam Sharma", "Gita Devi"]

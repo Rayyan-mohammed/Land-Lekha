@@ -204,6 +204,7 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
 
     # 4. duplicates + routing
     flat = {k: v["value"] for k, v in fields.items()}
+    flat["owners"], flat["parcels"] = owners_list, parcels_list
     dups = []
     if existing_records:
         from .duplicates import find_duplicates
