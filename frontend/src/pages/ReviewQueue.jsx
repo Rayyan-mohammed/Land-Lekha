@@ -10,6 +10,10 @@ export default function ReviewQueue() {
   const { t, lang } = useT()
   const [rows, setRows] = useState(null)
   const [error, setError] = useState(null)
+  // "confidence": the hardest documents first (default); "quick": fewest fields to check first,
+  // for a verifier with a few minutes to spare. Remembered on this computer.
+  const [order, setOrderState] = useState(() => { try { return localStorage.getItem('landlekha.queueOrder') || 'confidence' } catch { return 'confidence' } })
+  const setOrder = (o) => { setOrderState(o); try { localStorage.setItem('landlekha.queueOrder', o) } catch { /* storage blocked */ } }
   useEffect(() => {
     const load = () => api.queue().then(setRows).catch(setError)
     load()
@@ -17,17 +21,28 @@ export default function ReviewQueue() {
     return () => clearInterval(t)
   }, [])
 
+  const sorted = rows && (order === 'quick'
+    ? [...rows].sort((a, b) => (a.flagged ?? Infinity) - (b.flagged ?? Infinity) || (b.overall_confidence ?? 0) - (a.overall_confidence ?? 0))
+    : rows)
+
   return <div>
-    <PageHeader title={t('Review queue')} subtitle={t('Documents with at least one uncertain field — lowest confidence first')}
-      actions={rows?.length > 0 && <Link to={`/documents/${rows[0].id}`} className="btn-primary"><ClipboardCheck size={16} /> {t('Start reviewing')}</Link>} />
+    <PageHeader title={t('Review queue')}
+      subtitle={t(order === 'quick' ? 'Documents with at least one uncertain field — fewest fields to check first' : 'Documents with at least one uncertain field — lowest confidence first')}
+      actions={sorted?.length > 0 && <Link to={`/documents/${sorted[0].id}`} className="btn-primary"><ClipboardCheck size={16} /> {t('Start reviewing')}</Link>} />
     <ErrorNote error={error} />
     <div className="card">
       {!rows ? <SkeletonRows cols={5} />
         : rows.length === 0 ? <EmptyState icon={PartyPopper} tone="ok" title={t('All clear')}
           action={<Link className="btn-outline" to="/documents">{t('Documents')}</Link>}>{t('Nothing waiting. Every processed document is either verified or passed automatically.')}</EmptyState>
           : <>
-          {/* phones: one tappable card per document, lowest confidence first */}
-          <ul className="divide-y divide-slate-100 sm:hidden">{rows.map((d) => <li key={d.id}>
+          <div className="flex flex-wrap gap-2 border-b border-slate-100 px-3 py-2.5" role="group" aria-label={t('Order')}>
+            {[['confidence', 'Lowest confidence first'], ['quick', 'Fewest fields first']].map(([k, label]) =>
+              <button key={k} onClick={() => setOrder(k)} aria-pressed={order === k}
+                className={`min-h-8 rounded-full border px-3 text-xs font-medium transition-colors duration-200 ${order === k
+                  ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-brand-500 hover:text-brand-700'}`}>{t(label)}</button>)}
+          </div>
+          {/* phones: one tappable card per document, in the chosen order */}
+          <ul className="divide-y divide-slate-100 sm:hidden">{sorted.map((d) => <li key={d.id}>
             <Link to={`/documents/${d.id}`} className="flex items-center gap-3 px-4 py-3 transition-colors duration-200 active:bg-slate-50">
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium text-slate-900">{d.filename}</div>
@@ -39,7 +54,7 @@ export default function ReviewQueue() {
             </Link></li>)}</ul>
           <div className="table-wrap hidden sm:block"><table className="data">
             <thead><tr><th>#</th><th>{t('File')}</th><th>{t('District')}</th><th>{t('Confidence')}</th><th>{t('To check')}</th><th>{t('Uploaded')}</th><th><span className="sr-only">{t('Actions')}</span></th></tr></thead>
-            <tbody>{rows.map((d) => <tr key={d.id}>
+            <tbody>{sorted.map((d) => <tr key={d.id}>
               <td className="text-slate-500 tabular-nums">{d.id}</td>
               <td className="font-medium">{d.filename}<div className="text-xs font-normal text-slate-500">{d.document_type && docTypeLabel(d.document_type, lang)}</div></td>
               <td>{d.district || '—'}</td>

@@ -332,6 +332,11 @@ export const HI = {
   'Review them and approve when ready.': 'उन्हें देखें और तैयार होने पर स्वीकृत करें।',
   'to check': 'जाँचने हैं',
   'To check': 'जाँचने हैं',
+  'Order': 'क्रम',
+  'Lowest confidence first': 'सबसे कम विश्वसनीयता पहले',
+  'Fewest fields first': 'सबसे कम विवरण पहले',
+  'Documents with at least one uncertain field — fewest fields to check first':
+    'जिन दस्तावेज़ों में कम से कम एक विवरण अनिश्चित है — सबसे कम जाँचने वाले पहले',
 }
 
 const KEY = 'landlekha.lang'

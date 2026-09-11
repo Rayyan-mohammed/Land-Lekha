@@ -16,11 +16,15 @@ function sourceFiles(dir) {
   })
 }
 
-// t('Label'), t(cond ? 'A' : 'B') and tr(...) alike: every quoted string inside the call
+// t('Label'), t(cond ? 'A' : 'B') and tr(...) alike: every quoted string inside the call, except
+// values that are only compared (the 'quick' in t(order === 'quick' ? 'A' : 'B') is never shown)
 function translatedKeys(code) {
   const keys = new Set()
   for (const call of code.matchAll(/\b(?:t|tr)\(([^()]*)\)/g)) {
-    for (const s of call[1].matchAll(/(['"])((?:\\.|(?!\1).)+)\1/g)) keys.add(s[2].replace(/\\'/g, "'"))
+    for (const s of call[1].matchAll(/(['"])((?:\\.|(?!\1).)+)\1/g)) {
+      if (/[!=]==?\s*$/.test(call[1].slice(0, s.index))) continue
+      keys.add(s[2].replace(/\\'/g, "'"))
+    }
   }
   return keys
 }
