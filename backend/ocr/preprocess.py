@@ -15,6 +15,7 @@ MIN_LONG_SIDE = 1200
 # adaptive sharpening of soft pages (see edge_sharpness); LL_OCR_SHARPEN=1 enables
 SHARPEN = os.getenv("LL_OCR_SHARPEN", "0") == "1"
 SOFT_EDGE_THRESHOLD = 450.0
+DENOISE_H = int(os.getenv("LL_OCR_DENOISE_H", "12"))
 
 
 @dataclass
@@ -129,7 +130,7 @@ def rotate(gray: np.ndarray, angle: float) -> np.ndarray:
 
 
 def denoise(gray: np.ndarray) -> np.ndarray:
-    return cv2.fastNlMeansDenoising(gray, None, h=12, templateWindowSize=7, searchWindowSize=21)
+    return cv2.fastNlMeansDenoising(gray, None, h=DENOISE_H, templateWindowSize=7, searchWindowSize=21)
 
 
 def edge_sharpness(gray: np.ndarray) -> float:
