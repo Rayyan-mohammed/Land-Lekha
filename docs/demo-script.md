@@ -1,10 +1,10 @@
-# Live demo script (about 6 minutes)
+# Live demo script (about 7 minutes)
 
 Before judges arrive:
 
 - [ ] `python -m uvicorn backend.api.main:app --port 8000` running, `/api/health` shows `"ocr_ready": true`
 - [ ] frontend open at http://localhost:5173 (or the built app at http://localhost:8000)
-- [ ] fresh database: stop the server, delete `storage/`, start again
+- [ ] fresh database: `powershell -ExecutionPolicy Bypass -File scripts\start.ps1 -Fresh` (or stop the server, delete `storage/`, start again)
 - [ ] `data/demo/` open in a file window; `data/demo/expected.md` open on the presenter's laptop
 - [ ] one **unseen** document ready: `python data/generator/generate.py --count 1 --split unseen --seed <any new number>`
 
@@ -12,8 +12,11 @@ Before judges arrive:
 Land records sit in handwritten registers and old scans, and they get retyped by hand. That's slow, and it introduces errors in exactly the fields that matter: owner, khasra, area.
 
 ## 2. Upload (1 min) — log in as `operator`
-- Drag in `01-ror-english-clean.jpg`, `02-khatauni-table-scan.jpg` and `03-form-handwritten.jpg`.
+- Drag in `01-ror-english-clean.jpg`, `02-khatauni-table-scan.jpg`, `03-form-handwritten.jpg`, `07-sideways-photo.jpg` and `08-born-digital.pdf`.
 - Point out: works on a phone too (the **Take photo** button), and takes PDF, JPG and TIFF.
+- **`08-born-digital.pdf` is done in about a second**: PDFs exported by a land portal already contain the text, so no OCR is needed and the text is exact.
+- **`07-sideways-photo.jpg`** was photographed sideways: it's turned upright automatically and reads as well as `01`.
+- If a photo is too blurred, the upload screen says so straight away (**"please retake: image is blurred…"**), so the operator fixes it at the counter instead of creating a case nobody can resolve. `05-phone-photo.jpg` shows the check.
 - While it runs: *"preprocessing → OCR in Hindi and English → field extraction → validation against master data → confidence scoring"*.
 
 ## 3. What the machine decided (2 min) — log in as `verifier`
@@ -24,10 +27,11 @@ Land records sit in handwritten registers and old scans, and they get retyped by
   - Places are checked against the master database (village ∈ tehsil ∈ district).
 - Correct one flagged value and **Approve**. Say: *"the verifier doesn't retype the document, they check one or two fields"*.
 - Mention: the correction is stored, and the same misreading is fixed automatically next time (the learning loop).
+- Upload and open **`09-multi-owner-khatauni.jpg`**: one khata, three co-owners, three khasra rows. The review screen lists every co-owner with their father's name, and every parcel row. Real Khataunis look like this; a single "owner" field would lose two of the three owners.
 
 ## 4. Governance (1 min) — log in as `admin`
 - **Dashboard**: documents processed, auto-accept rate, pending verification, error statistics, state- and district-wise progress, benchmark CER and field accuracy.
-- **Records & GIS**: the verified record in LRMS exchange format, **Push** to LRMS (simulated acknowledgement), the parcel on the map, and the DILRMP progress report.
+- **Records & GIS**: the verified record in LRMS exchange format with every co-owner and parcel row, **Push** to LRMS (simulated acknowledgement), the parcel on the map, and the DILRMP progress report.
 - **Audit trail**: every upload, decision and correction, with who, when and from which IP.
 - `http://localhost:8000/docs`: the documented REST API other government systems would call.
 
@@ -38,6 +42,7 @@ Upload the document nobody has seen. Whatever happens, explain it: confident fie
 From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **82.9% field accuracy, 16.3% of fields flagged for a human, 95.7% precision on unflagged fields, 7/7 auto-accepted documents fully correct, median CER 11.3%**. Weakest case: phone photos (58.6%).
 
 ## Honest answers to likely questions
+- **"What about blurred phone photos?"** The text is found but the letters are too blurred for the recogniser. We measured this: pages with a median OCR confidence below 0.2 produced no correct fields. So instead of guessing, the app asks the operator to retake the photo. A recognition model trained on real field photos is on the roadmap.
 - **"Is the data real?"** No. No public labelled dataset of Indian land records exists, so we generate realistic Khatauni, Khasra, Jamabandi and Khatiyan records, with ground truth, in Hindi and English. They include handwriting fonts, Devanagari digits, fading, stains, skew and phone-photo perspective. Real records are the first thing we'd add after selection.
 - **"Is LRMS/DILRMP integration real?"** The APIs are real and documented; the external government systems are simulated because we have no access to them.
 - **"Handwriting?"** Handwriting-style entries work when legible. Truly cursive registers need fine-tuning on real Indic handwriting data (roadmap).
