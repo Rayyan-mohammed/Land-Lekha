@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BarChart3, ClipboardCheck, FileStack, LogOut, Map, Menu, ScrollText, Upload, Users, X } from 'lucide-react'
 import { useAuth } from '../auth'
 import { ROLE_LABEL } from '../constants'
 import { LangToggle, useT } from '../i18n'
+import { ErrorBoundary, OfflineBanner } from './Resilience'
 
 const NAV = [
   { to: '/upload', label: 'Upload', icon: Upload, roles: ['operator', 'verifier'] },
@@ -32,6 +33,7 @@ export function Logo({ light = false }) {
 
 export default function Layout() {
   const { t } = useT()
+  const location = useLocation()
   const { user, logout, can } = useAuth()
   const [open, setOpen] = useState(false)
   const items = NAV.filter((n) => can(...n.roles))
@@ -71,7 +73,11 @@ export default function Layout() {
         <Logo />
         <LangToggle className="ml-auto border-slate-300 text-slate-700" />
       </header>
-      <main id="main" tabIndex={-1} className="mx-auto max-w-7xl p-4 outline-none sm:p-6"><Outlet /></main>
+      <OfflineBanner />
+      <main id="main" tabIndex={-1} className="mx-auto max-w-7xl p-4 outline-none sm:p-6">
+        {/* keyed by path: moving to another page clears a crash */}
+        <ErrorBoundary key={location.pathname}><Outlet /></ErrorBoundary>
+      </main>
     </div>
   </div>
 }

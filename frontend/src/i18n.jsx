@@ -55,6 +55,7 @@ const HI = {
   'Review': 'जाँचें',
   'Start reviewing': 'जाँच शुरू करें',
   'All clear': 'सब पूरा हो गया',
+  'You are offline. Uploads and approvals will not be saved until the connection returns.': 'आप ऑफ़लाइन हैं। कनेक्शन लौटने तक अपलोड और स्वीकृतियाँ सहेजी नहीं जाएँगी।',
   'Tips for a good photo': 'अच्छी फ़ोटो के लिए सुझाव',
   'Lay the page flat and fit the whole page in the frame': 'पन्ना सीधा रखें और पूरा पन्ना फ़्रेम में लें',
   'Use even daylight; avoid shadows and camera flash glare': 'दिन की समान रोशनी में लें; छाया और फ़्लैश की चमक से बचें',
