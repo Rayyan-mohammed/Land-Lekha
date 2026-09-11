@@ -32,8 +32,12 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [s, setS] = useState(null)
   const [error, setError] = useState(null)
+  const [toCheck, setToCheck] = useState(null) // fields waiting across the whole review queue
   useEffect(() => {
-    const load = () => api.stats().then(setS).catch(setError)
+    const load = () => {
+      api.stats().then(setS).catch(setError)
+      api.queue().then((q) => setToCheck(q.reduce((n, d) => n + (d.flagged || 0), 0))).catch(() => {})
+    }
     load()
     const t = setInterval(load, 10000)
     return () => clearInterval(t)
@@ -55,7 +59,9 @@ export default function Dashboard() {
       {t.pending_verification > 0 && <Link to="/review" className="card group flex flex-1 items-center gap-3 border-amber-200 bg-amber-50 p-4 transition-colors duration-200 hover:border-amber-300">
         <Hourglass size={20} className="text-warn" />
         <div className="flex-1"><div className="font-medium text-slate-900">{t.pending_verification} {tr(t.pending_verification === 1 ? 'document waits for a verifier' : 'documents wait for a verifier')}</div>
-          <div className="text-xs text-slate-600">{tr('Lowest confidence first; usually one or two fields each')}</div></div>
+          <div className="text-xs text-slate-600">{toCheck
+            ? `${toCheck} ${tr(toCheck === 1 ? 'field to check in all' : 'fields to check in all')}`
+            : tr('Lowest confidence first; usually one or two fields each')}</div></div>
         <span className="inline-flex items-center gap-1 text-sm font-medium text-brand-700">{tr('Start reviewing')} <ArrowRight size={15} className="transition-transform duration-200 group-hover:translate-x-0.5" /></span>
       </Link>}
       {t.failed > 0 && <Link to="/documents?status=failed" className="card group flex flex-1 items-center gap-3 border-red-200 bg-red-50 p-4 transition-colors duration-200 hover:border-red-300">

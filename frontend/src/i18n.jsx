@@ -335,6 +335,8 @@ export const HI = {
   'Order': 'क्रम',
   'Lowest confidence first': 'सबसे कम विश्वसनीयता पहले',
   'Fewest fields first': 'सबसे कम विवरण पहले',
+  'field to check in all': 'विवरण कुल जाँचना है',
+  'fields to check in all': 'विवरण कुल जाँचने हैं',
   'Documents with at least one uncertain field — fewest fields to check first':
     'जिन दस्तावेज़ों में कम से कम एक विवरण अनिश्चित है — सबसे कम जाँचने वाले पहले',
 }
