@@ -170,6 +170,25 @@ def test_split_owners_on_whole_words_only():
     assert split_owners("सावित्री मिश्रा एचं राकेश चंद्र मिश्रा") == ["सावित्री मिश्रा", "राकेश चंद्र मिश्रा"]
 
 
+def test_name_lexicon_undoes_ocr_letter_confusions():
+    from backend.extraction.names import restore
+    assert restore(["यादच"])[0] == ["यादव"]        # व read as च
+    assert restore(["नाय"])[0] == ["नाथ"]          # थ read as य
+    assert restore(["नरेट"])[0] == ["नरेंद्र"]      # ंद्र read as ट
+    assert restore(["तिचारी"])[0] == ["तिवारी"]
+    assert restore(["क्षितिजा"])[0] == ["क्षितिजा"]  # unknown names pass through
+
+
+def test_area_lost_decimal_in_acre_and_bigha():
+    from backend.extraction.validate import parse_area
+    p = parse_area("1293 bigha")
+    assert p.normalized["value"] == 12.93 and "decimal point inferred" in p.issues
+    assert parse_area("728 acre").normalized["value"] == 7.28
+    p = parse_area("285 bigha")                   # 72 ha is a possible plot: keep it, flagged
+    assert p.normalized["value"] == 285 and "no decimal point - check value" in p.issues
+    assert parse_area("12.93 bigha").normalized["value"] == 12.93
+
+
 def _multi_row_khatauni_ocr():
     """One page: khata + two co-owners on one line, then a 3-column table with two
     khasra rows, laid out so the "below" column-matching in parser.py lines up."""

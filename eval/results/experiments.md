@@ -121,6 +121,30 @@ village accuracy had fallen to 30%, and after the rebuild it is back to 83.3% (f
 results now count multi-owner documents on their own ("every co-owner found: 3 of 6") instead of mixing
 them into the all-documents owner rate, which was misleadingly labelled before.
 
+## 10. OCR letter confusions in names, lost decimals in acre/bigha rows — adopted
+
+Listing every multi-owner Khatauni where a co-owner or parcel row was missed showed two patterns:
+
+- **Names:** the owners were split correctly, but single letters were misread: व as च (यादव → यादच,
+  तिवारी → तिचारी), थ as य (नाथ → नाय) and the conjunct ंद्र as ट (नरेंद्र → नरेट). When a name token is not
+  in the name lexicon, `names.py` now retries with those substitutions and accepts the result only if
+  exactly one known token matches. Unknown names still pass through unchanged.
+- **Areas:** the decimal point was lost in table rows ("1293 bigha" for 12.93). The existing hectare rule
+  (an impossible area for one plot means the point was lost) now also covers acre and bigha, which records
+  give to 2 decimals. A plausible whole number ("285 bigha", 72 ha) is still kept as read and flagged.
+
+| | Before | After |
+| --- | --- | --- |
+| Test field accuracy | 84.4% | **84.8%** |
+| Test: every co-owner found | 5 of 9 | **6 of 9** |
+| Dev field accuracy | 83.0% | **84.6%** |
+| Dev: every co-owner found | 5 of 13 | **8 of 13** |
+| Fields flagged / unflagged precision (test) | 21.8% / 96.2% | 21.8% / 96.2% |
+
+Caveat: the confusions were found by reading errors from all three splits, test included, so for this
+change the test number is not strictly held out. The rules are generic OCR confusions, not fitted to
+particular documents, and dev improves by more than test.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.

@@ -4,28 +4,28 @@
   "documents": 40,
   "cer_mean": 0.1626,
   "cer_median": 0.1212,
-  "field_accuracy": 0.8296,
-  "required_field_accuracy": 0.8107,
+  "field_accuracy": 0.8463,
+  "required_field_accuracy": 0.8321,
   "review_rate": 0.875,
   "straight_through_accuracy": 1.0,
   "field_flag_rate": 0.3025,
   "trusted_field_precision": 0.9696,
   "threshold": 0.89,
   "ocr_seconds_mean": 15.7,
-  "owners_exact_rate": 0.725,
+  "owners_exact_rate": 0.8,
   "multi_owner_docs": 13,
-  "multi_owners_exact": 5,
-  "multi_row_hits": 26,
+  "multi_owners_exact": 8,
+  "multi_row_hits": 29,
   "multi_row_total": 51,
-  "parcel_row_recall": 0.5541,
-  "parcel_row_precision": 0.5616,
+  "parcel_row_recall": 0.5946,
+  "parcel_row_precision": 0.6027,
   "per_field": {
    "owner_name": {
-    "accuracy": 0.775,
+    "accuracy": 0.9,
     "n": 40
    },
    "father_name": {
-    "accuracy": 0.7297,
+    "accuracy": 0.8108,
     "n": 37
    },
    "khata_number": {
@@ -41,7 +41,7 @@
     "n": 29
    },
    "plot_area": {
-    "accuracy": 0.75,
+    "accuracy": 0.775,
     "n": 40
    },
    "land_classification": {
@@ -82,21 +82,21 @@
    }
   },
   "by_group": {
-   "handwritten:False": 0.8351,
+   "handwritten:False": 0.8526,
    "handwritten:False:cer": 0.1691,
-   "handwritten:True": 0.8143,
+   "handwritten:True": 0.8282,
    "handwritten:True:cer": 0.126,
    "profile:clean": 0.9556,
    "profile:clean:cer": 0.0987,
-   "profile:old": 0.7526,
+   "profile:old": 0.8154,
    "profile:old:cer": 0.2117,
    "profile:photo": 0.5958,
    "profile:photo:cer": 0.2781,
-   "profile:scan": 0.8671,
+   "profile:scan": 0.8853,
    "profile:scan:cer": 0.1445,
-   "template:form_bilingual": 0.8741,
+   "template:form_bilingual": 0.8802,
    "template:form_bilingual:cer": 0.1278,
-   "template:khatauni_table": 0.7334,
+   "template:khatauni_table": 0.7656,
    "template:khatauni_table:cer": 0.2174,
    "template:ror_english": 0.9729,
    "template:ror_english:cer": 0.0968
@@ -109,14 +109,12 @@
    "profile": "scan",
    "handwritten": false,
    "cer": 0.2711,
-   "field_acc": 0.7692,
+   "field_acc": 0.9231,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 19425,
-   "extract_ms": 145.1,
+   "extract_ms": 130.0,
    "wrong": [
-    "owner_name",
-    "father_name",
     "khasra_number"
    ],
    "reasons": [
@@ -136,7 +134,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12460,
-   "extract_ms": 133.0,
+   "extract_ms": 124.7,
    "wrong": [
     "khasra_number",
     "survey_number",
@@ -162,7 +160,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12010,
-   "extract_ms": 482.8,
+   "extract_ms": 399.1,
    "wrong": [],
    "reasons": [
     "low confidence: father_name (0.86)"
@@ -178,7 +176,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 24693,
-   "extract_ms": 283.6,
+   "extract_ms": 242.2,
    "wrong": [
     "father_name",
     "khasra_number",
@@ -202,7 +200,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11108,
-   "extract_ms": 153.7,
+   "extract_ms": 137.2,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.74)",
@@ -221,7 +219,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 10436,
-   "extract_ms": 137.4,
+   "extract_ms": 127.5,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.87)",
@@ -239,7 +237,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 9736,
-   "extract_ms": 266.9,
+   "extract_ms": 250.9,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.86)"
@@ -255,7 +253,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11034,
-   "extract_ms": 261.5,
+   "extract_ms": 242.2,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.73)",
@@ -272,7 +270,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 31744,
-   "extract_ms": 684.8,
+   "extract_ms": 636.9,
    "wrong": [
     "owner_name",
     "father_name",
@@ -305,7 +303,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12651,
-   "extract_ms": 253.9,
+   "extract_ms": 233.1,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.65)",
@@ -323,7 +321,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 14046,
-   "extract_ms": 129.8,
+   "extract_ms": 117.8,
    "wrong": [
     "mutation_number",
     "registration_number",
@@ -341,13 +339,12 @@
    "profile": "scan",
    "handwritten": false,
    "cer": 0.1493,
-   "field_acc": 0.8,
+   "field_acc": 0.8667,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13002,
-   "extract_ms": 135.1,
+   "extract_ms": 119.3,
    "wrong": [
-    "father_name",
     "plot_area",
     "village"
    ],
@@ -364,13 +361,12 @@
    "profile": "old",
    "handwritten": false,
    "cer": 0.3613,
-   "field_acc": 0.4615,
+   "field_acc": 0.5385,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 23596,
-   "extract_ms": 5.9,
+   "extract_ms": 5.6,
    "wrong": [
-    "owner_name",
     "father_name",
     "khasra_number",
     "plot_area",
@@ -391,18 +387,16 @@
    "profile": "old",
    "handwritten": true,
    "cer": 0.0593,
-   "field_acc": 0.9167,
+   "field_acc": 1.0,
    "route": "review",
-   "required_all_correct": false,
+   "required_all_correct": true,
    "ocr_ms": 11094,
-   "extract_ms": 254.2,
-   "wrong": [
-    "plot_area"
-   ],
+   "extract_ms": 245.7,
+   "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.84)",
     "low confidence: survey_number (0.88)",
-    "invalid plot_area: no decimal point - check value, implausible plot area"
+    "low confidence: plot_area (0.78)"
    ]
   },
   {
@@ -415,7 +409,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13466,
-   "extract_ms": 137.2,
+   "extract_ms": 117.9,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.84)"
@@ -431,7 +425,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 14339,
-   "extract_ms": 134.9,
+   "extract_ms": 125.5,
    "wrong": [
     "khasra_number"
    ],
@@ -450,7 +444,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 11536,
-   "extract_ms": 128.6,
+   "extract_ms": 124.1,
    "wrong": [
     "owner_name",
     "father_name"
@@ -472,7 +466,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 14045,
-   "extract_ms": 138.2,
+   "extract_ms": 136.3,
    "wrong": [
     "plot_area"
    ],
@@ -491,7 +485,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12908,
-   "extract_ms": 276.2,
+   "extract_ms": 259.0,
    "wrong": [
     "khasra_number",
     "tehsil"
@@ -513,7 +507,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 11571,
-   "extract_ms": 257.5,
+   "extract_ms": 228.3,
    "wrong": [
     "land_classification",
     "tehsil"
@@ -534,7 +528,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12924,
-   "extract_ms": 133.3,
+   "extract_ms": 117.3,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.88)"
@@ -550,7 +544,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13043,
-   "extract_ms": 247.4,
+   "extract_ms": 254.3,
    "wrong": [
     "father_name",
     "village",
@@ -573,7 +567,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 12003,
-   "extract_ms": 250.8,
+   "extract_ms": 235.6,
    "wrong": [],
    "reasons": []
   },
@@ -587,7 +581,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 10961,
-   "extract_ms": 136.2,
+   "extract_ms": 120.6,
    "wrong": [
     "khasra_number",
     "plot_area"
@@ -605,13 +599,12 @@
    "profile": "scan",
    "handwritten": false,
    "cer": 0.2512,
-   "field_acc": 0.6429,
+   "field_acc": 0.7143,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12098,
-   "extract_ms": 263.5,
+   "extract_ms": 242.8,
    "wrong": [
-    "owner_name",
     "plot_area",
     "village",
     "tehsil",
@@ -620,8 +613,8 @@
    "reasons": [
     "invalid tehsil: not found in master database",
     "low confidence: state (0.63)",
-    "low confidence: owner_name (0.63)",
-    "low confidence: father_name (0.71)"
+    "low confidence: owner_name (0.27)",
+    "low confidence: father_name (0.35)"
    ]
   },
   {
@@ -630,14 +623,12 @@
    "profile": "old",
    "handwritten": false,
    "cer": 0.2708,
-   "field_acc": 0.6923,
+   "field_acc": 0.8462,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 13205,
-   "extract_ms": 263.2,
+   "extract_ms": 243.6,
    "wrong": [
-    "owner_name",
-    "father_name",
     "tehsil",
     "registration_date"
    ],
@@ -645,7 +636,7 @@
     "invalid tehsil: not found in master database",
     "low confidence: state (0.65)",
     "low confidence: khata_number (0.84)",
-    "low confidence: owner_name (0.69)"
+    "low confidence: owner_name (0.32)"
    ]
   },
   {
@@ -658,7 +649,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11080,
-   "extract_ms": 140.8,
+   "extract_ms": 131.6,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.89)",
@@ -677,7 +668,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 13213,
-   "extract_ms": 133.9,
+   "extract_ms": 128.3,
    "wrong": [],
    "reasons": []
   },
@@ -691,7 +682,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11568,
-   "extract_ms": 248.8,
+   "extract_ms": 248.3,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.71)",
@@ -709,7 +700,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 26822,
-   "extract_ms": 628.1,
+   "extract_ms": 572.4,
    "wrong": [
     "owner_name",
     "father_name",
@@ -743,7 +734,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 25184,
-   "extract_ms": 124.4,
+   "extract_ms": 122.0,
    "wrong": [
     "owner_name",
     "khasra_number",
@@ -770,7 +761,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 13292,
-   "extract_ms": 131.4,
+   "extract_ms": 123.1,
    "wrong": [],
    "reasons": []
   },
@@ -784,7 +775,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 12480,
-   "extract_ms": 124.8,
+   "extract_ms": 124.5,
    "wrong": [
     "khasra_number",
     "survey_number",
@@ -807,7 +798,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 11320,
-   "extract_ms": 135.8,
+   "extract_ms": 119.8,
    "wrong": [],
    "reasons": []
   },
@@ -821,7 +812,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 13203,
-   "extract_ms": 126.6,
+   "extract_ms": 124.9,
    "wrong": [
     "survey_number",
     "registration_number"
@@ -843,7 +834,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 13136,
-   "extract_ms": 125.0,
+   "extract_ms": 137.4,
    "wrong": [],
    "reasons": []
   },
@@ -857,7 +848,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12162,
-   "extract_ms": 136.8,
+   "extract_ms": 127.3,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.69)",
@@ -876,7 +867,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 16439,
-   "extract_ms": 134.8,
+   "extract_ms": 123.2,
    "wrong": [],
    "reasons": [
     "low confidence: khasra_number (0.85)"
@@ -888,13 +879,12 @@
    "profile": "scan",
    "handwritten": false,
    "cer": 0.2755,
-   "field_acc": 0.7143,
+   "field_acc": 0.7857,
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 66909,
-   "extract_ms": 132.6,
+   "extract_ms": 123.4,
    "wrong": [
-    "owner_name",
     "father_name",
     "khasra_number",
     "district"
@@ -916,7 +906,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 12119,
-   "extract_ms": 245.2,
+   "extract_ms": 245.9,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.87)"

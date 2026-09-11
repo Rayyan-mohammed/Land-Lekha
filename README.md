@@ -27,19 +27,19 @@ Measured on 40 **held-out** synthetic documents (`test` split) whose places come
 
 | Metric | Held-out test | Dev (tuning split) |
 | --- | --- | --- |
-| Field accuracy (all 15 fields) | **84.4%** | 83.0% |
-| Required-field accuracy | 83.6% | 81.1% |
+| Field accuracy (all 15 fields) | **84.8%** | 84.6% |
+| Required-field accuracy | 84.3% | 83.2% |
 | Character error rate, median / mean | 11.1% / 15.7% | 12.1% / 16.3% |
 | Fields flagged for a human | **21.8%** | 30.2% |
 | Precision of fields *not* flagged | **96.2%** | 97.0% |
 | Auto-accepted documents with every required field correct | **100%** (3 of 3) | 100% (5 of 5) |
 | Documents needing a human look | 92.5% | 87.5% |
 
-By document type (test): English Record of Rights 94.6%, clean pages 97.2%, old faded paper 94.4%, scanner-quality pages 85.9%, Khatauni tables 82.4%, handwritten entries 67.7%, **phone photos 43.9%** (the weakest case). For photos the text is located correctly but the recogniser can't read blurred strokes. Rather than guess, the page quality check tells the operator to retake the photo.
+By document type (test): English Record of Rights 94.6%, clean pages 97.2%, old faded paper 94.4%, scanner-quality pages 87.0%, Khatauni tables 83.8%, handwritten entries 67.7%, **phone photos 43.9%** (the weakest case). For photos the text is located correctly but the recogniser can't read blurred strokes. Rather than guess, the page quality check tells the operator to retake the photo.
 
 Two things to read from this. First, the verifier checks about 1 field in 5 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
 
-**Multi-owner Khataunis** (separate 30-document split on official LGD villages, with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 3 of 6 multi-owner documents (5 of 9 on the test split), 15 of 23 parcel rows in multi-row tables recovered. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
+**Multi-owner Khataunis** (separate 30-document split on official LGD villages, with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 3 of 6 multi-owner documents (6 of 9 on the test split), 15 of 23 parcel rows in multi-row tables recovered. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
 
 The documents are deliberately hard: about 60% are degraded (faded/stained paper, scanner noise and skew, phone photos with perspective and uneven light), and some have handwritten entries or Devanagari digits. CER counts every character on the page, including stamps and footers, so it's a pessimistic number.
 

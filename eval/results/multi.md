@@ -3,7 +3,7 @@
 | Metric | Value |
 | --- | --- |
 | CER (mean / median) | 16.7% / 13.5% |
-| Field accuracy (all fields) | 81.2% |
+| Field accuracy (all fields) | 81.7% |
 | Field accuracy (required fields) | 79.0% |
 | Review rate | 96.7% |
 | Straight-through accuracy (auto-accepted docs fully correct) | 100.0% |
@@ -21,7 +21,7 @@
 | Field | Accuracy | n |
 | --- | --- | --- |
 | owner_name | 80.0% | 30 |
-| father_name | 76.9% | 26 |
+| father_name | 84.6% | 26 |
 | khata_number | 83.3% | 30 |
 | khasra_number | 70.0% | 30 |
 | survey_number | 94.1% | 17 |
@@ -40,12 +40,12 @@
 
 | Group | Field acc. | CER |
 | --- | --- | --- |
-| handwritten:False | 87.4% | 15.0% |
+| handwritten:False | 88.2% | 15.0% |
 | handwritten:True | 71.9% | 19.0% |
 | profile:clean | 96.7% | 10.2% |
 | profile:old | 84.4% | 18.1% |
-| profile:photo | 61.1% | 28.0% |
-| profile:scan | 78.3% | 14.7% |
-| template:form_bilingual | 85.6% | 14.1% |
-| template:khatauni_table | 69.8% | 20.5% |
+| profile:photo | 62.4% | 28.0% |
+| profile:scan | 79.1% | 14.7% |
+| template:form_bilingual | 86.2% | 14.1% |
+| template:khatauni_table | 70.5% | 20.5% |
 | template:ror_english | 90.7% | 14.8% |

@@ -179,6 +179,15 @@ def parse_area(text: str, unit_hint: str | None = None, bigha_ha: float = 0.2529
             ha = value
             issues.append("decimal point inferred")
             score = min(score, 0.7)
+    # the same for acre and bigha, which records give to 2 decimals: "1293 bigha" (327 ha) is not
+    # one plot, "12.93" is. A plausible whole number ("285 bigha", 72 ha) stays as read, flagged.
+    if unit in ("acre", "bigha") and ha >= 200 and value.is_integer() and "decimal point inferred" not in issues:
+        digits = str(int(value))
+        if 3 <= len(digits) <= 5:
+            value = float(f"{digits[:-2]}.{digits[-2:]}")
+            ha = value * factor
+            issues = [i for i in issues if i != "no decimal point - check value"] + ["decimal point inferred"]
+            score = min(score, 0.7)
     if not 0 < ha < 200:
         score = min(score, 0.4)
         issues.append("implausible plot area")
