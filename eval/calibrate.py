@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT / "eval"))
 from backend.extraction import confidence  # noqa: E402
 from backend.extraction.confidence import CALIBRATION, FEATURES, features  # noqa: E402
 from backend.extraction.extractor import extract  # noqa: E402
-from evaluate import field_correct  # noqa: E402
+from evaluate import field_correct, scalar_fields  # noqa: E402
 
 
 def main() -> None:
@@ -50,7 +50,8 @@ def main() -> None:
         ext = extract(json.loads(cp.read_text(encoding="utf-8")))
         for name, f in ext["fields"].items():
             X.append(features(name, f))
-            y.append(int(name in meta["fields"] and field_correct(name, f, meta["fields"][name])))
+            gt = scalar_fields(meta)
+            y.append(int(name in gt and field_correct(name, f, gt[name])))
             names.append(name)
     X, y = np.array(X), np.array(y)
     print(f"{len(y)} fields from {args.split}, {y.mean():.1%} correct")

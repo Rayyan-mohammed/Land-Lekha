@@ -55,6 +55,40 @@ def field_correct(name: str, pred: dict | None, gt) -> bool:
     return str(pred["value"]).strip().lower() == str(gt).strip().lower()
 
 
+LIST_KEYS = ("owners", "parcels")
+
+
+def scalar_fields(meta: dict) -> dict:
+    """Ground-truth single-value fields (owners/parcels lists are scored separately)."""
+    return {k: v for k, v in meta["fields"].items() if k not in LIST_KEYS}
+
+
+def owners_match(pred: list | None, gt: list) -> bool:
+    """Every co-owner found, nothing extra (order-insensitive, normalised names)."""
+    if not pred:
+        return False
+    return sorted(label_key(o.get("owner_name") or "") for o in pred) == sorted(label_key(o["owner_name"]) for o in gt)
+
+
+def parcel_rows(pred: list | None, gt: list) -> tuple[int, int, int]:
+    """(rows matched, predicted rows, ground-truth rows). A row matches when khasra,
+    area value + unit and land class are all right."""
+    def key(row, normalized):
+        area = row.get("plot_area_normalized") if normalized else row.get("plot_area")
+        area = area or {}
+        return (str(row.get("khasra_number", "")).strip().lower(), area.get("unit"),
+                round(float(area.get("value", -1)), 6), row.get("land_classification"))
+    pred = pred or []
+    left = [key(r, True) for r in pred]
+    hit = 0
+    for g in gt:
+        k = key(g, False)
+        if k in left:
+            left.remove(k)
+            hit += 1
+    return hit, len(pred), len(gt)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", default="test")
@@ -75,6 +109,7 @@ def main() -> None:
 
     per_doc = []
     flag_stats: dict[str, int] = defaultdict(int)
+    list_stats: dict[str, int] = defaultdict(int)
     field_hits: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     by_group: dict[str, list[float]] = defaultdict(list)
     for mp in metas:
@@ -94,7 +129,7 @@ def main() -> None:
 
         text = "\n".join(l["text"] for p in ocr["pages"] for l in p["lines"])
         c = cer(text, meta["text"])
-        gt = meta["fields"]
+        gt = scalar_fields(meta)
         correct = {}
         for name, gv in gt.items():
             ok = field_correct(name, ext["fields"].get(name), gv)
@@ -102,6 +137,15 @@ def main() -> None:
             field_hits[name][0] += int(ok)
             field_hits[name][1] += 1
         req_ok = all(correct.get(n, False) for n in REQUIRED_FIELDS if n in gt)
+        if "owners" in meta["fields"]:
+            list_stats["owner_docs"] += 1
+            list_stats["owners_exact"] += int(owners_match(ext.get("owners"), meta["fields"]["owners"]))
+            list_stats["multi_owner_docs"] += int(len(meta["fields"]["owners"]) > 1)
+        if "parcels" in meta["fields"]:
+            hit, n_pred, n_gt = parcel_rows(ext.get("parcels"), meta["fields"]["parcels"])
+            list_stats["rows_hit"] += hit
+            list_stats["rows_pred"] += n_pred
+            list_stats["rows_gt"] += n_gt
         # human effort: which extracted fields would a verifier have to look at?
         thr = ext["threshold"]
         for name, f in ext["fields"].items():
@@ -143,6 +187,10 @@ def main() -> None:
         "trusted_field_precision": round(flag_stats["trusted_correct"] / max(1, flag_stats["trusted"]), 4),
         "threshold": default_threshold(),
         "ocr_seconds_mean": round(statistics.mean(d["ocr_ms"] for d in per_doc) / 1000, 2),
+        "owners_exact_rate": round(list_stats["owners_exact"] / list_stats["owner_docs"], 4) if list_stats["owner_docs"] else None,
+        "multi_owner_docs": list_stats["multi_owner_docs"],
+        "parcel_row_recall": round(list_stats["rows_hit"] / list_stats["rows_gt"], 4) if list_stats["rows_gt"] else None,
+        "parcel_row_precision": round(list_stats["rows_hit"] / list_stats["rows_pred"], 4) if list_stats["rows_pred"] else None,
         "per_field": {n: {"accuracy": round(field_hits[n][0] / field_hits[n][1], 4), "n": field_hits[n][1]}
                       for n in FIELD_NAMES if field_hits[n][1]},
         "by_group": {k: round(statistics.mean(v), 4) for k, v in sorted(by_group.items())},
@@ -162,7 +210,12 @@ def main() -> None:
           f"| Fields flagged for a human (all extracted fields) | {summary['field_flag_rate']:.1%} |",
           f"| Precision of fields *not* flagged | {summary['trusted_field_precision']:.1%} |",
           f"| Auto-accept threshold (calibrated on dev) | {summary['threshold']} |",
-          f"| OCR time per document (CPU) | {summary['ocr_seconds_mean']} s |", "",
+          f"| OCR time per document (CPU) | {summary['ocr_seconds_mean']} s |", ""]
+    if summary["owners_exact_rate"] is not None:
+        md[-1:-1] = [f"| All co-owners found ({summary['multi_owner_docs']} multi-owner docs) | {summary['owners_exact_rate']:.1%} |"]
+    if summary["parcel_row_recall"] is not None:
+        md[-1:-1] = [f"| Parcel rows recovered (recall / precision) | {summary['parcel_row_recall']:.1%} / {summary['parcel_row_precision']:.1%} |"]
+    md += [
           "## Per field", "", "| Field | Accuracy | n |", "| --- | --- | --- |"]
     md += [f"| {n} | {v['accuracy']:.1%} | {v['n']} |" for n, v in summary["per_field"].items()]
     md += ["", "## By document group (field accuracy / CER)", "", "| Group | Field acc. | CER |", "| --- | --- | --- |"]

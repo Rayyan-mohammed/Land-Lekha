@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "eval"))
 
 from backend.extraction.extractor import extract  # noqa: E402
-from evaluate import cer, field_correct  # noqa: E402
+from evaluate import cer, field_correct, scalar_fields  # noqa: E402
 
 
 def score(split_dir: Path, cache: str, ids: list[str]) -> dict:
@@ -31,7 +31,7 @@ def score(split_dir: Path, cache: str, ids: list[str]) -> dict:
         ext = extract(ocr)
         out["cer"].append(cer("\n".join(l["text"] for p in ocr["pages"] for l in p["lines"]), meta["text"]))
         out["ms"].append(ocr["elapsed_ms"])
-        for name, gt in meta["fields"].items():
+        for name, gt in scalar_fields(meta).items():
             ok = int(field_correct(name, ext["fields"].get(name), gt))
             out["fields"][0] += ok
             out["fields"][1] += 1

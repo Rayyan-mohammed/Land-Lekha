@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT / "eval"))
 
 from backend.extraction.extractor import extract  # noqa: E402
 from backend.ocr.pipeline import run_ocr  # noqa: E402
-from evaluate import field_correct  # noqa: E402
+from evaluate import field_correct, scalar_fields  # noqa: E402
 
 ROTATIONS = {90: cv2.ROTATE_90_CLOCKWISE, 180: cv2.ROTATE_180, 270: cv2.ROTATE_90_COUNTERCLOCKWISE}
 
@@ -44,7 +44,7 @@ def main() -> None:
         cache = split_dir / "ocr" / mp.name
         if not cache.exists():
             continue
-        acc = accuracy(extract(json.loads(cache.read_text(encoding="utf-8"))), meta["fields"])
+        acc = accuracy(extract(json.loads(cache.read_text(encoding="utf-8"))), scalar_fields(meta))
         if acc >= 0.9 and seen.get(meta["template"], 0) < (args.docs + 2) // 3:
             picked.append((meta, acc))
             seen[meta["template"]] = seen.get(meta["template"], 0) + 1
@@ -58,7 +58,7 @@ def main() -> None:
         for deg, code in ROTATIONS.items():
             _, enc = cv2.imencode(".png", cv2.rotate(img, code))
             ocr = run_ocr(enc.tobytes(), "rotated.png")
-            acc = accuracy(extract(ocr), meta["fields"])
+            acc = accuracy(extract(ocr), scalar_fields(meta))
             steps = ocr["pages"][0]["preprocess"]["steps"]
             fixed = acc >= base - 0.1
             ok_orient += fixed
