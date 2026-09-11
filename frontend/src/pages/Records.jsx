@@ -93,9 +93,12 @@ export default function Records() {
           <thead><tr><th>#</th><th>Owner</th><th>Khata</th><th>Khasra</th><th>Area</th><th>Class</th><th>Village / District</th><th>Verified</th><th>LRMS</th></tr></thead>
           <tbody>{recs.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
             <td className="tabular-nums text-slate-400"><button className="hover:underline" onClick={() => setParams({ focus: r.record_id })}>{r.record_id}</button></td>
-            <td className="font-medium">{r.account.owners[0].name}<div className="text-xs font-normal text-slate-500">{r.account.owners[0].father_or_husband}</div></td>
+            <td className="font-medium">{r.account.owners[0].name}<div className="text-xs font-normal text-slate-500">{r.account.owners[0].father_or_husband}</div>
+              {r.account.owners.length > 1 && <div className="text-xs font-normal text-brand-700" title={r.account.owners.slice(1).map((o) => o.name).join(', ')}>
+                + {r.account.owners.slice(1).map((o) => o.name).join(', ')}</div>}</td>
             <td className="tabular-nums">{r.account.khata_no}</td>
-            <td className="tabular-nums">{r.parcel.khasra_no}</td>
+            <td className="tabular-nums">{(r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join(', ')}
+              {r.parcels?.length > 1 && <div className="text-xs text-slate-500">{r.parcels.length} parcels</div>}</td>
             <td className="tabular-nums whitespace-nowrap">{r.parcel.area}{r.parcel.area_hectares != null && <div className="text-xs text-slate-500">{r.parcel.area_hectares} ha</div>}</td>
             <td className="text-xs">{LAND_CLASSES[r.parcel.land_class]?.split(' · ')[0] || '—'}</td>
             <td>{r.location.village}<div className="text-xs text-slate-500">{r.location.tehsil}, {r.location.district}</div></td>
