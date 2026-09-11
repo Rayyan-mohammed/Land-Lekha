@@ -7,6 +7,7 @@ import { ErrorNote, locale, PageHeader, SkeletonCards, Stat } from '../component
 import { useAuth } from '../auth'
 import { FIELD_MAP, STATUS } from '../constants'
 import { useT } from '../i18n'
+import { explainIssue } from '../reasons'
 
 const pct = (v, d = 1) => (v == null ? '—' : `${(v * 100).toFixed(d)}%`)
 const STATUS_COLORS = { auto_accepted: '#15803d', verified: '#1f6f69', needs_review: '#d97706', rejected: '#b91c1c', failed: '#7f1d1d', processing: '#0284c7', queued: '#94a3b8' }
@@ -148,10 +149,10 @@ export default function Dashboard() {
       <Section title="Error statistics" subtitle="Most common validation issues and review reasons">
         <div className="grid gap-4 sm:grid-cols-2">
           <div><div className="label">{tr('Field issues')}</div>
-            {s.errors.issues.map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="truncate">{k}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
+            {s.errors.issues.map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="truncate" title={k}>{explainIssue(k, lang)}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
             {s.errors.issues.length === 0 && <div className="text-sm text-slate-500">{tr('None')}</div>}</div>
           <div><div className="label">{tr('Why sent to review')}</div>
-            {s.errors.review_reasons.map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="truncate">{k}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
+            {s.errors.review_reasons.map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="truncate" title={k}>{explainIssue(k, lang)}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
             {s.errors.review_reasons.length === 0 && <div className="text-sm text-slate-500">{tr('None')}</div>}</div>
         </div>
         {Object.keys(s.learning.adapted_thresholds).length > 0 && <div className="mt-3 text-xs text-slate-600">

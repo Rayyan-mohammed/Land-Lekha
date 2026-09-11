@@ -33,6 +33,33 @@ export function explainReason(r, lang = 'en') {
   return r
 }
 
+// Dashboard error statistics: field issues from backend/extraction/validate.py and review-reason
+// kinds (the part before ":"), in the viewer's language.
+const ISSUES = [
+  [/^low confidence$/, 'पढ़ाई पर भरोसा कम'],
+  [/^missing required field$/, 'ज़रूरी विवरण नहीं मिला'],
+  [/^consistency failed$/, 'मास्टर डेटा से मेल नहीं'],
+  [/^possible duplicate of record/, 'मौजूदा अभिलेख की संभावित प्रति'],
+  [/^extra characters around/, 'संख्या के आसपास अतिरिक्त अक्षर'],
+  [/^decimal point inferred$/, 'दशमलव अनुमान से लगाया'],
+  [/^no decimal point/, 'दशमलव नहीं — मान जाँचें'],
+  [/^unit not readable/, 'इकाई नहीं पढ़ी गई, राज्य की प्रथा से मानी गई'],
+  [/^unit missing/, 'इकाई नहीं लिखी, हेक्टेयर माना गया'],
+  [/^implausible plot area$/, 'क्षेत्रफल असंभव लगता है'],
+  [/^spelling normalised from name lexicon$/, 'नाम की वर्तनी सूची से ठीक की गई'],
+  [/^mixed scripts in name$/, 'नाम में हिंदी और अंग्रेज़ी मिले हैं'],
+  [/^digits removed from name$/, 'नाम से अंक हटाए गए'],
+  [/^inferred from \w+ via master database$/, 'मास्टर डेटा से अनुमानित'],
+]
+
+export function explainIssue(k, lang = 'en') {
+  if (lang !== 'hi') return k
+  const m = k.match(/^invalid (\w+)$/)
+  if (m) return `${field(m[1], lang)}: नियम पर खरा नहीं`
+  const hit = ISSUES.find(([re]) => re.test(k))
+  return hit ? hit[1] : k
+}
+
 // Photo-quality advice from backend/ocr/quality.py, in the viewer's language.
 const ADVICE = [
   [/^very little text found/, 'बहुत कम लिखावट मिली — जाँचें कि यह भू-अभिलेख का पन्ना है'],
