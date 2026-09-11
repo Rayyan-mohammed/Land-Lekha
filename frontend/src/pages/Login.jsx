@@ -60,7 +60,7 @@ export default function Login() {
             {DEMO.map(([u, p, d]) => (
               <button key={u} type="button" onClick={() => { setUsername(u); setPassword(p) }}
                 className="w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-50">
-                <span className="font-medium text-slate-800">{u}</span> <span className="text-slate-400">/ {p}</span>
+                <span className="font-medium text-slate-800">{u}</span> <span className="text-slate-500">/ {p}</span>
                 <div className="text-xs text-slate-500">{d}</div>
               </button>
             ))}

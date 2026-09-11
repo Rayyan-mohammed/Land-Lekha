@@ -92,7 +92,7 @@ export default function Records() {
         <div className="table-wrap"><table className="data">
           <thead><tr><th>#</th><th>Owner</th><th>Khata</th><th>Khasra</th><th>Area</th><th>Class</th><th>Village / District</th><th>Verified</th><th>LRMS</th><th /></tr></thead>
           <tbody>{recs.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
-            <td className="tabular-nums text-slate-400"><button className="hover:underline" onClick={() => setParams({ focus: r.record_id })}>{r.record_id}</button></td>
+            <td className="tabular-nums text-slate-500"><button className="hover:underline" onClick={() => setParams({ focus: r.record_id })}>{r.record_id}</button></td>
             <td className="font-medium">{r.account.owners[0].name}<div className="text-xs font-normal text-slate-500">{r.account.owners[0].father_or_husband}</div>
               {r.account.owners.length > 1 && <div className="text-xs font-normal text-brand-700" title={r.account.owners.slice(1).map((o) => o.name).join(', ')}>
                 + {r.account.owners.slice(1).map((o) => o.name).join(', ')}</div>}</td>
@@ -105,7 +105,7 @@ export default function Records() {
             <td><Link className="text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{r.provenance.verification === 'auto' ? 'auto' : 'human'} · doc #{r.provenance.source_document_id}</Link></td>
             <td>{r.lrms_ref ? <span className="text-xs font-mono text-ok">{r.lrms_ref}</span>
               : can('verifier') ? <button className="btn-outline py-1 text-xs" disabled={pushing === r.record_id} onClick={() => push(r.record_id)}><Send size={13} /> Push</button>
-                : <span className="text-xs text-slate-400">not pushed</span>}</td>
+                : <span className="text-xs text-slate-500">not pushed</span>}</td>
             <td><Link className="btn-outline py-1 text-xs" to={`/records/${r.record_id}/extract`}>Extract</Link></td>
           </tr>)}</tbody>
         </table></div>}

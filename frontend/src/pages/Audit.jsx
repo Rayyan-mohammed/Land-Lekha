@@ -32,7 +32,7 @@ export default function Audit() {
             <td>{r.entity_type === 'document' ? <Link className="text-brand-700 hover:underline" to={`/documents/${r.entity_id}`}>document #{r.entity_id}</Link>
               : r.entity_type ? `${r.entity_type} #${r.entity_id ?? ''}` : '—'}</td>
             <td className="max-w-md truncate font-mono text-xs text-slate-600" title={JSON.stringify(r.details)}>{r.details ? JSON.stringify(r.details) : ''}</td>
-            <td className="text-xs text-slate-400">{r.ip}</td>
+            <td className="text-xs text-slate-500">{r.ip}</td>
           </tr>)}</tbody>
         </table></div>}
       {total > 50 && <div className="flex justify-end gap-2 p-3">

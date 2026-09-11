@@ -20,21 +20,35 @@ html, body, #root { height: 100%; }
 body { @apply bg-slate-50 text-slate-800 antialiased; }
 
 .card { @apply bg-white rounded-xl border border-slate-200 shadow-sm; }
-@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed; }
-.btn-primary { @apply btn bg-brand-700 text-white hover:bg-brand-800; }
+@utility btn { @apply inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50; }
+.btn-primary { @apply btn bg-brand-700 text-white shadow-sm hover:bg-brand-800 active:bg-brand-900; }
 .btn-ghost { @apply btn text-slate-700 hover:bg-slate-100; }
-.btn-outline { @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50; }
+.btn-outline { @apply btn border border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50; }
 .btn-danger { @apply btn bg-bad text-white hover:bg-red-800; }
 .btn-ok { @apply btn bg-ok text-white hover:bg-green-800; }
-.input { @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100; }
-.label { @apply block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1; }
+.input { @apply min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition-colors duration-200 placeholder:text-slate-500 focus:border-brand-600 focus:ring-2 focus:ring-brand-200; }
+.label { @apply mb-1 block text-xs font-medium uppercase tracking-wide text-slate-600; }
 .table-wrap { @apply overflow-x-auto; }
 table.data { @apply w-full text-sm; }
-table.data th { @apply text-left font-medium text-slate-500 text-xs uppercase tracking-wide px-3 py-2 border-b border-slate-200 bg-slate-50; }
+table.data th { @apply border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-slate-600; }
 table.data td { @apply px-3 py-2.5 border-b border-slate-100; }
-table.data tr:hover td { @apply bg-slate-50; }
+table.data tr:hover td { @apply bg-brand-50/60; }
 
 .leaflet-container { font: inherit; }
+
+/* keyboard users always see where they are (mouse clicks don't show the ring) */
+:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; border-radius: 6px; }
+.input:focus-visible { outline: none; }
+a, button, [role="button"], select, summary { cursor: pointer; }
+.skip-link { position: absolute; left: 1rem; top: -4rem; z-index: 50; }
+.skip-link:focus { top: 1rem; }
+
+/* gentle entrance for toasts and panels; switched off for people who prefer less motion */
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.animate-rise { animation: rise 200ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
+}
 
 /* printing a verified extract: only the sheet */
 @media print {

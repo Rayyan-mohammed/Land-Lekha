@@ -65,7 +65,7 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
     className={`px-4 py-3 border-b border-slate-100 cursor-pointer ${selected ? 'bg-brand-50' : low ? 'bg-amber-50/50' : ''}`}>
     <div className="flex items-center justify-between gap-2">
       <div className="text-xs font-medium text-slate-500">
-        {def.en} <span className="text-slate-400">· {def.hi}</span>{def.required && <span className="text-bad"> *</span>}
+        {def.en} <span className="text-slate-500">· {def.hi}</span>{def.required && <span className="text-bad"> *</span>}
       </div>
       <div className="flex items-center gap-2">
         {reviewedTag && <span className="text-[11px] rounded bg-slate-100 px-1.5 py-0.5 text-slate-600">{reviewedTag}</span>}
@@ -86,16 +86,16 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
             onChange={(e) => onDecision(e.target.value === (f?.value ?? '') ? null : { action: 'correct', value: e.target.value })} />
         )
       ) : (
-        <div className={`text-sm font-medium ${f?.status === 'rejected' ? 'line-through text-slate-400' : 'text-slate-900'}`}>
-          {display || value || <span className="text-slate-400 font-normal">not found</span>}
+        <div className={`text-sm font-medium ${f?.status === 'rejected' ? 'line-through text-slate-500' : 'text-slate-900'}`}>
+          {display || value || <span className="text-slate-500 font-normal">not found</span>}
           {hi && <span className="ml-2 font-normal text-slate-500">{hi}</span>}
         </div>
       )}
       {editable && f && <>
-        <button title="Confirm" onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'confirm' ? null : { action: 'confirm' }) }}
-          className={`rounded-md p-1.5 ${d.action === 'confirm' ? 'bg-ok text-white' : 'text-slate-400 hover:bg-emerald-50 hover:text-ok'}`}><Check size={16} /></button>
-        <button title="Reject this field" onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'reject' ? null : { action: 'reject' }) }}
-          className={`rounded-md p-1.5 ${d.action === 'reject' ? 'bg-bad text-white' : 'text-slate-400 hover:bg-red-50 hover:text-bad'}`}><X size={16} /></button>
+        <button title="Confirm" aria-label={`Confirm ${def.en}`} onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'confirm' ? null : { action: 'confirm' }) }}
+          className={`rounded-md p-1.5 ${d.action === 'confirm' ? 'bg-ok text-white' : 'text-slate-500 hover:bg-emerald-50 hover:text-ok'}`}><Check size={16} /></button>
+        <button title="Reject this field" aria-label={`Reject ${def.en}`} onClick={(e) => { e.stopPropagation(); onDecision(d.action === 'reject' ? null : { action: 'reject' }) }}
+          className={`rounded-md p-1.5 ${d.action === 'reject' ? 'bg-bad text-white' : 'text-slate-500 hover:bg-red-50 hover:text-bad'}`}><X size={16} /></button>
       </>}
     </div>
     {f && <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-500">
@@ -212,7 +212,7 @@ export default function DocumentView() {
             {doc.owners?.length > 1 && <div className="border-b border-slate-100 px-4 py-3">
               <div className="label flex items-center gap-1"><Users size={12} /> {t('Co-owners on this khata')} ({doc.owners.length})</div>
               <ol className="mt-1 space-y-0.5 text-sm">
-                {doc.owners.map((o, i) => <li key={i}><span className="text-slate-400 tabular-nums">{i + 1}.</span> <span className="font-medium">{o.owner_name || '—'}</span>
+                {doc.owners.map((o, i) => <li key={i}><span className="text-slate-500 tabular-nums">{i + 1}.</span> <span className="font-medium">{o.owner_name || '—'}</span>
                   {o.father_name && <span className="text-slate-500"> · {o.father_name}</span>}</li>)}
               </ol>
             </div>}
@@ -249,7 +249,7 @@ export default function DocumentView() {
       <div className="mt-4 card p-4">
         <button className="btn-ghost px-0 text-sm" onClick={loadTrail}><History size={15} /> {t('Audit trail for this document')}</button>
         {trail && <ul className="mt-2 space-y-1 text-sm">
-          {trail.map((t) => <li key={t.id} className="flex gap-3"><span className="text-slate-400 w-32 shrink-0">{fmtDate(t.ts)}</span>
+          {trail.map((t) => <li key={t.id} className="flex gap-3"><span className="text-slate-500 w-32 shrink-0">{fmtDate(t.ts)}</span>
             <span className="font-medium">{t.user}</span><span className="text-slate-600">{t.action}</span>
             {t.details?.changes?.length > 0 && <span className="text-slate-500">{t.details.changes.map((c) => c.field).join(', ')}</span>}
             {t.details?.route && <span className={confColor(t.details.confidence, threshold)}>{t.details.route} ({Math.round((t.details.confidence || 0) * 100)}%)</span>}

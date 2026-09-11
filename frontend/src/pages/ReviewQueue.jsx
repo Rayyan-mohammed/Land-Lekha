@@ -26,7 +26,7 @@ export default function ReviewQueue() {
           : <div className="table-wrap"><table className="data">
             <thead><tr><th>#</th><th>{t('File')}</th><th>{t('District')}</th><th>{t('Confidence')}</th><th>{t('Uploaded')}</th><th /></tr></thead>
             <tbody>{rows.map((d) => <tr key={d.id}>
-              <td className="text-slate-400 tabular-nums">{d.id}</td>
+              <td className="text-slate-500 tabular-nums">{d.id}</td>
               <td className="font-medium">{d.filename}<div className="text-xs font-normal text-slate-500">{d.document_type?.replaceAll('_', ' ')}</div></td>
               <td>{d.district || '—'}</td>
               <td><ConfidenceBar value={d.overall_confidence} /></td>

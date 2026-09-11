@@ -46,6 +46,7 @@ export default function Layout() {
   </nav>
 
   return <div className="min-h-full lg:flex">
+    <a href="#main" className="skip-link btn-primary">Skip to content</a>
     <aside className={`fixed inset-y-0 left-0 z-40 w-60 transform bg-brand-800 transition lg:static lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
       <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
         <Logo light />
@@ -70,7 +71,7 @@ export default function Layout() {
         <Logo />
         <LangToggle className="ml-auto border-slate-300 text-slate-700" />
       </header>
-      <main className="mx-auto max-w-7xl p-4 sm:p-6"><Outlet /></main>
+      <main id="main" tabIndex={-1} className="mx-auto max-w-7xl p-4 outline-none sm:p-6"><Outlet /></main>
     </div>
   </div>
 }

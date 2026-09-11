@@ -32,14 +32,14 @@ export function worstQuality(pages = []) {
 }
 
 export function confColor(c, threshold = 0.8) {
-  if (c == null) return 'text-slate-400'
+  if (c == null) return 'text-slate-500'
   if (c >= threshold) return 'text-ok'
   if (c >= threshold - 0.2) return 'text-warn'
   return 'text-bad'
 }
 
 export function ConfidenceBar({ value, threshold = 0.8, className = '' }) {
-  if (value == null) return <span className="text-xs text-slate-400">—</span>
+  if (value == null) return <span className="text-xs text-slate-500">—</span>
   const pct = Math.round(value * 100)
   const bar = value >= threshold ? 'bg-ok' : value >= threshold - 0.2 ? 'bg-warn' : 'bg-bad'
   return <div className={`flex items-center gap-2 ${className}`} title={`confidence ${pct}% (auto-accept at ${Math.round(threshold * 100)}%)`}>
