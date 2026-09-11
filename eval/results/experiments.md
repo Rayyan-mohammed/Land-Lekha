@@ -154,4 +154,5 @@ Flag rates and unflagged precision did not move on any split.
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.
 - **Khatauni tables:** the decimals and slashes that the recogniser loses are flagged for review rather than trusted (`validate.parse_area`, `parse_plot_id`).
+- **Multi-row Khatauni tables:** some documents lose a whole column of parcel rows although OCR read every value. On dev-004 and multi-019 every khasra number is read exactly (`704/4`, `329/9`, `1268`, `1340`) and parses, yet the rows come out with no khasra; on test-033 and multi-010 the same happens to the area column. The fix is in the table-column assignment (`extractor.py`, parcel rows), not in OCR. Rows after the first also carry no confidence of their own, so a wrong second row cannot be flagged yet.
 - **Speed:** a CUDA GPU (about 1–2 s per page), born-digital PDFs (0.5 s, adopted), and keeping the project out of OneDrive-synced folders. Sync traffic roughly doubled OCR time on the development laptop.
