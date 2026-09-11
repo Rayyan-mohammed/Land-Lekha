@@ -2,7 +2,7 @@
   "_note": "Master location data used for validation. District/tehsil names are real; village lists are a representative sample for the prototype.",
   "states": [
     {
-      "en": "Uttar Pradesh", "hi": "उत्तर प्रदेश", "code": "UP", "record_title_hi": "खतौनी", "record_title_en": "Khatauni", "bigha_ha": 0.2529,
+      "en": "Uttar Pradesh", "hi": "उत्तर प्रदेश", "code": "UP", "area_unit": "hectare", "record_title_hi": "खतौनी", "record_title_en": "Khatauni", "bigha_ha": 0.2529,
       "districts": [
         {"en": "Lucknow", "hi": "लखनऊ", "tehsils": [
           {"en": "Sadar", "hi": "सदर", "villages": [["Rampur", "रामपुर"], ["Sultanpur", "सुल्तानपुर"], ["Daulatpur", "दौलतपुर"], ["Bhikhampur", "भीखमपुर"]]},
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "en": "Madhya Pradesh", "hi": "मध्य प्रदेश", "code": "MP", "record_title_hi": "खसरा पांचसाला", "record_title_en": "Khasra Panchsala", "bigha_ha": 0.2090,
+      "en": "Madhya Pradesh", "hi": "मध्य प्रदेश", "code": "MP", "area_unit": "hectare", "record_title_hi": "खसरा पांचसाला", "record_title_en": "Khasra Panchsala", "bigha_ha": 0.2090,
       "districts": [
         {"en": "Bhopal", "hi": "भोपाल", "tehsils": [
           {"en": "Huzur", "hi": "हुजूर", "villages": [["Kolar", "कोलार"], ["Bilkhiriya", "बिलखिरिया"], ["Ratibad", "रातीबड़"], ["Kerwa", "केरवा"]]},
@@ -38,7 +38,7 @@
       ]
     },
     {
-      "en": "Rajasthan", "hi": "राजस्थान", "code": "RJ", "record_title_hi": "जमाबंदी", "record_title_en": "Jamabandi", "bigha_ha": 0.1619,
+      "en": "Rajasthan", "hi": "राजस्थान", "code": "RJ", "area_unit": "bigha", "record_title_hi": "जमाबंदी", "record_title_en": "Jamabandi", "bigha_ha": 0.1619,
       "districts": [
         {"en": "Jaipur", "hi": "जयपुर", "tehsils": [
           {"en": "Sanganer", "hi": "सांगानेर", "villages": [["Muhana", "मुहाना"], ["Goner", "गोनेर"], ["Watika", "वाटिका"], ["Chaksu", "चाकसू"]]},
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "en": "Bihar", "hi": "बिहार", "code": "BR", "record_title_hi": "खतियान", "record_title_en": "Khatiyan", "bigha_ha": 0.2529,
+      "en": "Bihar", "hi": "बिहार", "code": "BR", "area_unit": "bigha", "record_title_hi": "खतियान", "record_title_en": "Khatiyan", "bigha_ha": 0.2529,
       "districts": [
         {"en": "Patna", "hi": "पटना", "tehsils": [
           {"en": "Danapur", "hi": "दानापुर", "villages": [["Maner", "मनेर"], ["Shahpur", "शाहपुर"], ["Naubatpur", "नौबतपुर"], ["Bihta", "बिहटा"]]},

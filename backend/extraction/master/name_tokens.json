@@ -1,0 +1,31 @@
+{
+  "_note": "Common North Indian given-name and surname tokens (Hindi, English). Used only to restore diacritics the OCR drops (e.g. सिह -> सिंह) when the letters otherwise match exactly.",
+  "tokens": [
+    ["राम", "Ram"], ["श्याम", "Shyam"], ["मोहन", "Mohan"], ["सोहन", "Sohan"], ["सुरेश", "Suresh"], ["रमेश", "Ramesh"],
+    ["दिनेश", "Dinesh"], ["महेश", "Mahesh"], ["राजेश", "Rajesh"], ["उमेश", "Umesh"], ["गणेश", "Ganesh"], ["नरेश", "Naresh"],
+    ["अशोक", "Ashok"], ["विजय", "Vijay"], ["अजय", "Ajay"], ["संजय", "Sanjay"], ["धनंजय", "Dhananjay"], ["अनिल", "Anil"],
+    ["सुनील", "Sunil"], ["राकेश", "Rakesh"], ["मुकेश", "Mukesh"], ["प्रकाश", "Prakash"], ["गोपाल", "Gopal"], ["हरि", "Hari"],
+    ["कृष्ण", "Krishna"], ["शिव", "Shiv"], ["जगदीश", "Jagdish"], ["बृजेश", "Brijesh"], ["अमित", "Amit"], ["सुमित", "Sumit"],
+    ["मनोज", "Manoj"], ["सरोज", "Saroj"], ["नरेंद्र", "Narendra"], ["देवेंद्र", "Devendra"], ["सुरेंद्र", "Surendra"],
+    ["महेंद्र", "Mahendra"], ["राजेंद्र", "Rajendra"], ["वीरेंद्र", "Virendra"], ["जितेंद्र", "Jitendra"], ["धर्मेंद्र", "Dharmendra"],
+    ["कमल", "Kamal"], ["भरत", "Bharat"], ["लक्ष्मण", "Laxman"], ["शत्रुघ्न", "Shatrughan"], ["इरफ़ान", "Irfan"], ["सलीम", "Salim"],
+    ["रहीम", "Rahim"], ["करीम", "Karim"], ["अब्दुल", "Abdul"], ["मोहम्मद", "Mohammad"], ["इस्माइल", "Ismail"], ["यूसुफ", "Yusuf"],
+    ["बलराम", "Balram"], ["रामस्वरूप", "Ramswaroop"], ["रामनरेश", "Ramnaresh"], ["रामकिशोर", "Ramkishore"], ["शंकर", "Shankar"],
+    ["भोला", "Bhola"], ["छोटे", "Chhote"], ["बड़े", "Bade"], ["पवन", "Pawan"], ["प्रमोद", "Pramod"], ["विनोद", "Vinod"],
+    ["अरविंद", "Arvind"], ["गोविंद", "Govind"], ["मुरारी", "Murari"], ["बनवारी", "Banwari"], ["कन्हैया", "Kanhaiya"],
+    ["सीता", "Sita"], ["गीता", "Geeta"], ["सुनीता", "Sunita"], ["अनीता", "Anita"], ["कमला", "Kamla"], ["विमला", "Vimla"],
+    ["मीना", "Meena"], ["रेखा", "Rekha"], ["शांति", "Shanti"], ["उर्मिला", "Urmila"], ["पुष्पा", "Pushpa"], ["सावित्री", "Savitri"],
+    ["रुबीना", "Rubina"], ["लक्ष्मी", "Lakshmi"], ["सरस्वती", "Saraswati"], ["पार्वती", "Parvati"], ["राधा", "Radha"],
+    ["कौशल्या", "Kaushalya"], ["शकुंतला", "Shakuntala"], ["गंगा", "Ganga"], ["जमुना", "Jamuna"], ["फातिमा", "Fatima"],
+    ["प्रसाद", "Prasad"], ["कुमार", "Kumar"], ["कुमारी", "Kumari"], ["लाल", "Lal"], ["चंद्र", "Chandra"], ["चंद", "Chand"],
+    ["नाथ", "Nath"], ["दास", "Das"], ["देवी", "Devi"], ["बाई", "Bai"], ["सिंह", "Singh"], ["शर्मा", "Sharma"], ["वर्मा", "Verma"],
+    ["यादव", "Yadav"], ["गुप्ता", "Gupta"], ["मिश्रा", "Mishra"], ["तिवारी", "Tiwari"], ["पांडेय", "Pandey"], ["दुबे", "Dubey"],
+    ["चौबे", "Chaubey"], ["शुक्ला", "Shukla"], ["त्रिपाठी", "Tripathi"], ["द्विवेदी", "Dwivedi"], ["मौर्य", "Maurya"],
+    ["पटेल", "Patel"], ["कुशवाहा", "Kushwaha"], ["चौहान", "Chauhan"], ["राठौर", "Rathore"], ["सक्सेना", "Saxena"],
+    ["श्रीवास्तव", "Srivastava"], ["पासवान", "Paswan"], ["मीणा", "Meena"], ["जाट", "Jat"], ["अंसारी", "Ansari"],
+    ["कुरैशी", "Qureshi"], ["खान", "Khan"], ["सिद्दीकी", "Siddiqui"], ["प्रजापति", "Prajapati"], ["निषाद", "Nishad"],
+    ["राजपूत", "Rajput"], ["ठाकुर", "Thakur"], ["भारती", "Bharti"], ["गौतम", "Gautam"], ["सोनकर", "Sonkar"], ["जायसवाल", "Jaiswal"],
+    ["अग्रवाल", "Agarwal"], ["बंसल", "Bansal"], ["जैन", "Jain"], ["सोनी", "Soni"], ["साहू", "Sahu"], ["कुर्मी", "Kurmi"],
+    ["लोधी", "Lodhi"], ["बघेल", "Baghel"], ["तोमर", "Tomar"], ["भदौरिया", "Bhadauria"], ["गुर्जर", "Gurjar"], ["बैरवा", "Bairwa"]
+  ]
+}
