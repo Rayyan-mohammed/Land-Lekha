@@ -72,7 +72,7 @@ export default function Login() {
         <div className="relative"><Logo light /></div>
         <p className="relative mt-3 text-sm text-brand-100">{t('From handwritten registers to verified digital land records.')}</p>
       </div>
-      <div className="flex flex-1 items-center justify-center p-6">
+      <main className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-slate-900">{t('Sign in')}</h1>
@@ -106,7 +106,7 @@ export default function Login() {
             <p className="mt-2 text-xs text-slate-500">{t('Demo only: one click signs in. Real deployments turn these accounts off.')}</p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   </div>
 }

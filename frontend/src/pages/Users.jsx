@@ -104,7 +104,7 @@ export default function UsersPage() {
             </li>
           })}</ul>
           <div className="table-wrap hidden sm:block"><table className="data">
-            <thead><tr><th>{t('User')}</th><th>{t('Role')}</th><th>{t('Status')}</th><th /></tr></thead>
+            <thead><tr><th>{t('User')}</th><th>{t('Role')}</th><th>{t('Status')}</th><th><span className="sr-only">{t('Actions')}</span></th></tr></thead>
             <tbody>{users.map((u) => {
               const [Icon, cls] = ROLE_INFO[u.role] || ROLE_INFO.operator
               return <tr key={u.id} className={u.active ? '' : 'opacity-60'}>

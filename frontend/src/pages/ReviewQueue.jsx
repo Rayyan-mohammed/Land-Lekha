@@ -37,7 +37,7 @@ export default function ReviewQueue() {
               <span className="text-sm font-medium text-brand-700">{t('Review')} →</span>
             </Link></li>)}</ul>
           <div className="table-wrap hidden sm:block"><table className="data">
-            <thead><tr><th>#</th><th>{t('File')}</th><th>{t('District')}</th><th>{t('Confidence')}</th><th>{t('Uploaded')}</th><th /></tr></thead>
+            <thead><tr><th>#</th><th>{t('File')}</th><th>{t('District')}</th><th>{t('Confidence')}</th><th>{t('Uploaded')}</th><th><span className="sr-only">{t('Actions')}</span></th></tr></thead>
             <tbody>{rows.map((d) => <tr key={d.id}>
               <td className="text-slate-500 tabular-nums">{d.id}</td>
               <td className="font-medium">{d.filename}<div className="text-xs font-normal text-slate-500">{d.document_type && docTypeLabel(d.document_type, lang)}</div></td>

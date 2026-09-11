@@ -228,7 +228,7 @@ export default function DocumentView() {
   const quality = worstQuality(doc.pages)
   return <div>
     <div className="mb-4 flex flex-wrap items-center gap-3">
-      <button className="btn-ghost px-2" onClick={() => nav(-1)}><ArrowLeft size={16} /></button>
+      <button className="btn-ghost px-2" onClick={() => nav(-1)} aria-label={t('Back')} title={t('Back')}><ArrowLeft size={16} /></button>
       {/* basis-60: on a phone the title keeps a usable width and the badges wrap below it */}
       <div className="min-w-0 flex-1 basis-60">
         <h1 className="truncate text-lg font-semibold text-slate-900">{doc.filename}</h1>
@@ -292,7 +292,8 @@ export default function DocumentView() {
             <span className="text-xs tabular-nums text-slate-600">{flagged.length - open.length}/{flagged.length} {t('checked')}</span>
             <button className="btn-outline min-h-8 px-2.5 py-1 text-xs" disabled={!open.length} onClick={nextFlagged}>{open.length ? t('Next flagged') : t('All flagged fields checked')}</button>
           </div>}
-          <div className="flex-1 overflow-y-auto">
+          {/* focusable so keyboard users can scroll it even when nothing inside is editable */}
+          <div className="flex-1 overflow-y-auto" tabIndex={0} role="region" aria-label={t('Extracted fields')}>
             {FIELDS.map((def) => (byName[def.name] || editable) &&
               <FieldRow key={def.name} def={def} f={byName[def.name]} decision={decisions[def.name]} editable={editable}
                 onDecision={(dec) => setDecision(def.name, dec)} threshold={threshold} selected={selected === def.name} onSelect={setSelected} />)}

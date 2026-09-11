@@ -156,7 +156,7 @@ export default function Records() {
           </div>
         </li>)}</ul>
         <div className="table-wrap hidden sm:block"><table className="data">
-          <thead><tr><th>#</th><th>{t('Owner')}</th><th>{t('Khata')}</th><th>{t('Khasra')}</th><th>{t('Area')}</th><th>{t('Class')}</th><th>{t('Village / District')}</th><th>{t('Verified')}</th><th>LRMS</th><th /></tr></thead>
+          <thead><tr><th>#</th><th>{t('Owner')}</th><th>{t('Khata')}</th><th>{t('Khasra')}</th><th>{t('Area')}</th><th>{t('Class')}</th><th>{t('Village / District')}</th><th>{t('Verified')}</th><th>LRMS</th><th><span className="sr-only">{t('Actions')}</span></th></tr></thead>
           <tbody>{shown.map((r) => <tr key={r.record_id} className={r.record_id === focus ? 'bg-amber-50' : ''}>
             <td className="tabular-nums text-slate-500"><button className="hover:underline" onClick={() => setParams({ focus: r.record_id })}>{r.record_id}</button></td>
             <td className="font-medium">{r.account.owners[0].name}<div className="text-xs font-normal text-slate-500">{r.account.owners[0].father_or_husband}</div>

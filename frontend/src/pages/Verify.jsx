@@ -22,7 +22,7 @@ export default function Verify() {
     api.publicVerify(id, params.get('fp') || '').then(setRes).catch(setError)
   }, [id, params])
 
-  return <div className="min-h-full bg-slate-50 p-6">
+  return <main className="min-h-full bg-slate-50 p-6">
     <div className="mx-auto max-w-lg">
       <div className="mb-6"><Logo /></div>
       <div className="card p-6">
@@ -52,5 +52,5 @@ export default function Verify() {
         </div>}
       </div>
     </div>
-  </div>
+  </main>
 }

@@ -311,6 +311,8 @@ const HI = {
   'The fields above show the first row; correct individual rows on the scan if needed.':
     'ऊपर के विवरण पहली पंक्ति के हैं; ज़रूरत हो तो बाकी पंक्तियाँ स्कैन देखकर सुधारें।',
   'Reviewer note': 'जाँचकर्ता की टिप्पणी',
+  'Back': 'वापस',
+  'Actions': 'कार्य',
 }
 
 const KEY = 'landlekha.lang'
