@@ -9,6 +9,26 @@ import { useToast } from '../components/toast'
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
 const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
 
+const STEPS = ['Uploaded', 'In queue', 'Reading and checking', 'Done']
+
+// Where one upload is: driven by the document's real status (queued / processing / done).
+function Stepper({ status, started }) {
+  const { t } = useT()
+  const [, tick] = useState(0)
+  useEffect(() => { const i = setInterval(() => tick((n) => n + 1), 1000); return () => clearInterval(i) }, [])
+  const active = status === 'queued' ? 1 : status === 'processing' ? 2 : 3
+  const secs = Math.max(0, Math.round((Date.now() - started) / 1000))
+  return <ol className="my-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" aria-label="progress">
+    {STEPS.map((s, i) => <li key={s} className="flex items-center gap-2">
+      <span className={`flex h-5 items-center gap-1.5 rounded-full px-2 ${i < active ? 'bg-emerald-50 text-ok' : i === active ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-500'}`}>
+        {i < active ? <CheckCircle2 size={12} /> : i === active ? <Loader2 size={12} className="animate-spin" /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
+        {t(s)}{i === active && i === 2 && <span className="tabular-nums text-slate-500"> · {secs}s</span>}
+      </span>
+      {i < STEPS.length - 1 && <span className={`h-px w-4 ${i < active ? 'bg-ok' : 'bg-slate-300'}`} />}
+    </li>)}
+  </ol>
+}
+
 export default function UploadPage() {
   const { t } = useT()
   const toast = useToast()
@@ -20,7 +40,7 @@ export default function UploadPage() {
   const add = async (files) => {
     for (const file of files) {
       const key = `${file.name}-${file.size}-${Math.random()}`
-      setItems((xs) => [{ key, file, doc: null, error: null }, ...xs])
+      setItems((xs) => [{ key, file, doc: null, error: null, started: Date.now() }, ...xs])
       try {
         const doc = await api.upload(file)
         setItems((xs) => xs.map((x) => (x.key === key ? { ...x, doc } : x)))
@@ -76,10 +96,11 @@ export default function UploadPage() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{x.file.name}</div>
+            {d && !done && <Stepper status={d.status} started={x.started} />}
             <div className="text-xs text-slate-500">
               {x.error ? <span className="text-bad">{x.error}{x.dupId && <> — <Link className="underline" to={`/documents/${x.dupId}`}>{t('open existing')}</Link></>}</span>
                 : !d ? t('Uploading…')
-                  : !done ? t('Reading document (preprocessing → OCR → field extraction)…')
+                  : !done ? t('usually 10–30 seconds per page; digital PDFs about a second')
                     : d.status === 'failed' ? t('Could not process this file')
                       : `${d.district || t('Unknown district')} · ${t('processed in')} ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
             </div>

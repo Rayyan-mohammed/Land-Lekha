@@ -35,6 +35,10 @@ const HI = {
   'Open': 'खोलें',
   'Image too poor to read reliably — please retake': 'चित्र साफ़ नहीं है — कृपया दोबारा फ़ोटो लें',
   'open existing': 'पहले वाला खोलें',
+  'In queue': 'कतार में',
+  'Reading and checking': 'पढ़ा और जाँचा जा रहा है',
+  'Done': 'पूर्ण',
+  'usually 10–30 seconds per page; digital PDFs about a second': 'आमतौर पर प्रति पृष्ठ 10–30 सेकंड; डिजिटल PDF लगभग 1 सेकंड',
   // lists
   'Refresh': 'रीफ़्रेश',
   'Search file name or district': 'फ़ाइल नाम या जिला खोजें',
