@@ -20,6 +20,9 @@ function tempPassword() {
   return Array.from(bytes, (b) => chars[b % chars.length]).join('').replace(/(.{4})(?=.)/g, '$1-')
 }
 
+// two-letter avatar from a full name, ignoring brackets and punctuation ("Verifier (Tehsil)" -> "VT")
+const initials = (name) => name.split(' ').map((w) => w.replace(/[^\p{L}]/gu, '')[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+
 export default function UsersPage() {
   const { user: me } = useAuth()
   const { t } = useT()
@@ -75,15 +78,39 @@ export default function UsersPage() {
 
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div className="card">
-        {!users ? <SkeletonRows cols={4} rows={4} /> :
-          <div className="table-wrap"><table className="data">
+        {!users ? <SkeletonRows cols={4} rows={4} /> : <>
+          {/* phones: one card per account, so status and actions are not off-screen */}
+          <ul className="divide-y divide-slate-100 sm:hidden">{users.map((u) => {
+            const [Icon, cls] = ROLE_INFO[u.role] || ROLE_INFO.operator
+            return <li key={u.id} className={`space-y-2 px-4 py-3 ${u.active ? '' : 'opacity-60'}`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${cls}`} aria-hidden>{initials(u.full_name)}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{u.full_name}{u.id === me.id && <span className="ml-1.5 text-xs font-normal text-slate-500">({t('you')})</span>}</div>
+                  <div className="text-xs text-slate-500">{u.username}</div>
+                </div>
+                {u.active ? <span className="inline-flex items-center gap-1 text-xs text-ok"><span className="h-2 w-2 rounded-full bg-ok" /> {t('Active')}</span>
+                  : <span className="text-xs text-slate-500">{t('Disabled')}</span>}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Icon size={14} className="text-slate-500" />
+                <select aria-label={`${t('Role')}: ${u.full_name}`} className="input w-auto py-1" value={u.role} disabled={u.id === me.id} onChange={(e) => update(u, { role: e.target.value })}>
+                  {Object.entries(ROLE_LABEL).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}</select>
+                {u.id !== me.id && <>
+                  <button className="btn-ghost py-1 text-xs" onClick={() => resetPassword(u)}><KeyRound size={13} /> {t('Reset password')}</button>
+                  <button className="btn-ghost py-1 text-xs" onClick={() => update(u, { active: !u.active })}>{t(u.active ? 'Disable' : 'Enable')}</button>
+                </>}
+              </div>
+            </li>
+          })}</ul>
+          <div className="table-wrap hidden sm:block"><table className="data">
             <thead><tr><th>{t('User')}</th><th>{t('Role')}</th><th>{t('Status')}</th><th /></tr></thead>
             <tbody>{users.map((u) => {
               const [Icon, cls] = ROLE_INFO[u.role] || ROLE_INFO.operator
               return <tr key={u.id} className={u.active ? '' : 'opacity-60'}>
                 <td><div className="flex items-center gap-2.5">
                   <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${cls}`} aria-hidden>
-                    {u.full_name.split(' ').map((w) => w.replace(/[^\p{L}]/gu, '')[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()}</div>
+                    {initials(u.full_name)}</div>
                   <div><div className="font-medium">{u.full_name}{u.id === me.id && <span className="ml-1.5 text-xs font-normal text-slate-500">({t('you')})</span>}</div>
                     <div className="text-xs text-slate-500">{u.username}</div></div></div></td>
                 <td><div className="flex items-center gap-1.5"><Icon size={14} className="text-slate-500" />
@@ -97,7 +124,7 @@ export default function UsersPage() {
                 </>}</td>
               </tr>
             })}</tbody>
-          </table></div>}
+          </table></div></>}
       </div>
       <form onSubmit={create} className="card h-fit space-y-3 p-4">
         <div className="flex items-center gap-2 font-medium"><UserPlus size={16} /> {t('Add user')}</div>
