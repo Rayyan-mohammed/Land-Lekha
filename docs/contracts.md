@@ -66,6 +66,26 @@ These are the only shapes each track can rely on from its neighbour. Change them
 * Field names are exactly the ones in `backend/extraction/schema.py`.
 * `route` is `auto_accept` or `review`. See `backend/extraction/confidence.py` for the rule.
 * `plot_area.value` is normalised to a string like `"0.412 hectare"`; the numeric hectares go in `plot_area.normalized`.
+* `owners` and `parcels` (top-level, alongside `fields`) hold every co-owner and every khasra
+  row found under one khata. The single `fields.owner_name` / `fields.father_name` /
+  `fields.khasra_number` / `fields.plot_area` / `fields.land_classification` always equal
+  entry `[0]` of these lists, so existing consumers that only read `fields` keep working.
+
+  ```json
+  "owners": [
+    {"owner_name": "Ram Prasad Sharma", "father_name": "Mohan Lal Sharma"},
+    {"owner_name": "Shyam Lal Sharma", "father_name": null}
+  ],
+  "parcels": [
+    {"khasra_number": "123/1", "plot_area": "0.5 hectare", "plot_area_normalized": {"value": 0.5, "unit": "hectare", "hectares": 0.5}, "land_classification": "agricultural_irrigated"},
+    {"khasra_number": "456/2", "plot_area": "1.2 hectare", "plot_area_normalized": {"value": 1.2, "unit": "hectare", "hectares": 1.2}, "land_classification": "barren"}
+  ]
+  ```
+
+  `owners`/`parcels` have exactly one entry when the document only has one owner/row.
+  Names are split on `,` / `एवं` / `व` / `and` / `&` — whole-word only, never mid-word.
+  The dataset generator (`data/generator/generate.py`) writes the same `owners`/`parcels`
+  shape into ground-truth JSON for the `khatauni_table` template (1-3 owners, 1-4 rows).
 
 ## C → D: REST API
 
