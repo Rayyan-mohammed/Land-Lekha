@@ -2,10 +2,14 @@
 Tesseract is used only if installed and requested."""
 from __future__ import annotations
 
+import os
 import threading
 from typing import Protocol
 
 import numpy as np
+
+# text-detection resolution (px). Detection is the slowest step on CPU.
+DETECT_CANVAS = int(os.getenv("LL_OCR_CANVAS", "1280"))
 
 
 class Engine(Protocol):
@@ -34,7 +38,7 @@ class EasyOCREngine:
             # detection runs on a 1280px canvas (the slow part on CPU); recognition still
             # reads crops from the full-resolution image
             results = self._reader.readtext(gray, detail=1, paragraph=False, width_ths=0.7, text_threshold=0.6,
-                                            canvas_size=1280, batch_size=16)
+                                            canvas_size=DETECT_CANVAS, batch_size=16)
         tokens = []
         for quad, text, conf in results:
             text = text.strip()

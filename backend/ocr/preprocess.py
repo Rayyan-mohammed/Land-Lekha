@@ -4,6 +4,7 @@ Every step is optional and recorded, so the verifier UI can show what was done.
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 
 import cv2
@@ -11,6 +12,9 @@ import numpy as np
 
 TARGET_LONG_SIDE = 1800
 MIN_LONG_SIDE = 1200
+# adaptive sharpening of soft pages (see edge_sharpness); LL_OCR_SHARPEN=1 enables
+SHARPEN = os.getenv("LL_OCR_SHARPEN", "0") == "1"
+SOFT_EDGE_THRESHOLD = 450.0
 
 
 @dataclass
@@ -112,6 +116,20 @@ def denoise(gray: np.ndarray) -> np.ndarray:
     return cv2.fastNlMeansDenoising(gray, None, h=12, templateWindowSize=7, searchWindowSize=21)
 
 
+def edge_sharpness(gray: np.ndarray) -> float:
+    """Strength of the strongest edges (99.5th percentile gradient). Clean pages score
+    ~850, blurred scans and phone photos 180-450."""
+    gx = cv2.Sobel(gray, cv2.CV_32F, 1, 0)
+    gy = cv2.Sobel(gray, cv2.CV_32F, 0, 1)
+    return float(np.percentile(np.hypot(gx, gy), 99.5))
+
+
+def sharpen(gray: np.ndarray, amount: float = 1.2, sigma: float = 1.5) -> np.ndarray:
+    """Unsharp mask: restores stroke edges softened by focus blur or a cheap scanner."""
+    blurred = cv2.GaussianBlur(gray, (0, 0), sigma)
+    return cv2.addWeighted(gray, 1 + amount, blurred, -amount, 0)
+
+
 def enhance_contrast(gray: np.ndarray) -> np.ndarray:
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     return clahe.apply(gray)
@@ -141,6 +159,9 @@ def preprocess(img: np.ndarray, *, do_binarize: bool = False) -> PreprocessResul
         steps.append("deskew")
     gray = denoise(gray)
     steps.append("denoise")
+    if SHARPEN and edge_sharpness(gray) < SOFT_EDGE_THRESHOLD:
+        gray = sharpen(gray)
+        steps.append("sharpen")
     gray = enhance_contrast(gray)
     steps.append("clahe")
     if do_binarize:

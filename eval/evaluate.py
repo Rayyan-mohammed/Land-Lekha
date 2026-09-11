@@ -60,10 +60,12 @@ def main() -> None:
     ap.add_argument("--split", default="test")
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--limit", type=int, default=0)
+    ap.add_argument("--cache", default="ocr", help="OCR cache folder name (use a new one per OCR setting)")
+    ap.add_argument("--out", default=None, help="results file name (default: the split name)")
     args = ap.parse_args()
 
     split_dir = DATA / args.split
-    cache = split_dir / "ocr"
+    cache = split_dir / args.cache
     cache.mkdir(exist_ok=True)
     metas = sorted(split_dir.glob(f"{args.split}-*.json"))
     if args.limit:
@@ -146,7 +148,8 @@ def main() -> None:
         "by_group": {k: round(statistics.mean(v), 4) for k, v in sorted(by_group.items())},
     }
     RESULTS.mkdir(parents=True, exist_ok=True)
-    (RESULTS / f"{args.split}.json").write_text(json.dumps({"summary": summary, "documents": per_doc}, ensure_ascii=False, indent=1),
+    out = args.out or args.split
+    (RESULTS / f"{out}.json").write_text(json.dumps({"summary": summary, "documents": per_doc}, ensure_ascii=False, indent=1),
                                                encoding="utf-8")
     md = [f"# Evaluation — `{args.split}` split ({summary['documents']} documents)", "",
           "| Metric | Value |", "| --- | --- |",
@@ -164,7 +167,7 @@ def main() -> None:
     md += [f"| {n} | {v['accuracy']:.1%} | {v['n']} |" for n, v in summary["per_field"].items()]
     md += ["", "## By document group (field accuracy / CER)", "", "| Group | Field acc. | CER |", "| --- | --- | --- |"]
     md += [f"| {k} | {v:.1%} | {summary['by_group'][k + ':cer']:.1%} |" for k, v in summary["by_group"].items() if not k.endswith(":cer")]
-    (RESULTS / f"{args.split}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    (RESULTS / f"{out}.md").write_text("\n".join(md) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in summary.items() if k not in ("per_field", "by_group")}, indent=1))
 
 
