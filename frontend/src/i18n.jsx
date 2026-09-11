@@ -268,6 +268,9 @@ const HI = {
   'system': 'सिस्टम',
   'rejected': 'अस्वीकृत',
   'of': 'में से',
+  // printed extract toolbar (the sheet itself is always bilingual)
+  'Check the details, then print or save as PDF.': 'विवरण जाँचें, फिर छापें या PDF में सहेजें।',
+  'Print extract': 'नकल छापें',
 }
 
 const KEY = 'landlekha.lang'
