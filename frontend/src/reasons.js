@@ -60,6 +60,15 @@ export function explainIssue(k, lang = 'en') {
   return hit ? hit[1] : k
 }
 
+// Areas come from the backend as "8.41 bigha"; show the unit word in the viewer's language
+// and leave the number exactly as it is.
+const UNIT_HI = { hectare: 'हेक्टेयर', acre: 'एकड़', bigha: 'बीघा', sqm: 'वर्ग मीटर' }
+
+export function areaInLang(text, lang = 'en') {
+  if (lang !== 'hi' || !text) return text
+  return String(text).replace(/\b(hectare|acre|bigha|sqm)\b/g, (u) => UNIT_HI[u])
+}
+
 // Photo-quality advice from backend/ocr/quality.py, in the viewer's language.
 const ADVICE = [
   [/^very little text found/, 'बहुत कम लिखावट मिली — जाँचें कि यह भू-अभिलेख का पन्ना है'],

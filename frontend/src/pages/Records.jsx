@@ -8,6 +8,7 @@ import { Empty, EmptyState, ErrorNote, PageHeader, SkeletonRows } from '../compo
 import { LAND_CLASSES } from '../constants'
 import { useToast } from '../components/toast'
 import { useT } from '../i18n'
+import { areaInLang } from '../reasons'
 
 function FitBounds({ data, focus }) {
   const map = useMap()
@@ -145,7 +146,7 @@ export default function Records() {
           <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
             <div><dt className="inline text-slate-500">{t('Khata')}: </dt><dd className="inline tabular-nums text-slate-800">{r.account.khata_no}</dd></div>
             <div><dt className="inline text-slate-500">{t('Khasra')}: </dt><dd className="inline tabular-nums text-slate-800">{(r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join(', ')}</dd></div>
-            <div><dt className="inline text-slate-500">{t('Area')}: </dt><dd className="inline tabular-nums text-slate-800">{r.parcel.area}</dd></div>
+            <div><dt className="inline text-slate-500">{t('Area')}: </dt><dd className="inline tabular-nums text-slate-800">{areaInLang(r.parcel.area, lang)}</dd></div>
             <div><dt className="inline text-slate-500">{t('Class')}: </dt><dd className="inline text-slate-800">{landClass(r.parcel.land_class)}</dd></div>
             <div className="col-span-2 text-slate-600">{r.location.village}, {r.location.tehsil}, {r.location.district}</div>
           </dl>
@@ -167,7 +168,7 @@ export default function Records() {
             <td className="tabular-nums">{r.account.khata_no}</td>
             <td className="tabular-nums">{(r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join(', ')}
               {r.parcels?.length > 1 && <div className="text-xs text-slate-500">{r.parcels.length} {t('parcels')}</div>}</td>
-            <td className="tabular-nums whitespace-nowrap">{r.parcel.area}{r.parcel.area_hectares != null && <div className="text-xs text-slate-500">{r.parcel.area_hectares} ha</div>}</td>
+            <td className="tabular-nums whitespace-nowrap">{areaInLang(r.parcel.area, lang)}{r.parcel.area_hectares != null && <div className="text-xs text-slate-500">{r.parcel.area_hectares} ha</div>}</td>
             <td className="text-xs">{landClass(r.parcel.land_class)}</td>
             <td>{r.location.village}<div className="text-xs text-slate-500">{r.location.tehsil}, {r.location.district}</div></td>
             <td><Link className="text-xs text-brand-700 hover:underline" to={`/documents/${r.provenance.source_document_id}`}>{t(r.provenance.verification === 'auto' ? 'auto' : 'human')} · {t('doc')} #{r.provenance.source_document_id}</Link></td>

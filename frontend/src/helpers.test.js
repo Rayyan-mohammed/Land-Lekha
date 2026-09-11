@@ -2,7 +2,7 @@
 // Run with `npm test`.
 import { describe, expect, it } from 'vitest'
 import { docTypeLabel } from './constants'
-import { explainAdvice, explainIssue, explainReason } from './reasons'
+import { areaInLang, explainAdvice, explainIssue, explainReason } from './reasons'
 import { parseTs } from './components/ui'
 
 describe('explainReason', () => {
@@ -57,6 +57,18 @@ describe('docTypeLabel', () => {
     expect(docTypeLabel(null, 'en')).toBe('unknown type')
     expect(docTypeLabel(undefined, 'hi')).toBe('अज्ञात प्रकार')
     expect(docTypeLabel('new_form_type', 'en')).toBe('new form type')
+  })
+})
+
+describe('areaInLang', () => {
+  it('shows the unit in Hindi and keeps the number unchanged', () => {
+    expect(areaInLang('8.41 bigha', 'hi')).toBe('8.41 बीघा')
+    expect(areaInLang('4.481 hectare', 'hi')).toBe('4.481 हेक्टेयर')
+    expect(areaInLang('0.44 acre', 'hi')).toBe('0.44 एकड़')
+  })
+  it('leaves English and empty values alone', () => {
+    expect(areaInLang('8.41 bigha', 'en')).toBe('8.41 bigha')
+    expect(areaInLang(null, 'hi')).toBe(null)
   })
 })
 
