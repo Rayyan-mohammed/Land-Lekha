@@ -43,6 +43,17 @@ Two things to read from this. First, the verifier checks about 1 field in 6 rath
 
 The documents are deliberately hard: about 60% are degraded (faded/stained paper, scanner noise and skew, phone photos with perspective and uneven light), and some have handwritten entries or Devanagari digits. CER counts every character on the page, including stamps and footers, so it's a pessimistic number.
 
+## Screens
+
+| | |
+| --- | --- |
+| ![Sign-in with one-click demo accounts](docs/screenshots/1-sign-in.jpg) | ![Review: the scan with a box on every field, next to the extracted values](docs/screenshots/2-review.jpg) |
+| **Sign-in**: how it works in three steps, one-click demo accounts, Hindi / English switch | **Review**: boxes coloured by confidence on the cleaned scan; confirm, correct or reject with the keyboard |
+| ![Dashboard](docs/screenshots/3-dashboard.jpg) | ![Records and GIS](docs/screenshots/4-records-gis.jpg) |
+| **Dashboard**: what waits for a person, accuracy, state/district progress | **Records & GIS**: LRMS format, co-owners, parcel map, DILRMP report |
+| ![Verified extract with QR code](docs/screenshots/5-verified-extract.jpg) | ![Public check on a phone](docs/screenshots/6-public-check-phone.jpg) |
+| **Verified extract**: printable, with a tamper-evident fingerprint and QR code | **Public check**: anyone scanning the QR sees whether the paper still matches the record |
+
 ## What maps to the problem statement
 
 | PS 26018 asks for | In LandLekha |
