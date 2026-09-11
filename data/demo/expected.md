@@ -98,22 +98,22 @@ khatauni_table · photo · handwritten=False
 | mutation_date | 17/08/1999 |
 
 ## 06-scanned-pdf.pdf
-khatauni_table · photo · handwritten=True
+form_bilingual · scan · handwritten=True
 
 | Field | Expected |
 | --- | --- |
-| owner_name | लक्ष्मी राठौर |
-| father_name | इरफ़ान कुमार राठौर |
-| khata_number | 00134 |
-| khasra_number | 1787 |
-| survey_number | 98/1 |
-| plot_area | 0.25 acre (0.1012 ha) |
-| land_classification | orchard |
-| village | Muhana |
-| tehsil | Sanganer |
-| district | Jaipur |
-| state | Rajasthan |
-| mutation_number | 4796 |
-| mutation_date | 08/06/2014 |
-| registration_number | 2022/41455 |
-| registration_date | 07/06/2006 |
+| owner_name | कमला पटेल |
+| father_name | हरि पटेल |
+| khata_number | 1339 |
+| khasra_number | 757/5 |
+| survey_number | 285/5 |
+| plot_area | 4.228 hectare (4.228 ha) |
+| land_classification | agricultural_irrigated |
+| village | Brijesh Nagar |
+| tehsil | Ichhawar |
+| district | Sehore |
+| state | Madhya Pradesh |
+| mutation_number | 5646 |
+| mutation_date | 11/05/2006 |
+| registration_number | 2022/47284 |
+| registration_date | 04/02/2004 |

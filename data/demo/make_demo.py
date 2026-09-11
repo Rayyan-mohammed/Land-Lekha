@@ -24,7 +24,7 @@ PICKS = [
     ("03-form-handwritten", lambda m: m["template"] == "form_bilingual" and m["handwritten"]),
     ("04-old-faded-record", lambda m: m["degradation"]["profile"] == "old"),
     ("05-phone-photo", lambda m: m["degradation"]["profile"] == "photo"),
-    ("06-scanned-pdf", lambda m: any(f.endswith(".pdf") for f in m["files"])),
+    ("06-scanned-pdf", lambda m: m["degradation"]["profile"] == "scan" and any(f.endswith(".pdf") for f in m["files"])),
 ]
 
 
