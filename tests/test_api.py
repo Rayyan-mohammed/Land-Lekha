@@ -194,10 +194,14 @@ def test_a_page_that_is_not_a_land_record_invents_nothing(client):
     doc = _wait(client, client.post("/api/documents", headers=op,
                                     files={"file": ("invoice.pdf", _pdf(invoice), "application/pdf")}).json()["id"],
                 op, timeout=180)
-    assert doc["status"] == "needs_review"
+    assert doc["status"] == "not_land", doc["status"]
     assert doc["fields"] == []          # nothing was recognised, so nothing is offered as fact
     assert doc["record_id"] is None     # and nothing reached the register
     assert doc["overall_confidence"] in (None, 0.0)
+    verdict = doc["classification"]
+    assert verdict["is_land_document"] is False and verdict["confidence"] >= 0.8
+    assert verdict["document_type"] is None
+    assert "invoice" in verdict["evidence_against"]   # it can say *why*
 
 
 def test_an_operator_cannot_read_the_register_or_other_peoples_trails(client):
