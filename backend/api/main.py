@@ -92,8 +92,13 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="LandLekha API", version="0.1.0", lifespan=lifespan,
               description="AI-powered land record digitization and validation — SIH 2026 PS 26018")
+if any(o.strip() == "*" for o in CORS_ORIGINS):
+    # with allow_credentials a browser refuses "*" anyway; say so rather than fail mysteriously
+    log.warning("LL_CORS_ORIGINS is '*' - browsers reject that together with credentials. "
+                "List the origins that should be allowed instead.")
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials=True,
-                   allow_methods=["*"], allow_headers=["*"])
+                   allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+                   allow_headers=["Authorization", "Content-Type"])
 
 for r in (auth.router, documents.router, review.router, admin.router, integration.router, public.router):
     app.include_router(r)

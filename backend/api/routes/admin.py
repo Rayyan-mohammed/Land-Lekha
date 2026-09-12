@@ -116,6 +116,16 @@ def stats(db: Session = Depends(get_db), user: User = Depends(require("verifier"
     }
 
 
+@router.get("/audit/verify")
+def audit_verify(db: Session = Depends(get_db), user: User = Depends(require("admin"))):
+    """Has anything in the audit trail been altered since it was written?
+
+    Each entry is hashed together with the one before it, so an edit or a deletion shows up
+    here as the first entry that stops matching. See backend/api/audit.py for what this does
+    and does not promise."""
+    return audit.verify_chain(db)
+
+
 @router.get("/audit")
 def audit_log(entity_type: str | None = None, entity_id: int | None = None, action: str | None = None,
               username: str | None = None, page: int = Query(1, ge=1), page_size: int = Query(50, ge=1, le=200),

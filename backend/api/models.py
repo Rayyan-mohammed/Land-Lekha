@@ -141,3 +141,7 @@ class AuditLog(Base):
     entity_id: Mapped[int | None] = mapped_column(Integer)
     details: Mapped[dict | None] = mapped_column(JSON)
     ip: Mapped[str | None] = mapped_column(String(64))
+    # Tamper-evidence: each row carries a hash of its own contents chained to the row before it,
+    # so an entry that is edited or removed later stops matching (see backend/api/audit.py).
+    prev_hash: Mapped[str | None] = mapped_column(String(64))
+    row_hash: Mapped[str | None] = mapped_column(String(64), index=True)

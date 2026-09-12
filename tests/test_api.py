@@ -273,3 +273,13 @@ def test_verifying_a_document_twice_is_refused_politely(client):
     assert first.status_code == 200, first.text
     again = client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"})
     assert again.status_code == 409 and "cannot be verified" in again.json()["detail"]
+
+
+def test_an_admin_can_check_the_audit_trail_has_not_been_rewritten(client):
+    admin = _login(client, "admin", "admin@123")
+    ver = _login(client, "verifier", "verify@123")
+    r = client.get("/api/admin/audit/verify", headers=admin)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["ok"] is True and body["checked"] > 0, body
+    assert client.get("/api/admin/audit/verify", headers=ver).status_code == 403
