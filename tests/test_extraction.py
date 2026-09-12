@@ -10,6 +10,7 @@ from backend.extraction.learning import CorrectionMemory
 from backend.extraction.names import restore
 from backend.extraction.normalize import skeleton
 from backend.extraction.parser import split_owners
+from backend.extraction.transliterate import to_devanagari
 from backend.extraction.validate import parse_area, parse_date, parse_name, parse_plain_number, parse_plot_id, parse_registration
 
 
@@ -51,6 +52,26 @@ def test_dates_are_validated():
     assert parse_date("25/12|2006").value == "25/12/2006"
     assert not parse_date("31/02/2010").valid
     assert not parse_date("no date").valid
+
+
+def test_two_digit_year_never_reads_as_a_future_date():
+    # the pivot deliberately favours the past: a 2-digit year that would be next year if
+    # read as 20xx is read as 19xx instead, so a land record is never dated in the future
+    from datetime import date
+    this_year_2d = date.today().year % 100
+    at_pivot = parse_date(f"01/01/{this_year_2d:02d}")
+    assert at_pivot.value.endswith(str(date.today().year)) and at_pivot.valid
+    past_pivot = parse_date(f"01/01/{(this_year_2d + 1) % 100:02d}")
+    assert int(past_pivot.value[-4:]) < date.today().year
+    assert not past_pivot.value.endswith(str(date.today().year + 1))
+
+
+def test_transliteration_keeps_digits_so_numbered_villages_stay_distinct():
+    # a bug once dropped digits/punctuation entirely, so "Chak No.7" and "Chak No.12"
+    # both transliterated to the same text and could resolve to the wrong village
+    assert to_devanagari("Chak No.7") != to_devanagari("Chak No.12")
+    assert "७" in to_devanagari("Chak No.7")
+    assert "१२" in to_devanagari("Chak No.12")
 
 
 def test_registration_number():
