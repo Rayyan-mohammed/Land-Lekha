@@ -6,7 +6,7 @@ import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { docTypeLabel, FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
-import { explainAdvice, explainIssue, explainReason } from '../reasons'
+import { explainAdvice, explainDuplicateReason, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
 import { getQueueOrder, sortQueue } from '../queue'
 
@@ -315,7 +315,11 @@ export default function DocumentView() {
         </div>}
       {doc.duplicates?.length > 0 && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
         <div className="flex items-center gap-2 font-medium"><Copy size={16} /> {t('Possible duplicate of existing record')}</div>
-        {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">{t('Record')} #{d.record_id} — {t('match')} {Math.round(d.score * 100)}% ({d.reasons.join(', ')})</div>)}
+        {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">
+          {/* open the record it matches, so the two can be compared before anything is approved */}
+          <Link to={`/records?focus=${d.record_id}`} className="font-medium underline">{t('Record')} #{d.record_id}</Link>
+          {' — '}{t('match')} {Math.round(d.score * 100)}% ({d.reasons.map((r) => explainDuplicateReason(r, lang)).join(', ')})
+        </div>)}
       </div>}
       {doc.status === 'auto_accepted' && <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 flex items-center gap-2">
         <CheckCircle2 size={16} className="shrink-0" /> {lang === 'hi'

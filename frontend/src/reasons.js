@@ -33,6 +33,16 @@ export function explainReason(r, lang = 'en') {
   return r
 }
 
+// Why the duplicate check thinks two records are the same (backend/extraction/duplicates.py).
+export function explainDuplicateReason(r, lang = 'en') {
+  if (lang !== 'hi') return r
+  let m
+  if ((m = r.match(/^same village \+ khasra \((.+)\)$/))) return `वही गाँव और खसरा (${m[1]})`
+  if (r === 'same khata') return 'वही खाता संख्या'
+  if ((m = r.match(/^owner name (\d+)% similar$/))) return `खातेदार का नाम ${m[1]}% मिलता है`
+  return r
+}
+
 // Dashboard error statistics: field issues from backend/extraction/validate.py and review-reason
 // kinds (the part before ":"), in the viewer's language.
 const ISSUES = [
@@ -72,6 +82,8 @@ export function areaInLang(text, lang = 'en') {
 // Photo-quality advice from backend/ocr/quality.py, in the viewer's language.
 const ADVICE = [
   [/^very little text found/, 'बहुत कम लिखावट मिली — जाँचें कि यह भू-अभिलेख का पन्ना है'],
+  [/^image is too blurred/, 'चित्र पढ़ने के लिए बहुत धुंधला है — कैमरा स्थिर रखें, फ़ोकस के लिए स्क्रीन छुएँ और फिर से फ़ोटो लें'],
+  [/^glare or reflection/, 'चमक या परावर्तन है — पन्ने पर सीधी रोशनी या फ़्लैश न पड़ने दें, या कैमरा थोड़ा तिरछा करें'],
   [/^image is blurred/, 'चित्र धुंधला है — कैमरा स्थिर रखें, फ़ोकस के लिए स्क्रीन छुएँ और फिर से फ़ोटो लें'],
   [/^text is small/, 'अक्षर छोटे हैं — कैमरा पास लाएँ या 300 dpi पर स्कैन करें'],
   [/^text is hard to read/, 'पढ़ना कठिन है — बराबर रोशनी में फिर से फ़ोटो लें, या पन्ना स्कैन करें'],

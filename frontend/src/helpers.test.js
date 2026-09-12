@@ -2,7 +2,7 @@
 // Run with `npm test`.
 import { describe, expect, it } from 'vitest'
 import { docTypeLabel } from './constants'
-import { areaInLang, explainAdvice, explainIssue, explainReason } from './reasons'
+import { areaInLang, explainAdvice, explainDuplicateReason, explainIssue, explainReason } from './reasons'
 import { parseTs } from './components/ui'
 import { sortQueue } from './queue'
 import { numbersReread } from './pages/DocumentView'
@@ -120,5 +120,18 @@ describe('numbersReread', () => {
 
   it('is not confused by the table-cell step, which looks the same', () => {
     expect(numbersReread(page('table_cells:4'))).toBe(0)
+  })
+})
+
+describe('explainDuplicateReason', () => {
+  it('says in Hindi why two records look like the same one', () => {
+    expect(explainDuplicateReason('same khata', 'hi')).toBe('वही खाता संख्या')
+    expect(explainDuplicateReason('same village + khasra (43/5)', 'hi')).toBe('वही गाँव और खसरा (43/5)')
+    expect(explainDuplicateReason('owner name 100% similar', 'hi')).toBe('खातेदार का नाम 100% मिलता है')
+  })
+
+  it('leaves English alone and passes through anything it does not know', () => {
+    expect(explainDuplicateReason('same khata', 'en')).toBe('same khata')
+    expect(explainDuplicateReason('some new reason', 'hi')).toBe('some new reason')
   })
 })
