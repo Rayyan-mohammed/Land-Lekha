@@ -138,9 +138,22 @@ def audit_log(entity_type: str | None = None, entity_id: int | None = None, acti
         for r in rows]}
 
 
-@router.get("/users", response_model=list[UserOut])
+class UserRow(UserOut):
+    last_login: str | None = None  # most recent successful sign-in, from the audit trail
+
+
+@router.get("/users", response_model=list[UserRow])
 def list_users(db: Session = Depends(get_db), user: User = Depends(require("admin"))):
-    return list(db.scalars(select(User).order_by(User.id)))
+    """Accounts, with when each was last used (an unused account is worth asking about)."""
+    seen = dict(db.execute(select(AuditLog.username, func.max(AuditLog.ts))
+                           .where(AuditLog.action == "auth.login").group_by(AuditLog.username)).all())
+    rows = []
+    for u in db.scalars(select(User).order_by(User.id)):
+        row = UserRow.model_validate(u)
+        ts = seen.get(u.username)
+        row.last_login = ts.isoformat() if ts else None
+        rows.append(row)
+    return rows
 
 
 @router.post("/users", response_model=UserOut, status_code=201)

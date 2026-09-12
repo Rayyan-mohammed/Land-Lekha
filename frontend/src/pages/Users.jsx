@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ClipboardCheck, Copy, KeyRound, ShieldCheck, Upload, UserPlus, X } from 'lucide-react'
 import { api } from '../api'
 import { useAuth } from '../auth'
-import { ErrorNote, PageHeader, SkeletonRows } from '../components/ui'
+import { ErrorNote, fmtDate, PageHeader, SkeletonRows } from '../components/ui'
 import { ROLE_LABEL } from '../constants'
 import { useToast } from '../components/toast'
 import { useT } from '../i18n'
@@ -87,7 +87,7 @@ export default function UsersPage() {
                 <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${cls}`} aria-hidden>{initials(u.full_name)}</div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{u.full_name}{u.id === me.id && <span className="ml-1.5 text-xs font-normal text-slate-500">({t('you')})</span>}</div>
-                  <div className="text-xs text-slate-500">{u.username}</div>
+                  <div className="text-xs text-slate-500">{u.username} · {u.last_login ? fmtDate(u.last_login) : t('never')}</div>
                 </div>
                 {u.active ? <span className="inline-flex items-center gap-1 text-xs text-ok"><span className="h-2 w-2 rounded-full bg-ok" /> {t('Active')}</span>
                   : <span className="text-xs text-slate-500">{t('Disabled')}</span>}
@@ -104,7 +104,7 @@ export default function UsersPage() {
             </li>
           })}</ul>
           <div className="table-wrap hidden sm:block"><table className="data">
-            <thead><tr><th>{t('User')}</th><th>{t('Role')}</th><th>{t('Status')}</th><th><span className="sr-only">{t('Actions')}</span></th></tr></thead>
+            <thead><tr><th>{t('User')}</th><th>{t('Role')}</th><th>{t('Status')}</th><th>{t('Last sign-in')}</th><th><span className="sr-only">{t('Actions')}</span></th></tr></thead>
             <tbody>{users.map((u) => {
               const [Icon, cls] = ROLE_INFO[u.role] || ROLE_INFO.operator
               return <tr key={u.id} className={u.active ? '' : 'opacity-60'}>
@@ -118,6 +118,7 @@ export default function UsersPage() {
                     {Object.entries(ROLE_LABEL).map(([k, v]) => <option key={k} value={k}>{t(v)}</option>)}</select></div></td>
                 <td>{u.active ? <span className="inline-flex items-center gap-1 text-sm text-ok"><span className="h-2 w-2 rounded-full bg-ok" /> {t('Active')}</span>
                   : <span className="text-sm text-slate-500">{t('Disabled')}</span>}</td>
+                <td className="whitespace-nowrap text-sm text-slate-500">{u.last_login ? fmtDate(u.last_login) : t('never')}</td>
                 <td className="whitespace-nowrap text-right">{u.id !== me.id && <>
                   <button className="btn-ghost py-1 text-xs" onClick={() => resetPassword(u)}><KeyRound size={13} /> {t('Reset password')}</button>
                   <button className="btn-ghost py-1 text-xs" onClick={() => update(u, { active: !u.active })}>{t(u.active ? 'Disable' : 'Enable')}</button>

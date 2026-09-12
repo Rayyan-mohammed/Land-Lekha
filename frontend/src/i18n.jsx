@@ -246,6 +246,8 @@ export const HI = {
   'you': 'आप',
   'Active': 'सक्रिय',
   'Disabled': 'बंद',
+  'Last sign-in': 'पिछला लॉग इन',
+  'never': 'कभी नहीं',
   'Reset password': 'पासवर्ड बदलें',
   'Disable': 'बंद करें',
   'Enable': 'चालू करें',
