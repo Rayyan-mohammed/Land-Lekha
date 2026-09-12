@@ -9,7 +9,7 @@ from backend.extraction.extractor import extract
 from backend.extraction.learning import CorrectionMemory
 from backend.extraction.names import restore
 from backend.extraction.normalize import skeleton
-from backend.extraction.parser import split_owners
+from backend.extraction.parser import build_lines, generate_candidates, split_owners
 from backend.extraction.transliterate import to_devanagari
 from backend.extraction.validate import parse_area, parse_date, parse_name, parse_plain_number, parse_plot_id, parse_registration
 
@@ -89,6 +89,13 @@ def test_area_units_and_decimal_recovery():
     assert table.normalized["unit"] == "hectare" and table.valid
 
 
+def test_negative_area_is_flagged_not_silently_made_positive():
+    p = parse_area("-5.2 hectare")
+    assert p.normalized["value"] == 5.2  # the sign is dropped (the regexes only match digits)...
+    assert not p.valid  # ...but it must not be trusted at full confidence like a normal reading
+    assert any("negative" in i for i in p.issues)
+
+
 def test_names_drop_label_residue_and_restore_diacritics():
     assert parse_name("s Name Bharat Prasad Srivastava").value == "Bharat Prasad Srivastava"
     assert parse_name("राजेश प्रसाद सिह").value == "राजेश प्रसाद सिंह"
@@ -109,6 +116,19 @@ def test_gazetteer_matches_both_scripts_and_checks_hierarchy():
     assert all(c["ok"] for c in checks)
     _, bad = gazetteer.resolve({"district": "Lucknow", "tehsil": "Pindra"})
     assert not next(c for c in bad if c["check"] == "tehsil_in_district")["ok"]
+
+
+def test_hi_verified_flags_unverified_village_spelling():
+    ext = extract(_ocr([
+        ("ग्राम : अब्बास नागार   तहसील : मोहनलालगंज", 0.95),
+        ("जिला : लखनऊ   राज्य : उत्तर प्रदेश", 0.95),
+    ]))
+    # village Hindi comes from transliterate.py (unverified); district/tehsil/state are the
+    # original hand-checked master-data entries
+    assert ext["fields"]["village"]["normalized"]["hi_verified"] is False
+    assert ext["fields"]["tehsil"]["normalized"]["hi_verified"] is True
+    assert ext["fields"]["district"]["normalized"]["hi_verified"] is True
+    assert ext["fields"]["state"]["normalized"]["hi_verified"] is True
 
 
 def _ocr(lines):
@@ -240,6 +260,37 @@ def _multi_row_khatauni_ocr():
     ]
     return {"engine": "test", "languages": ["hi", "en"], "elapsed_ms": 0,
             "pages": [{"page": 1, "width": 1240, "height": 1754, "tokens": tokens, "lines": lines}]}
+
+
+def _table_then_labeled_section_ocr():
+    """A one-row table immediately followed by a labeled section (mutation number) that has
+    no token in the khasra column, then a stray number further down. A regression let the
+    "below" table scan skip past a labeled section with no aligned token instead of stopping
+    there, pulling the stray number in as a phantom second parcel row."""
+    tokens = [
+        {"text": "खसरा संख्या", "confidence": 0.95, "bbox": [80, 100, 160, 130]},
+        {"text": "क्षेत्रफल", "confidence": 0.95, "bbox": [400, 100, 480, 130]},
+        {"text": "भूमि का प्रकार", "confidence": 0.95, "bbox": [700, 100, 860, 130]},
+        {"text": "123/1", "confidence": 0.9, "bbox": [90, 150, 150, 180]},
+        {"text": "0.5", "confidence": 0.9, "bbox": [410, 150, 470, 180]},
+        {"text": "कृषि (सिंचित)", "confidence": 0.9, "bbox": [710, 150, 850, 180]},
+        {"text": "नामांतरण संख्या : 4521", "confidence": 0.95, "bbox": [400, 200, 700, 230]},  # no token near x=80-160
+        {"text": "999/1", "confidence": 0.9, "bbox": [90, 250, 150, 280]},  # must NOT be read as a second row
+    ]
+    lines = [
+        {"bbox": [80, 100, 860, 130], "token_ids": [0, 1, 2]},
+        {"bbox": [90, 150, 850, 180], "token_ids": [3, 4, 5]},
+        {"bbox": [400, 200, 700, 230], "token_ids": [6]},
+        {"bbox": [90, 250, 150, 280], "token_ids": [7]},
+    ]
+    return {"engine": "test", "languages": ["hi", "en"], "elapsed_ms": 0,
+            "pages": [{"page": 1, "width": 1240, "height": 1754, "tokens": tokens, "lines": lines}]}
+
+
+def test_table_scan_stops_at_a_labeled_section_with_no_aligned_token():
+    cands, _ = generate_candidates(build_lines(_table_then_labeled_section_ocr()))
+    khasra_below = [c.text for c in cands if c.field == "khasra_number" and c.source == "below"]
+    assert khasra_below == ["123/1"]
 
 
 def test_multi_owner_and_multi_parcel_khatauni():

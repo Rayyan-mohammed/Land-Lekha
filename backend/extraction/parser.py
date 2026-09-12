@@ -224,12 +224,13 @@ def generate_candidates(lines: list[Line]) -> tuple[list[Candidate], dict[int, l
             below = sorted((o for o in lines if o.page == ln.page and o.idx != ln.idx
                             and ly1 - lh * 0.3 < o.bbox[1] <= ly1 + lh * 20), key=lambda o: o.bbox[1])
             for other in below:
+                if hits_by_line[other.idx]:
+                    break  # a new labeled section started: the table ended before this line,
+                            # regardless of whether this line happens to have a token in this column
                 toks = [i for i, t in enumerate(other.tokens)
                         if lx0 - col_w * 0.6 <= (t["bbox"][0] + t["bbox"][2]) / 2 <= lx1 + col_w * 0.6]
                 if not toks:
                     continue
-                if hits_by_line[other.idx]:
-                    break
                 a = min(i for i, t in enumerate(other.char_tok) if t == toks[0])
                 b = max(i for i, t in enumerate(other.char_tok) if t == toks[-1]) + 1
                 sp3 = other.span(a, b)
