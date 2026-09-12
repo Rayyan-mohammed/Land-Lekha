@@ -16,14 +16,15 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 - Point out: works on a phone too (the **Take photo** button), and takes PDF, JPG and TIFF.
 - Click **हिंदी** in the sidebar: every screen, message, reason and date switches to Hindi, and back with one click.
 - **`08-born-digital.pdf` is done in about a second**: PDFs exported by a land portal already contain the text, so no OCR is needed and the text is exact.
-- **`07-sideways-photo.jpg`** was photographed sideways: it's turned upright automatically and reads as well as `01`.
+- **`07-sideways-photo.jpg`** was photographed sideways: it's turned upright automatically and reads as well as `01` (which is the same record — see the duplicate catch below).
 - If a photo is too blurred, the upload screen says so straight away (**poor quality, with what to fix and a request to retake**), so the operator fixes it at the counter instead of creating a case nobody can resolve. `05-phone-photo.jpg` shows the check: it is read twice (once with lighter denoising), still comes back unreadable, and is sent back for a retake rather than guessed at. Being read twice, it also takes about twice as long as a clean page.
 - With several files, the summary line above the list says how many were accepted, sent to a verifier or need a retake; a file uploaded twice is recognised and linked, not processed again. On a computer, a screenshot can be pasted straight in with **Ctrl+V**.
 - While it runs: *"preprocessing → OCR in Hindi and English → field extraction → validation against master data → confidence scoring"*.
 
 ## 3. What the machine decided (2 min) — log in as `verifier`
-- Three of them are **auto-accepted**: the born-digital PDF (`08`), the English Record of Rights (`01`) and the same page photographed sideways (`07`) — every field passed validation above the calibrated threshold.
-- The others need **two to four fields** checked each, not a full retype: `02` a khata and two numbers, `03` a khata and a mutation number, `09` a father's name, a registration number and an area.
+- Two of them are **auto-accepted**: the born-digital PDF (`08`) and the English Record of Rights (`01`) — every field passed validation above the calibrated threshold.
+- **`07-sideways-photo.jpg` is the same record as `01`**, photographed sideways. It is turned upright and read just as well (nothing to check on it), and then held for a verifier as a **possible duplicate** — same village and khasra, same khata, the owner's name identical. Say this plainly: the second copy of a record is caught by what is *on* the page, not by the file being the same file.
+- The others need **one to three fields** checked each, not a full retype: `02` three, `03` two, `04` three, `06` one, `09` three. Each takes a verifier seconds.
 - The **review queue** shows how many fields each document needs checked; switch it to **Fewest fields first** to clear quick ones, and the dashboard says exactly how many fields are waiting in all.
 - Open the handwritten form from the **review queue**:
   - Left: the cleaned, deskewed scan with a box on every field (green = confident, amber or red = check it).
