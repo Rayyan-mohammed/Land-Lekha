@@ -71,8 +71,8 @@ export default function UploadPage() {
         setItems((xs) => xs.map((x) => (x.key === key ? { ...x, doc } : x)))
       } catch (e) {
         const dupId = e.detail?.document_id
-        setItems((xs) => xs.map((x) => (x.key === key ? { ...x, error: e.message, dupId } : x)))
-        toast(`${file.name}: ${t(dupId ? 'already uploaded' : 'could not be uploaded')}`, { type: dupId ? 'info' : 'error', body: e.message })
+        setItems((xs) => xs.map((x) => (x.key === key ? { ...x, error: t(e.message), dupId } : x)))
+        toast(`${file.name}: ${t(dupId ? 'already uploaded' : 'could not be uploaded')}`, { type: dupId ? 'info' : 'error', body: t(e.message) })
       }
     }
   }

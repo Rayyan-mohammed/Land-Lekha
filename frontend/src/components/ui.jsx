@@ -83,9 +83,12 @@ export function PageHeader({ title, subtitle, actions }) {
 export function ErrorNote({ error }) {
   const { t } = useT()
   if (!error) return null
-  // status 0 means the request never reached the server; say that plainly instead of "Failed to fetch"
+  // status 0 means the request never reached the server; say that plainly instead of "Failed to fetch".
+  // t() falls back to the original English text for any backend message not in the HI
+  // dictionary (most messages carry interpolated values - a filename, a size - and can't
+  // be translated as a fixed string), so this is safe even for messages never added there.
   const text = error.status === 0 ? t('Could not reach the server. Check that it is running, then try again.')
-    : String(error.message || error)
+    : t(String(error.message || error))
   return <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{text}</div>
 }
 

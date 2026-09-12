@@ -250,7 +250,7 @@ export default function DocumentView() {
         setSelected(missing[0])
       } else {
         setError(e)
-        toast(t('Could not save the review'), { type: 'error', body: e.message })
+        toast(t('Could not save the review'), { type: 'error', body: t(e.message) })
       }
     } finally { setBusy(false) }
   }

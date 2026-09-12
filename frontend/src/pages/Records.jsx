@@ -53,7 +53,7 @@ export default function Records() {
       const r = await api.lrmsPush(id)
       toast(`${t('Record')} #${id} ${t('sent to LRMS')}`, { body: `${t('Reference')} ${r.lrms_ref} (${t('simulated acknowledgement')})` })
       await load()
-    } catch (e) { toast(t('LRMS push failed'), { type: 'error', body: e.message }) } finally { setPushing(null) }
+    } catch (e) { toast(t('LRMS push failed'), { type: 'error', body: t(e.message) }) } finally { setPushing(null) }
   }
   // send every listed record that is not yet in LRMS, one after another, with one summary at the end
   const pushAll = async (rows) => {

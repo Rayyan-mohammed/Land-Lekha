@@ -381,6 +381,27 @@ export const HI = {
   'fields to check in all': 'विवरण कुल जाँचने हैं',
   'Documents with at least one uncertain field — fewest fields to check first':
     'जिन दस्तावेज़ों में कम से कम एक विवरण अनिश्चित है — सबसे कम जाँचने वाले पहले',
+  // backend error messages, shown as-is through ErrorNote/toasts. Exact-match only, so
+  // most backend errors (they carry a filename, a size, a role list...) fall back to their
+  // original English text - this covers the fixed, no-interpolation ones a user actually hits.
+  'wrong username or password': 'उपयोगकर्ता नाम या पासवर्ड ग़लत है',
+  'invalid or expired token': 'सत्र अमान्य या समाप्त हो गया है',
+  'document not found': 'दस्तावेज़ नहीं मिला',
+  'record not found': 'अभिलेख नहीं मिला',
+  'user not found': 'उपयोगकर्ता नहीं मिला',
+  'operators can only see their own uploads': 'ऑपरेटर केवल अपने अपलोड देख सकते हैं',
+  'operators can only see the audit trail of their own documents': 'ऑपरेटर केवल अपने दस्तावेज़ों का ऑडिट लॉग देख सकते हैं',
+  'only admins can browse the full audit log': 'पूरा ऑडिट लॉग केवल प्रशासक देख सकते हैं',
+  'this file is named .pdf but is not a PDF': 'यह फ़ाइल .pdf नाम की है पर असल में PDF नहीं है',
+  'this file is not an image that can be read': 'यह फ़ाइल पढ़ी जा सकने वाली छवि नहीं है',
+  'empty file': 'फ़ाइल ख़ाली है',
+  'document already reviewed': 'दस्तावेज़ पहले ही जाँचा जा चुका है',
+  "this document was just verified by another request - refresh and check its status":
+    'यह दस्तावेज़ अभी किसी और अनुरोध से सत्यापित हो गया — पन्ना ताज़ा करें और स्थिति देखें',
+  'username taken': 'यह उपयोगकर्ता नाम पहले से लिया जा चुका है',
+  'you cannot demote or deactivate yourself': 'आप स्वयं को पद से हटा या निष्क्रिय नहीं कर सकते',
+  'ValueError: PDF has no pages': 'PDF में कोई पन्ना नहीं है',
+  'ValueError: unsupported or corrupt image file': 'फ़ाइल असमर्थित या ख़राब है',
 }
 
 const KEY = 'landlekha.lang'
