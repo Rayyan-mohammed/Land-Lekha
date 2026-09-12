@@ -209,6 +209,14 @@ The multi-owner split moved the same way: field accuracy 81.9% → 84.2%, flagge
 20.3%, parcel rows 15 → 16 of 23. Its strict "every co-owner found" count slipped from 4 to 3 of
 6 documents: that measure is all-or-nothing over six documents, so one changed name moves it.
 
+A counter-example worth keeping in view: on the demo set, `05-phone-photo.jpg` extracted a few
+fields before and none after. Both dev photos moved the other way (0% → 15% and 0% → 21%), so on
+a page this blurred the second read is a coin flip; either way the page is marked `poor` and sent
+back for a retake, so no wrong value reaches a record. Selecting between the two readings at
+runtime was tried and dropped: median confidence and the count of confident tokens both pick the
+worse reading on half of the dev cases (dev-004, dev-009 and dev-030), so the second reading is
+simply kept.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.
