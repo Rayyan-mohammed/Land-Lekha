@@ -36,6 +36,7 @@ CONSONANTS = [
 VOWEL_KEYS = sorted(VOWELS, key=len, reverse=True)
 CONS_KEYS = sorted(dict(CONSONANTS), key=len, reverse=True)
 CONS_MAP = dict(CONSONANTS)
+DEV_DIGITS = str.maketrans("0123456789", "०१२३४५६७८९")
 
 SUFFIX_OVERRIDES = [(re.compile(r"garh$"), "गढ़")]
 
@@ -51,7 +52,11 @@ def _tokenize(word: str) -> list[tuple[str, str]]:
                 if word[i:i + len(k)] == k:
                     out.append(("C", k)); i += len(k); break
             else:
-                i += 1  # drop unhandled ascii/punctuation
+                # a digit or punctuation mark: keep it literally instead of dropping it, so
+                # e.g. "Chak No.7" and "Chak No.12" stay distinct instead of colliding once
+                # both become "chak no"
+                out.append(("L", word[i]))
+                i += 1
     return out
 
 
@@ -68,6 +73,10 @@ def _word_to_devanagari(word: str) -> str:
     i = 0
     while i < n:
         kind, val = toks[i]
+        if kind == "L":
+            result.append(val.translate(DEV_DIGITS))
+            i += 1
+            continue
         if kind == "V":
             result.append(VOWELS[val])
             i += 1
