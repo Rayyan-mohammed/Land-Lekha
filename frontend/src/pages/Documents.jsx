@@ -18,7 +18,8 @@ export default function Documents() {
   const status = params.get('status') || ''
   const page = Number(params.get('page') || 1)
 
-  const load = () => api.documents({ status, q: params.get('q') || '', page, page_size: 20 }).then(setData).catch(setError)
+  const load = () => api.documents({ status, q: params.get('q') || '', page, page_size: 20 })
+    .then((v) => { setData(v); setError(null) }).catch(setError)
   useEffect(() => { load() }, [params]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!data?.items.some((d) => d.status === 'queued' || d.status === 'processing')) return

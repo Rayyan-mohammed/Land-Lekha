@@ -35,7 +35,9 @@ export default function Dashboard() {
   const [toCheck, setToCheck] = useState(null) // fields waiting across the whole review queue
   useEffect(() => {
     const load = () => {
-      api.stats().then(setS).catch(setError)
+      // clear a previous failure on the next successful poll - otherwise one transient
+      // error permanently blanks the dashboard even though later polls keep succeeding
+      api.stats().then((v) => { setS(v); setError(null) }).catch(setError)
       api.queue().then((q) => setToCheck(q.reduce((n, d) => n + (d.flagged || 0), 0))).catch(() => {})
     }
     load()

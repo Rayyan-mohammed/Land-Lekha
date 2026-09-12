@@ -71,7 +71,8 @@ export default function Audit() {
   useEffect(() => { api.users().then(setPeople).catch(() => {}) }, [])
   useEffect(() => {
     setRows(null)
-    api.audit({ action, username: who, page, page_size: 50 }).then((r) => { setRows(r.items); setTotal(r.total) }).catch(setError)
+    api.audit({ action, username: who, page, page_size: 50 })
+      .then((r) => { setRows(r.items); setTotal(r.total); setError(null) }).catch(setError)
   }, [action, who, page])
   const fieldName = (n) => FIELD_MAP[n]?.[hi ? 'hi' : 'en'] || n
 

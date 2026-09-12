@@ -16,7 +16,7 @@ export default function ReviewQueue() {
   const [order, setOrderState] = useState(getQueueOrder)
   const setOrder = (o) => { setOrderState(o); try { localStorage.setItem(QUEUE_ORDER_KEY, o) } catch { /* storage blocked */ } }
   useEffect(() => {
-    const load = () => api.queue().then(setRows).catch(setError)
+    const load = () => api.queue().then((v) => { setRows(v); setError(null) }).catch(setError)
     load()
     const t = setInterval(load, 5000)
     return () => clearInterval(t)
