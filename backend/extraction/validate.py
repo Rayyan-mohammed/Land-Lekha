@@ -188,6 +188,11 @@ def parse_area(text: str, unit_hint: str | None = None, bigha_ha: float = 0.2529
             ha = value * factor
             issues = [i for i in issues if i != "no decimal point - check value"] + ["decimal point inferred"]
             score = min(score, 0.7)
+    if re.search(r"-\s*\d", num_part):
+        # the digit regexes above only ever match unsigned digits, so a leading "-" would
+        # otherwise be silently dropped and the value trusted as a normal positive reading
+        issues.append("negative value read - area cannot be negative, sign dropped")
+        score = min(score, 0.5)
     if not 0 < ha < 200:
         score = min(score, 0.4)
         issues.append("implausible plot area")
