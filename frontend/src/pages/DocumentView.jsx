@@ -8,6 +8,7 @@ import { docTypeLabel, FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
 import { explainAdvice, explainDuplicateReason, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
+import { ClassificationCard } from '../components/Classification'
 import { getQueueOrder, sortQueue } from '../queue'
 
 // preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
@@ -318,13 +319,15 @@ export default function DocumentView() {
     {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> {t('Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…')}</div>}
     {doc.status === 'failed' && <ErrorNote error={doc.error || 'processing failed'} />}
 
-    {!processing && doc.status !== 'failed' && <>
+    {!processing && doc.status !== 'failed' && doc.status !== 'not_land' && <>
       {quality && quality.verdict !== 'good' &&
         <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
           <div className="flex items-center gap-2 font-medium"><Camera size={16} />
             {quality.verdict === 'poor' ? t('The image is too poor to read reliably — please rescan or retake it') : t('Image quality is only fair — check the flagged fields carefully')}</div>
           <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{explainAdvice(a, lang)}</li>)}</ul>
         </div>}
+      {/* first of all: is it a land record? decided before any field was read */}
+      {!processing && <ClassificationCard verdict={doc.classification} layoutType={doc.extraction?.document_type} />}
       {/* nothing at all was recognised: usually the wrong page, not a bad scan. Saying so beats
           seven "missing required field" bullets. */}
       {doc.fields?.length === 0 && doc.status === 'needs_review' &&

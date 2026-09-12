@@ -36,6 +36,7 @@ export const STATUS = {
   verified: { label: 'Verified', cls: 'bg-green-100 text-green-800' },
   rejected: { label: 'Rejected', cls: 'bg-red-100 text-red-800' },
   failed: { label: 'Failed', cls: 'bg-red-100 text-red-800' },
+  not_land: { label: 'Not a land document', cls: 'bg-slate-200 text-slate-800' },
 }
 
 export const ROLE_LABEL = { operator: 'Operator', verifier: 'Verifier', admin: 'Administrator' }
@@ -45,6 +46,14 @@ export const DOC_TYPE = {
   khatauni: ['Khatauni', 'खतौनी'], khasra_panchsala: ['Khasra Panchsala', 'खसरा पांचसाला'], jamabandi: ['Jamabandi', 'जमाबंदी'],
   khatiyan: ['Khatiyan', 'खतियान'], record_of_rights: ['Record of Rights', 'अधिकार अभिलेख'], particulars_form: ['Particulars form', 'विवरण प्रपत्र'],
   unknown: ['unknown type', 'अज्ञात प्रकार'],
+  // types the land-document classifier can name (backend/classify/land.py DOCUMENT_TYPES)
+  sale_deed: ['Sale deed', 'विक्रय पत्र'], gift_deed: ['Gift deed', 'दान पत्र'], lease_deed: ['Lease deed', 'पट्टा विलेख'],
+  exchange_deed: ['Exchange deed', 'विनिमय पत्र'], partition_deed: ['Partition deed', 'विभाजन पत्र'], mortgage: ['Mortgage', 'बंधक'],
+  will: ['Will', 'वसीयत'], mutation: ['Mutation record', 'नामांतरण अभिलेख'], pahani_adangal: ['Pahani / Adangal', 'पहाणी / अडंगल'],
+  patta: ['Patta', 'पट्टा'], khasra: ['Khasra record', 'खसरा अभिलेख'], survey_record: ['Survey record', 'सर्वे अभिलेख'],
+  land_register: ['Land register', 'भू-अभिलेख रजिस्टर'], registration_document: ['Registration document', 'पंजीकरण दस्तावेज़'],
+  land_allotment: ['Land allotment', 'भूमि आवंटन'], naksha: ['Naksha / cadastral map', 'नक्शा'],
+  registered_deed: ['Registered deed', 'पंजीकृत विलेख'], map: ['Map', 'मानचित्र'], survey: ['Survey', 'सर्वे'],
 }
 export const docTypeLabel = (k, lang) => {
   const pair = DOC_TYPE[k || 'unknown']

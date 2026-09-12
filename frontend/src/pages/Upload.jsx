@@ -9,7 +9,7 @@ import { explainAdvice } from '../reasons'
 import { useToast } from '../components/toast'
 
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
-const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
+const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed', 'not_land']
 
 // Checked before sending, so the operator gets a clear message at once instead of a server
 // error; the server still enforces both (backend/api/config.py MAX_UPLOAD_MB, ALLOWED_EXTENSIONS).
@@ -22,7 +22,8 @@ function fileProblem(file) {
   return null
 }
 
-const STEPS = ['Uploaded', 'In queue', 'Reading and checking', 'Done']
+// the stages every page goes through, in order; the land-document check comes before any field is read
+const STEPS = ['Uploaded', 'In queue', 'Quality check', 'Reading', 'Land document?', 'Document type', 'Fields', 'Validation', 'Confidence', 'Done']
 const TIPS = [
   [Maximize, 'Lay the page flat and fit the whole page in the frame'],
   [Sun, 'Use even daylight; avoid shadows and camera flash glare'],
@@ -35,13 +36,15 @@ function Stepper({ status, started }) {
   const { t } = useT()
   const [, tick] = useState(0)
   useEffect(() => { const i = setInterval(() => tick((n) => n + 1), 1000); return () => clearInterval(i) }, [])
-  const active = status === 'queued' ? 1 : status === 'processing' ? 2 : 3
+  // the server reports queued / processing / done; while it processes, the stages advance with
+  // time but stop at 'Reading', which is where the seconds actually go
   const secs = Math.max(0, Math.round((Date.now() - started) / 1000))
+  const active = status === 'queued' ? 1 : status === 'processing' ? Math.min(3, 2 + Math.floor(secs / 4)) : STEPS.length - 1
   return <ol className="my-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" aria-label={t('progress')}>
     {STEPS.map((s, i) => <li key={s} className="flex items-center gap-2">
       <span className={`flex h-5 items-center gap-1.5 rounded-full px-2 ${i < active ? 'bg-emerald-50 text-ok' : i === active ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-500'}`}>
         {i < active ? <CheckCircle2 size={12} /> : i === active ? <Loader2 size={12} className="animate-spin" /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
-        {t(s)}{i === active && i === 2 && <span className="tabular-nums text-slate-500"> · {secs}s</span>}
+        {t(s)}{i === active && i === 3 && <span className="tabular-nums text-slate-500"> · {secs}s</span>}
       </span>
       {i < STEPS.length - 1 && <span className={`h-px w-4 ${i < active ? 'bg-ok' : 'bg-slate-300'}`} />}
     </li>)}
@@ -124,6 +127,7 @@ export default function UploadPage() {
     retake: finished.filter((x) => x.doc && worstQuality(x.doc.pages)?.verdict === 'poor').length,
     dup: finished.filter((x) => x.dupId).length,
     failed: finished.filter((x) => (x.error && !x.dupId) || x.doc?.status === 'failed').length,
+    notLand: finished.filter((x) => x.doc?.status === 'not_land').length,
   }
   const showSummary = finished.length >= 2
 
@@ -161,6 +165,7 @@ export default function UploadPage() {
       {tally.retake > 0 && <span className="inline-flex items-center gap-1.5 text-bad"><Camera size={15} /> {tally.retake} {t('need a retake')}</span>}
       {tally.dup > 0 && <span className="inline-flex items-center gap-1.5 text-slate-600"><FileText size={15} /> {tally.dup} {t('already uploaded')}</span>}
       {tally.failed > 0 && <span className="inline-flex items-center gap-1.5 text-bad"><XCircle size={15} /> {tally.failed} {t('failed')}</span>}
+      {tally.notLand > 0 && <span className="inline-flex items-center gap-1.5 text-slate-700"><XCircle size={15} /> {tally.notLand} {t('not land documents')}</span>}
       {/* a verifier who just uploaded a batch can go straight to what needs checking */}
       {tally.review > 0 && can('verifier') && <Link to="/review" className="ml-auto font-medium text-brand-700 hover:underline">{t('Review them')} →</Link>}
     </div>}
@@ -189,7 +194,8 @@ export default function UploadPage() {
                 : !d ? t('Uploading…')
                   : !done ? t('usually 10–30 seconds per page; a blurred page is read twice and takes longer; digital PDFs about a second')
                     : d.status === 'failed' ? t('Could not process this file')
-                      : `${d.district || t('Unknown district')} · ${t('processed in')} ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
+                      : d.status === 'not_land' ? <span className="font-medium text-bad">✕ {t('NOT A LAND DOCUMENT')} · {Math.round((d.classification?.confidence || 0) * 100)}% — {t('no fields were extracted')}</span>
+                      : `${d.classification?.is_land_document ? '✓ ' + t('LAND DOCUMENT') + ' · ' : ''}${d.district || t('Unknown district')} · ${t('processed in')} ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
             </div>
             {done && worstQuality(d.pages)?.verdict === 'poor' &&
               <div className="mt-1 flex items-start gap-1.5 text-xs font-medium text-bad">

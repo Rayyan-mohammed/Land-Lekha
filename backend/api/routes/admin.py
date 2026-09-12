@@ -93,8 +93,30 @@ def stats(db: Session = Depends(get_db), user: User = Depends(require("verifier"
     if ev.exists():
         eval_summary = json.loads(ev.read_text(encoding="utf-8"))["summary"]
 
+    # what the land-document classifier decided, over everything it has seen
+    kinds: Counter = Counter()
+    families: Counter = Counter()
+    scripts: Counter = Counter()
+    land = not_land = undetermined = 0
+    for (verdict,) in db.execute(select(Document.classification).where(Document.classification.is_not(None))):
+        if verdict.get("undetermined"):
+            undetermined += 1
+        elif verdict.get("is_land_document"):
+            land += 1
+            kinds[verdict.get("document_type") or "unknown"] += 1
+            families[verdict.get("type_family") or "other"] += 1
+        else:
+            not_land += 1
+        for sc in verdict.get("scripts") or []:
+            scripts[sc] += 1
+
     memory = get_memory(db)
     return {
+        "classification": {
+            "land": land, "not_land": not_land, "undetermined": undetermined,
+            "document_types": dict(kinds.most_common()), "families": dict(families.most_common()),
+            "scripts": dict(scripts.most_common()),
+        },
         "totals": {
             "documents": total, "processed": processed, "by_status": by_status,
             "pending_verification": by_status.get("needs_review", 0),
