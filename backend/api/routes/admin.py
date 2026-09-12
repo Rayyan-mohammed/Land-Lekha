@@ -1,11 +1,14 @@
 """Admin: MIS statistics, audit trail, user management."""
 from __future__ import annotations
 
+import csv
+import io
 import json
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -186,3 +189,50 @@ def update_user(user_id: int, body: UserUpdate, request: Request, db: Session = 
     audit.log(db, "user.updated", user, "user", u.id, changes, request)
     db.commit()
     return u
+
+
+_RECORD_COLUMNS = ["id", "state", "district", "tehsil", "village", "khata_number", "khasra_number",
+                   "survey_number", "owner_name", "father_name", "plot_area", "area_hectares",
+                   "land_classification", "mutation_number", "mutation_date", "lrms_ref", "verification"]
+
+
+@router.get("/export/records.csv")
+def export_records_csv(district: str | None = None, state: str | None = None,
+                       db: Session = Depends(get_db), user: User = Depends(current_user)):
+    """Verified land records as CSV - a flat, tool-agnostic feed any BI/reporting tool
+    (Power BI, Superset, Grafana, Excel) can import or poll, without a bespoke connector."""
+    stmt = select(LandRecord)
+    if district:
+        stmt = stmt.where(LandRecord.district == district)
+    if state:
+        stmt = stmt.where(LandRecord.state == state)
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=_RECORD_COLUMNS, extrasaction="ignore")
+    writer.writeheader()
+    for r in db.scalars(stmt.order_by(LandRecord.id)):
+        writer.writerow({c: getattr(r, c, None) for c in _RECORD_COLUMNS})
+    buf.seek(0)
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=land_records.csv"})
+
+
+@router.get("/export/stats.csv")
+def export_stats_csv(db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
+    """Per-district digitization progress as CSV, for the same BI tools."""
+    rows = db.execute(select(Document.state, Document.district, Document.status, func.count())
+                      .group_by(Document.state, Document.district, Document.status)).all()
+    tree: dict[tuple[str, str], dict[str, int]] = defaultdict(dict)
+    for st, dist, status_, n in rows:
+        tree[(st or "Unknown", dist or "Unknown")][status_] = n
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["state", "district", "documents_received", "digitized", "pending_verification", "progress_pct"])
+    for (st, dist), counts in sorted(tree.items()):
+        total = sum(counts.values())
+        digitized = counts.get("verified", 0) + counts.get("auto_accepted", 0)
+        pending = counts.get("needs_review", 0)
+        pct = round(100 * digitized / total, 1) if total else 0
+        writer.writerow([st, dist, total, digitized, pending, pct])
+    buf.seek(0)
+    return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=district_progress.csv"})
