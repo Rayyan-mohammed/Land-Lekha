@@ -347,6 +347,27 @@ and the median offers one, and each is a small crop, so this is not the expensiv
 The English model is loaded on first use, so a run with no unsure numbers never pays for it.
 `LL_OCR_NUMBER_PASS=0` turns it off.
 
+## 13. What the quality check is actually worth — measured
+
+The weakest number we report is phone photos, 56.5% of fields on the held-out split, and it is the
+first thing anyone asks about. Splitting those documents by what the quality check said about them
+turns one number into two, across all 17 phone photos in the dev, test and multi splits:
+
+| Phone photos | Documents | Mean field accuracy | Range |
+| --- | --- | --- | --- |
+| accepted by the quality check | 12 | **84.3%** | 63.6% - 100% |
+| sent back for a retake | 5 | 10.4% | 0% - 21.4% |
+
+The two groups do not overlap - the worst page it kept scored 63.6%, the best page it rejected
+scored 21.4% - so on this data the check separates readable photos from unreadable ones without a
+single mistake in either direction. That is the honest claim to make about photographs: not that
+the system reads every one of them, but that it knows which ones it cannot read, and says so at
+the counter rather than writing a guess into a land record.
+
+The five it rejected are `dev-009`, `dev-030`, `test-001`, `test-022` and `multi-014`. Reproduce
+with the per-document tables in `dev.json`, `test.json` and `multi.json` against the `quality`
+block of the matching OCR cache.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.
