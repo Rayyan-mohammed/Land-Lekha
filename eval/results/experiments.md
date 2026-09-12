@@ -352,4 +352,17 @@ The English model is loaded on first use, so a run with no unsure numbers never 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.
 - **Khatauni tables:** the decimals and slashes that the recogniser loses are flagged for review rather than trusted (`validate.parse_area`, `parse_plot_id`).
 - **Multi-row Khatauni tables:** some documents lose a whole column of parcel rows although OCR read every value. On dev-004 and multi-019 every khasra number is read exactly (`704/4`, `329/9`, `1268`, `1340`) and parses, yet the rows come out with no khasra; on test-033 and multi-010 the same happens to the area column. The fix is in the table-column assignment (`extractor.py`, parcel rows), not in OCR. Rows after the first also carry no confidence of their own, so a wrong second row cannot be flagged yet.
+- **What is left in the two weakest fields** (both 77.5% on the held-out split, counted one by one
+  after the english-only number pass). `khasra_number`: 3 not found at all, 3 confident single-digit
+  misreads by the main model (`1805/1` read as `1305/1` at 0.95 - nothing to re-read, the model is
+  sure), one Devanagari suffix read as a quote (`273/6ग` as `273/6"`), one separator never detected
+  (`१२६३ ९क`, a space where the slash is). `plot_area`: 4 not found, 2 Devanagari digit misreads
+  inside an otherwise clean number (`३.०३७` for 3.087), one lost decimal point read at 0.98
+  confidence (`257` for 2.57), one number glued to its unit word (`I3.SI बीघा`). So the remaining
+  loss is roughly half labelling and half a recogniser that is confidently wrong; neither responds
+  to reading the page again.
+- **Two extraction rules worth trying** (they are cheap and both showed up above): a space between
+  two number groups in a khasra is almost always a slash, and an area of `257 bigha` where the
+  neighbouring rows are single digits has lost its decimal point. Both are safer as flags than as
+  silent corrections.
 - **Speed:** a CUDA GPU (about 1–2 s per page), born-digital PDFs (0.5 s, adopted), and keeping the project out of OneDrive-synced folders. Sync traffic roughly doubled OCR time on the development laptop.
