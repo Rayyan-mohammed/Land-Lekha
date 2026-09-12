@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.extraction import gazetteer
@@ -130,7 +131,13 @@ def verify(doc_id: int, body: VerifyIn, request: Request, db: Session = Depends(
     doc.reviewed_at = utcnow()
     audit.log(db, f"document.{'verified' if body.decision == 'approve' else 'rejected'}", user, "document", doc.id,
               {"changes": changes, "note": body.note}, request)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # another verify request on the same document won the race (both passed the status
+        # check above before either committed); this one loses cleanly instead of a raw 500
+        db.rollback()
+        raise HTTPException(409, "this document was just verified by another request - refresh and check its status")
     invalidate_memory()
     notify_document_reviewed(uploader_email=None, uploader_name=doc.uploader.full_name if doc.uploader else "operator",
                              document_id=doc.id, status=doc.status, reviewer_name=user.full_name, note=doc.review_note)
