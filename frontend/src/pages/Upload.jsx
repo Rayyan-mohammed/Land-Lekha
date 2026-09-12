@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Camera, CheckCircle2, ClipboardCheck, FileText, FileUp, Focus, Loader2, Maximize, Sun, XCircle } from 'lucide-react'
 import { api } from '../api'
+import { useAuth } from '../auth'
 import { ConfidenceBar, PageHeader, StatusBadge, worstQuality } from '../components/ui'
 import { useT } from '../i18n'
 import { explainAdvice } from '../reasons'
@@ -49,6 +50,7 @@ function Stepper({ status, started }) {
 
 export default function UploadPage() {
   const { t, lang } = useT()
+  const { can } = useAuth()
   const toast = useToast()
   const [items, setItems] = useState([]) // {key, file, doc, error}
   const [drag, setDrag] = useState(false)
@@ -157,6 +159,8 @@ export default function UploadPage() {
       {tally.retake > 0 && <span className="inline-flex items-center gap-1.5 text-bad"><Camera size={15} /> {tally.retake} {t('need a retake')}</span>}
       {tally.dup > 0 && <span className="inline-flex items-center gap-1.5 text-slate-600"><FileText size={15} /> {tally.dup} {t('already uploaded')}</span>}
       {tally.failed > 0 && <span className="inline-flex items-center gap-1.5 text-bad"><XCircle size={15} /> {tally.failed} {t('failed')}</span>}
+      {/* a verifier who just uploaded a batch can go straight to what needs checking */}
+      {tally.review > 0 && can('verifier') && <Link to="/review" className="ml-auto font-medium text-brand-700 hover:underline">{t('Review them')} →</Link>}
     </div>}
     {items.length > 0 && <div className={`card ${showSummary ? 'mt-3' : 'mt-6'} divide-y divide-slate-100`}>
       {items.map((x) => {
