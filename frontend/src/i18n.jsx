@@ -319,6 +319,9 @@ export const HI = {
   'Actions': 'कार्य',
   // upload batch summary
   'files done': 'फ़ाइलें पूरी',
+  'file': 'फ़ाइल',
+  'files': 'फ़ाइलें',
+  'Clear list': 'सूची साफ़ करें',
   'accepted automatically': 'अपने आप स्वीकृत',
   'sent to a verifier': 'जाँचकर्ता को भेजी गईं',
   'need a retake': 'फिर से फ़ोटो लें',

@@ -163,6 +163,11 @@ export default function UploadPage() {
       {tally.review > 0 && can('verifier') && <Link to="/review" className="ml-auto font-medium text-brand-700 hover:underline">{t('Review them')} →</Link>}
     </div>}
     {items.length > 0 && <div className={`card ${showSummary ? 'mt-3' : 'mt-6'} divide-y divide-slate-100`}>
+      {/* an operator working through a stack can clear finished rows and carry on */}
+      <div className="flex items-center justify-between px-4 py-2 text-xs text-slate-500">
+        <span>{items.length} {t(items.length === 1 ? 'file' : 'files')}</span>
+        <button className="btn-ghost py-1 text-xs" disabled={sending} onClick={() => setItems([])}>{t('Clear list')}</button>
+      </div>
       {items.map((x) => {
         const d = x.doc
         const done = d && DONE.includes(d.status)
