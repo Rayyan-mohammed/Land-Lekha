@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, FileText, FileUp, KeyRound, LogIn, Printer, RotateCcw, Send, ShieldAlert, UserCog, XCircle } from 'lucide-react'
+import { CheckCircle2, Download, FileText, FileUp, KeyRound, LogIn, Printer, RotateCcw, Send, ShieldAlert, UserCog, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { EmptyState, ErrorNote, fmtDate, locale, PageHeader, parseTs, SkeletonRows } from '../components/ui'
 import { FIELD_MAP } from '../constants'
 import { useT } from '../i18n'
+import { useToast } from '../components/toast'
 
 const FILTERS = [['', 'Everything'], ['document', 'Documents'], ['record', 'Extracts'], ['integration', 'LRMS / GIS'], ['user', 'Users'], ['auth', 'Sign-ins']]
 
@@ -57,6 +58,7 @@ function Subject({ r, hi }) {
 
 export default function Audit() {
   const { t, lang } = useT()
+  const toast = useToast()
   const hi = lang === 'hi'
   const [rows, setRows] = useState(null)
   const [total, setTotal] = useState(0)
@@ -72,6 +74,34 @@ export default function Audit() {
   }, [action, who, page])
   const fieldName = (n) => FIELD_MAP[n]?.[hi ? 'hi' : 'en'] || n
 
+  // the trail as a spreadsheet, for a compliance file. Exports what the filters currently select,
+  // up to 1000 events (five pages), not just the page on screen.
+  const [saving, setSaving] = useState(false)
+  const downloadCsv = async () => {
+    setSaving(true)
+    try {
+      const events = []
+      for (let p = 1; p <= 5; p += 1) {
+        const r = await api.audit({ action, username: who, page: p, page_size: 200 })
+        events.push(...r.items)
+        if (events.length >= r.total) break
+      }
+      const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+      const head = ['time', 'user', 'action', 'subject', 'subject id', 'ip', 'details']
+      const rows = events.map((e) => [parseTs(e.ts).toISOString(), e.user || 'system', e.action, e.entity_type,
+        e.entity_id, e.ip, JSON.stringify(e.details ?? {})])
+      const BOM = String.fromCharCode(0xFEFF)   // so Excel reads Hindi correctly
+      const CRLF = String.fromCharCode(13, 10)
+      const csv = BOM + [head, ...rows].map((row) => row.map(cell).join(',')).join(CRLF)
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+      a.download = `landlekha-audit-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(a.href)
+      toast(`${t('Downloaded')} ${rows.length} ${t('events')}`)
+    } finally { setSaving(false) }
+  }
+
   return <div>
     <PageHeader title={t('Audit trail')} subtitle={`${total} ${t('events')} · ${t('every upload, decision, correction, sign-in and integration call, with who and when')}`} />
     <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label={t('filter events')}>
@@ -84,6 +114,8 @@ export default function Audit() {
         <option value="">{t('Everyone')}</option>
         {people.map((u) => <option key={u.id} value={u.username}>{u.full_name} ({u.username})</option>)}
       </select>
+      <button className="btn-outline min-h-8 py-1 text-xs" onClick={downloadCsv} disabled={saving || !rows?.length}
+        title={t('Download these events as a spreadsheet (CSV)')}><Download size={14} /> CSV</button>
     </div>
     <ErrorNote error={error} />
     <div className="card">

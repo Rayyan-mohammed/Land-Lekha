@@ -269,6 +269,7 @@ export const HI = {
     'हर अपलोड, निर्णय, सुधार, साइन इन और एकीकरण कॉल — किसने और कब',
   'filter events': 'घटनाएँ छाँटें',
   'Everyone': 'सभी',
+  'Download these events as a spreadsheet (CSV)': 'ये घटनाएँ स्प्रेडशीट (CSV) में डाउनलोड करें',
   'No events here yet': 'यहाँ अभी कोई घटना नहीं',
   'system': 'सिस्टम',
   'rejected': 'अस्वीकृत',
