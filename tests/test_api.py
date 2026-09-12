@@ -177,3 +177,24 @@ def test_a_correction_is_carried_over_to_the_next_document(client):
     assert owner["value"] == "Ram Prasad Sharma", f"correction not carried over: {owner['value']!r}"
     assert owner["source"] == "learned"
     assert owner["raw_value"] == "Ram Prasad Sharrna"  # what the page actually said is still on the record
+
+
+def test_a_page_that_is_not_a_land_record_invents_nothing(client):
+    """Somebody will upload the wrong page. It must come back empty and honest: no fields
+    guessed, no record created, and a human asked to look.
+
+    This one goes through real OCR (an invoice has no land-record words, so the PDF text
+    layer is refused), which is what a photographed wrong page would do. That costs about
+    30 seconds of model load on a cold run - the only test here that does.
+    """
+    op = _login(client, "operator", "upload@123")
+    invoice = ["INVOICE", "Acme Traders Pvt Ltd", "GSTIN: 07AABCU9603R1ZM",
+               "Steel pipes      12    450.00   5400.00", "Cement bags      30    380.00  11400.00",
+               "Total due: Rs 16,800.00", "Payment terms: 30 days", "Thank you for your business"]
+    doc = _wait(client, client.post("/api/documents", headers=op,
+                                    files={"file": ("invoice.pdf", _pdf(invoice), "application/pdf")}).json()["id"],
+                op, timeout=180)
+    assert doc["status"] == "needs_review"
+    assert doc["fields"] == []          # nothing was recognised, so nothing is offered as fact
+    assert doc["record_id"] is None     # and nothing reached the register
+    assert doc["overall_confidence"] in (None, 0.0)
