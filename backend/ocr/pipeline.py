@@ -1,6 +1,7 @@
 """Track A entry point: document file -> OCR JSON (see docs/contracts.md)."""
 from __future__ import annotations
 
+import os
 import time
 from pathlib import Path
 
@@ -11,6 +12,10 @@ from .engine import get_engine, group_lines
 from .preprocess import preprocess
 from .quality import assess
 from .tables import TABLE_CELLS, read_table_cells
+
+# A page that reads badly is read a second time with lighter denoising (see run_ocr).
+RETRY_SOFT = os.getenv("LL_OCR_RETRY_SOFT", "1") != "0"
+RETRY_DENOISE_H = int(os.getenv("LL_OCR_RETRY_DENOISE_H", "5"))
 
 PDF_DPI = 200
 MAX_PAGES = 10
@@ -96,6 +101,20 @@ def fix_upside_down(gray: np.ndarray, tokens: list[dict], eng) -> tuple[np.ndarr
     return flipped, eng.recognize(flipped), True
 
 
+def _read_page(img, eng, do_binarize: bool, denoise_h: int | None):
+    """Preprocess and recognise one page; returns (image, tokens, PreprocessResult)."""
+    pre = preprocess(img, do_binarize=do_binarize, denoise_h=denoise_h)
+    tokens = eng.recognize(pre.image)
+    pre.image, tokens, flipped = fix_upside_down(pre.image, tokens, eng)
+    if flipped:
+        pre.steps.append("rotate180")
+    if TABLE_CELLS:
+        tokens, n_cells = read_table_cells(pre.image, tokens, eng)
+        if n_cells:
+            pre.steps.append(f"table_cells:{n_cells}")
+    return pre.image, tokens, pre
+
+
 def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine: str = "easyocr",
             do_binarize: bool = False) -> dict:
     t0 = time.perf_counter()
@@ -108,19 +127,21 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
             page_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             tokens = text_tokens
             preprocess_info = {"deskew_angle": 0.0, "steps": ["pdf_text_layer"], "scale": 1.0}
+            quality = assess(page_img, tokens, img.shape)
             used = "pdf-text"
         else:
             eng = eng or get_engine(engine)
-            pre = preprocess(img, do_binarize=do_binarize)
-            tokens = eng.recognize(pre.image)
-            pre.image, tokens, flipped = fix_upside_down(pre.image, tokens, eng)
-            if flipped:
-                pre.steps.append("rotate180")
-            if TABLE_CELLS:
-                tokens, n_cells = read_table_cells(pre.image, tokens, eng)
-                if n_cells:
-                    pre.steps.append(f"table_cells:{n_cells}")
-            page_img = pre.image
+            page_img, tokens, pre = _read_page(img, eng, do_binarize, None)
+            quality = assess(page_img, tokens, img.shape)
+            # Second chance: strong denoising erases strokes on blurred or faded pages. When a page
+            # reads badly, read it again with lighter denoising and keep that reading. Measured on
+            # the dev set: +13 of 81 fields on fair/poor pages, and never worse on any of them
+            # (eval/results/experiments.md, section 11). Good pages are untouched, so the extra
+            # OCR pass only costs time on pages that were going to a verifier anyway.
+            if RETRY_SOFT and quality["verdict"] != "good":
+                page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H)
+                quality = assess(page_img, tokens, img.shape)
+                pre.steps.append("second read")
             preprocess_info = {"deskew_angle": pre.deskew_angle, "steps": pre.steps, "scale": pre.scale}
             used = eng.name
         if used not in engines_used:
@@ -135,7 +156,7 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
             "page": n, "width": w, "height": h,
             "image_path": str(image_path) if image_path else None,
             "preprocess": preprocess_info,
-            "quality": assess(page_img, tokens, img.shape),
+            "quality": quality,
             "tokens": tokens,
             "lines": group_lines(tokens),
         })

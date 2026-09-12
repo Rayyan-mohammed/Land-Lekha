@@ -27,17 +27,17 @@ Measured on 40 **held-out** synthetic documents (`test` split) whose places come
 
 | Metric | Held-out test | Dev (tuning split) |
 | --- | --- | --- |
-| Field accuracy (all 15 fields) | **84.8%** | 84.8% |
-| Required-field accuracy | 84.3% | 83.6% |
-| Character error rate, median / mean | 11.1% / 15.7% | 12.1% / 16.3% |
-| Fields flagged for a human | **21.8%** | 30.2% |
-| Precision of fields *not* flagged | **96.2%** | 97.0% |
-| Auto-accepted documents with every required field correct | **100%** (3 of 3) | 100% (5 of 5) |
-| Documents needing a human look | 92.5% | 87.5% |
+| Field accuracy (all 15 fields) | **86.8%** | 87.0% |
+| Required-field accuracy | 86.4% | 87.1% |
+| Character error rate, median / mean | 11.1% / 14.3% | 12.1% / 15.3% |
+| Fields flagged for a human | **15.7%** | 21.3% |
+| Precision of fields *not* flagged | **96.4%** | 96.6% |
+| Auto-accepted documents with every required field correct | **11 of 12** | 11 of 11 |
+| Documents needing a human look | 70.0% | 72.5% |
 
-By document type (test): English Record of Rights 94.6%, clean pages 97.2%, old faded paper 94.4%, scanner-quality pages 87.0%, Khatauni tables 83.8%, handwritten entries 67.7%, **phone photos 43.9%** (the weakest case). For photos the text is located correctly but the recogniser can't read blurred strokes. Rather than guess, the page quality check tells the operator to retake the photo.
+By document type (test): English Record of Rights 95.1%, clean pages 97.2%, old faded paper 94.4%, scanner-quality pages 87.5%, Khatauni tables 84.5%, handwritten entries 72.8%, **phone photos 55.4%** (still the weakest case). A page that reads badly is read a second time with lighter denoising, which is most of the recent gain on photos and faded paper; when even that reads poorly, the quality check tells the operator to retake rather than guess.
 
-Two things to read from this. First, the verifier checks about 1 field in 5 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
+Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Three documents in ten now pass with no human at all. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
 
 **Multi-owner Khataunis** (separate 30-document split on official LGD villages, with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): every co-owner found on 4 of 6 multi-owner documents (6 of 9 on the test split), 15 of 23 parcel rows in multi-row tables recovered. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
 
@@ -65,7 +65,7 @@ Every screen works in Hindi and English (one click in the sidebar): labels, revi
 | PS 26018 asks for | In LandLekha |
 | --- | --- |
 | Multilingual recognition | Hindi (Devanagari) + English, in one model; Devanagari digits; bilingual labels |
-| Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs are read from their text layer (0.5 s, exact). Pages photographed sideways or upside down are turned automatically (18/18 test pages recovered). Each page gets a quality verdict with retake advice |
+| Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs are read from their text layer (0.5 s, exact). Pages photographed sideways or upside down are turned automatically (18/18 test pages recovered). Each page gets a quality verdict with retake advice, and a page that reads badly is read again with lighter denoising (+2.2 points of field accuracy on dev) |
 | Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables; every co-owner and parcel row under a khata (`owners` / `parcels` lists) |
 | Validation: business rules, cross-database, duplicates | Format rules per field, master gazetteer (state → district → tehsil → village) with hierarchy checks, duplicate detection on parcel/account + exact-file hash |
 | Confidence scoring, uncertain fields flagged | Logistic calibration over OCR, rule, label and source evidence; per-field threshold |

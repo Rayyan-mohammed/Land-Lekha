@@ -129,8 +129,8 @@ def rotate(gray: np.ndarray, angle: float) -> np.ndarray:
     return cv2.warpAffine(gray, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 
-def denoise(gray: np.ndarray) -> np.ndarray:
-    return cv2.fastNlMeansDenoising(gray, None, h=DENOISE_H, templateWindowSize=7, searchWindowSize=21)
+def denoise(gray: np.ndarray, h: int | None = None) -> np.ndarray:
+    return cv2.fastNlMeansDenoising(gray, None, h=DENOISE_H if h is None else h, templateWindowSize=7, searchWindowSize=21)
 
 
 def edge_sharpness(gray: np.ndarray) -> float:
@@ -156,9 +156,10 @@ def binarize(gray: np.ndarray) -> np.ndarray:
     return cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 12)
 
 
-def preprocess(img: np.ndarray, *, do_binarize: bool = False) -> PreprocessResult:
+def preprocess(img: np.ndarray, *, do_binarize: bool = False, denoise_h: int | None = None) -> PreprocessResult:
     """Full chain. Binarization is off by default: the neural OCR reads cleaned
-    grayscale better than hard black/white (measured on the dev set)."""
+    grayscale better than hard black/white (measured on the dev set). `denoise_h` overrides the
+    denoising strength, used for the second-chance read of a page that read badly."""
     steps = ["grayscale"]
     gray = to_gray(img)
     gray, scale = normalize_size(gray)
@@ -179,8 +180,8 @@ def preprocess(img: np.ndarray, *, do_binarize: bool = False) -> PreprocessResul
     if abs(angle) >= 0.2:
         gray = rotate(gray, angle)
         steps.append("deskew")
-    gray = denoise(gray)
-    steps.append("denoise")
+    gray = denoise(gray, denoise_h)
+    steps.append("denoise" if denoise_h is None else f"denoise h{denoise_h}")
     if SHARPEN and edge_sharpness(gray) < SOFT_EDGE_THRESHOLD:
         gray = sharpen(gray)
         steps.append("sharpen")

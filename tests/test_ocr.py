@@ -158,3 +158,53 @@ def test_quality_verdicts_and_advice():
     text = " ".join(poor["advice"])
     assert "blurred" in text and "small" in text and "resolution" in text
     assert assess(sharp, [], (1754, 1240))["verdict"] == "poor"
+
+
+def test_badly_read_page_gets_a_second_read(monkeypatch):
+    """A page that reads badly is read again with lighter denoising, and that reading is kept."""
+    from backend.ocr import pipeline
+
+    reads = []
+
+    class Eng:
+        name = "fake"
+        languages = ["hi", "en"]
+
+        def recognize(self, gray):
+            reads.append(gray.shape)
+            conf = 0.05 if len(reads) == 1 else 0.9  # first read poor, second read fine
+            return [{"text": "क", "confidence": conf, "bbox": [40 * i, 40, 40 * i + 30, 70]} for i in range(8)]
+
+        def sample_confidence(self, gray, boxes):
+            return 0.9
+
+    monkeypatch.setattr(pipeline, "get_engine", lambda name: Eng())
+    png = cv2.imencode(".png", _text_page())[1].tobytes()
+    out = pipeline.run_ocr(png, "page.png")
+
+    steps = out["pages"][0]["preprocess"]["steps"]
+    assert len(reads) == 2, "a poor page should be read a second time"
+    assert "second read" in steps and any(s.startswith("denoise h") for s in steps)
+    assert out["pages"][0]["quality"]["verdict"] == "good"  # the second reading is the one kept
+
+
+def test_well_read_page_is_read_once(monkeypatch):
+    from backend.ocr import pipeline
+
+    reads = []
+
+    class Eng:
+        name = "fake"
+        languages = ["hi", "en"]
+
+        def recognize(self, gray):
+            reads.append(gray.shape)
+            return [{"text": "क", "confidence": 0.8, "bbox": [40 * i, 40, 40 * i + 30, 70]} for i in range(8)]
+
+        def sample_confidence(self, gray, boxes):
+            return 0.9
+
+    monkeypatch.setattr(pipeline, "get_engine", lambda name: Eng())
+    png = cv2.imencode(".png", _text_page())[1].tobytes()
+    out = pipeline.run_ocr(png, "page.png")
+    assert len(reads) == 1 and "second read" not in out["pages"][0]["preprocess"]["steps"]

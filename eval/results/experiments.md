@@ -150,6 +150,61 @@ the most frequent one left), अ as भ (अशोक → भशोक) and क 
 accuracy 81.7% → 81.9%, every co-owner found 3 → 4 of 6; dev 84.6% → 84.8%; test unchanged at 84.8%.
 Flag rates and unflagged precision did not move on any split.
 
+## 11. A second chance for pages that read badly — adopted
+
+Strong denoising (h=12) suits most pages but erases strokes on blurred photos and faded paper.
+Tried on the six dev pages the quality check calls *fair* or *poor* (81 fields in all):
+
+| Read | Fields correct |
+| --- | --- |
+| baseline (h=12) | 35 |
+| re-read on a 2x upscale | 41 |
+| re-read with lighter denoising (h=5) | **48** |
+
+The lighter read was never worse on any of those pages, so `run_ocr` now reads a page a second
+time with h=5 whenever the first reading is not `good`, and keeps the second reading. Six of the
+40 dev pages take that second pass, so the cost is one extra read on pages that were going to a
+verifier anyway; pages that read well are untouched. This is the opposite of experiment 8, where
+the same lighter denoising applied to *every* page lost accuracy — the gain exists only where the
+first read is poor. Turn it off with `LL_OCR_RETRY_SOFT=0`.
+
+Every one of the six re-read documents improved and no other document changed:
+
+| Document | Before | After |
+| --- | --- | --- |
+| dev-004 (old paper) | 69% | 77% |
+| dev-009 (phone photo) | 0% | 15% |
+| dev-013 (old paper) | 54% | 85% |
+| dev-030 (phone photo) | 0% | 21% |
+| dev-031 (scan) | 57% | 64% |
+| dev-039 (scan) | 79% | 86% |
+
+With the confidence model refitted on the new readings (threshold 0.88):
+
+| Dev split | Before | After |
+| --- | --- | --- |
+| Field accuracy | 84.8% | **87.0%** |
+| Required-field accuracy | 83.6% | **87.1%** |
+| Fields flagged for a person | 30.2% | **21.3%** |
+| Precision of unflagged fields | 97.0% | 96.6% |
+| Documents needing a human | 87.5% | **72.5%** |
+
+On the held-out test split, run once after the dev decision:
+
+| Held-out test | Before | After |
+| --- | --- | --- |
+| Field accuracy | 84.8% | **86.8%** |
+| Required-field accuracy | 84.3% | **86.4%** |
+| Fields flagged for a person | 21.8% | **15.7%** |
+| Precision of unflagged fields | 96.2% | **96.4%** |
+| Documents needing a human | 92.5% | **70.0%** |
+| Phone photos | 43.9% | **55.4%** |
+| Village accuracy | 85.0% | **90.0%** |
+
+Auto-accepted documents went from 3 to 12 of 40, and 11 of those 12 have every required field
+right (the earlier 100% was 3 of 3). So roughly a third of documents now pass without a person
+at all, and the ones that do reach a verifier carry fewer flagged fields.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.

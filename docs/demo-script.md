@@ -46,10 +46,10 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 Upload the document nobody has seen. Whatever happens, explain it: confident fields pass, uncertain ones are flagged, nothing is silently guessed.
 
 ## Numbers to quote
-From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **84.8% field accuracy, 21.8% of fields flagged for a human, 96.2% precision on unflagged fields, 3/3 auto-accepted documents fully correct, median CER 11.1%**, on real LGD village names. Weakest case: phone photos (43.9%).
+From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **86.8% field accuracy, 15.7% of fields flagged for a human, 96.4% precision on unflagged fields, 11 of 12 auto-accepted documents fully correct, median CER 11.1%**, on real LGD village names. Weakest case: phone photos (55.4%).
 
 ## Honest answers to likely questions
-- **"What about blurred phone photos?"** The text is found but the letters are too blurred for the recogniser. We measured this: pages with a median OCR confidence below 0.2 produced no correct fields. So instead of guessing, the app asks the operator to retake the photo. A recognition model trained on real field photos is on the roadmap.
+- **"What about blurred phone photos?"** Still the weakest case (55.4% of fields). A page that reads badly is read a second time with lighter denoising, which recovers part of it — two dev photos that gave nothing at all now give some fields. When even the second read is poor the app asks the operator to retake the photo instead of guessing. A recognition model trained on real field photos is on the roadmap.
 - **"Is the data real?"** No. No public labelled dataset of Indian land records exists, so we generate realistic Khatauni, Khasra, Jamabandi and Khatiyan records, with ground truth, in Hindi and English. They include handwriting fonts, Devanagari digits, fading, stains, skew and phone-photo perspective. Real records are the first thing we'd add after selection.
 - **"Is LRMS/DILRMP integration real?"** The APIs are real and documented; the external government systems are simulated because we have no access to them.
 - **"Handwriting?"** Handwriting-style entries work when legible. Truly cursive registers need fine-tuning on real Indic handwriting data (roadmap).

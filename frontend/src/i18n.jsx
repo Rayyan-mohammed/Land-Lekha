@@ -40,7 +40,8 @@ export const HI = {
   'In queue': 'कतार में',
   'Reading and checking': 'पढ़ा और जाँचा जा रहा है',
   'Done': 'पूर्ण',
-  'usually 10–30 seconds per page; digital PDFs about a second': 'आमतौर पर प्रति पृष्ठ 10–30 सेकंड; डिजिटल PDF लगभग 1 सेकंड',
+  'usually 10–30 seconds per page; a blurred page is read twice and takes longer; digital PDFs about a second':
+    'आमतौर पर प्रति पृष्ठ 10–30 सेकंड; धुंधला पन्ना दो बार पढ़ा जाता है, समय ज़्यादा लगता है; डिजिटल PDF लगभग 1 सेकंड',
   // lists
   'Refresh': 'रीफ़्रेश',
   'Search file name or district': 'फ़ाइल नाम या जिला खोजें',

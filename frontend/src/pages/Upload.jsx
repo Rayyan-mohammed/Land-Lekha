@@ -185,7 +185,7 @@ export default function UploadPage() {
               {x.dupId ? <span className="text-slate-600">{t('already uploaded')} — <Link className="underline" to={`/documents/${x.dupId}`}>{t('open existing')}</Link></span>
                 : x.error ? <span className="text-bad">{x.error}</span>
                 : !d ? t('Uploading…')
-                  : !done ? t('usually 10–30 seconds per page; digital PDFs about a second')
+                  : !done ? t('usually 10–30 seconds per page; a blurred page is read twice and takes longer; digital PDFs about a second')
                     : d.status === 'failed' ? t('Could not process this file')
                       : `${d.district || t('Unknown district')} · ${t('processed in')} ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
             </div>
