@@ -75,6 +75,12 @@ These are the only shapes each track can rely on from its neighbour. Change them
 
 * Field names are exactly the ones in `backend/extraction/schema.py`.
 * `route` is `auto_accept` or `review`. See `backend/extraction/confidence.py` for the rule.
+* A place field (`village`/`tehsil`/`district`/`state`) matched against the master gazetteer
+  carries `normalized.hi_verified`: `true` for state/district/tehsil (hand-checked real Hindi),
+  `false` for every village today (Hindi comes from `backend/extraction/transliterate.py`, a
+  rule-based guess - see that module's docstring for its measured accuracy). **Any UI showing
+  a village's Hindi name should visually flag it when `hi_verified` is `false`**, so a verifier
+  never mistakes a machine transliteration for the official spelling.
 * `plot_area.value` is normalised to a string like `"0.412 hectare"`; the numeric hectares go in `plot_area.normalized`.
 * `owners` and `parcels` (top-level, alongside `fields`) hold every co-owner and every khasra
   row found under one khata. The single `fields.owner_name` / `fields.father_name` /
