@@ -37,7 +37,7 @@ function Stepper({ status, started }) {
   useEffect(() => { const i = setInterval(() => tick((n) => n + 1), 1000); return () => clearInterval(i) }, [])
   const active = status === 'queued' ? 1 : status === 'processing' ? 2 : 3
   const secs = Math.max(0, Math.round((Date.now() - started) / 1000))
-  return <ol className="my-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" aria-label="progress">
+  return <ol className="my-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs" aria-label={t('progress')}>
     {STEPS.map((s, i) => <li key={s} className="flex items-center gap-2">
       <span className={`flex h-5 items-center gap-1.5 rounded-full px-2 ${i < active ? 'bg-emerald-50 text-ok' : i === active ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-500'}`}>
         {i < active ? <CheckCircle2 size={12} /> : i === active ? <Loader2 size={12} className="animate-spin" /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}

@@ -65,7 +65,7 @@ export default function UsersPage() {
       </div>)}
     </div>
 
-    {reset && <div role="dialog" aria-label="temporary password" className="animate-rise mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4">
+    {reset && <div role="dialog" aria-label={t('temporary password')} className="animate-rise mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4">
       <KeyRound size={18} className="text-brand-700" />
       <div className="min-w-0 flex-1 text-sm">
         <div className="font-medium text-slate-900">{t('New temporary password for')} {reset.user.full_name}</div>

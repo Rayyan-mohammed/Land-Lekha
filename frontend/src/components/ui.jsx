@@ -102,7 +102,8 @@ export function EmptyState({ icon: Icon, title, children, action, tone = 'brand'
 
 // Placeholder rows while a table loads, so the layout doesn't jump.
 export function SkeletonRows({ rows = 6, cols = 5 }) {
-  return <div className="divide-y divide-slate-100" aria-busy="true" aria-label="loading">
+  const { t } = useT()
+  return <div className="divide-y divide-slate-100" aria-busy="true" aria-label={t('loading')}>
     {Array.from({ length: rows }, (_, r) => <div key={r} className="flex items-center gap-4 px-4 py-3.5">
       {Array.from({ length: cols }, (_, c) => <div key={c} className="h-3 animate-pulse rounded bg-slate-200"
         style={{ width: `${c === 1 ? 28 : 10 + ((r * 7 + c * 13) % 14)}%` }} />)}
@@ -111,7 +112,8 @@ export function SkeletonRows({ rows = 6, cols = 5 }) {
 }
 
 export function SkeletonCards({ n = 4 }) {
-  return <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-busy="true" aria-label="loading">
+  const { t } = useT()
+  return <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-busy="true" aria-label={t('loading')}>
     {Array.from({ length: n }, (_, i) => <div key={i} className="card p-4">
       <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
       <div className="mt-3 h-6 w-16 animate-pulse rounded bg-slate-200" />

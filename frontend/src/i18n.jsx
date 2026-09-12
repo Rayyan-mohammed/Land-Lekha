@@ -304,6 +304,12 @@ export const HI = {
   // app frame
   'Skip to content': 'मुख्य सामग्री पर जाएँ',
   'open menu': 'मेन्यू खोलें',
+  'Dismiss': 'हटाएँ',
+  'loading': 'लोड हो रहा है',
+  'box colours': 'खानों के रंग',
+  'keyboard shortcuts': 'कीबोर्ड शॉर्टकट',
+  'progress': 'प्रगति',
+  'temporary password': 'अस्थायी पासवर्ड',
   'close menu': 'मेन्यू बंद करें',
   'Go to fields': 'विवरणों पर जाएँ',
   'parcels': 'खसरे',

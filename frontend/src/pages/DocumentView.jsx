@@ -316,7 +316,7 @@ export default function DocumentView() {
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-slate-600" aria-label="box colours">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-slate-600" aria-label={t('box colours')}>
             <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-ok bg-emerald-50" /> {t('confident')}</span>
             <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-warn bg-amber-50" /> {t('please check')}</span>
             <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-sm border-2 border-bad bg-red-50" /> {t('probably wrong')}</span>
@@ -377,7 +377,7 @@ export default function DocumentView() {
               {left > 0 && <button className="btn-outline" disabled={busy} onClick={skip}
                 title={t('Leave this one for later; your changes stay as a draft')}>{t('Skip')}</button>}
             </div>
-            <div className="hidden flex-wrap gap-x-3 text-[11px] text-slate-500 lg:flex" aria-label="keyboard shortcuts">
+            <div className="hidden flex-wrap gap-x-3 text-[11px] text-slate-500 lg:flex" aria-label={t('keyboard shortcuts')}>
               <span><kbd className="kbd">↑</kbd><kbd className="kbd">↓</kbd> {t('move')}</span><span><kbd className="kbd">Enter</kbd> {t('confirm')}</span>
               <span><kbd className="kbd">N</kbd> {t('next flagged')}</span><span><kbd className="kbd">X</kbd> {t('reject field')}</span><span><kbd className="kbd">E</kbd> {t('edit')}</span>
               <span><kbd className="kbd">Ctrl</kbd>+<kbd className="kbd">Enter</kbd> {t('approve')}</span>

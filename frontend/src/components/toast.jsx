@@ -2,6 +2,7 @@
 // Rendered in an aria-live region so screen readers announce them too.
 import { createContext, useCallback, useContext, useRef, useState } from 'react'
 import { AlertTriangle, CheckCircle2, Info, X } from 'lucide-react'
+import { useT } from '../i18n'
 
 const ToastContext = createContext({ toast: () => {} })
 const STYLES = {
@@ -11,6 +12,7 @@ const STYLES = {
 }
 
 export function ToastProvider({ children }) {
+  const { t: tr } = useT()   // `t` is a toast in the list below
   const [items, setItems] = useState([])
   const seq = useRef(0)
   const dismiss = useCallback((id) => setItems((xs) => xs.filter((x) => x.id !== id)), [])
@@ -32,7 +34,7 @@ export function ToastProvider({ children }) {
             <div className="text-sm font-medium text-slate-900">{t.title}</div>
             {t.body && <div className="mt-0.5 text-xs text-slate-600">{t.body}</div>}
           </div>
-          <button onClick={() => dismiss(t.id)} aria-label="Dismiss" className="rounded p-0.5 text-slate-500 hover:bg-slate-100"><X size={14} /></button>
+          <button onClick={() => dismiss(t.id)} aria-label={tr('Dismiss')} className="rounded p-0.5 text-slate-500 hover:bg-slate-100"><X size={14} /></button>
         </div>
       })}
     </div>
