@@ -122,7 +122,7 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
         c, p = chosen[lvl]
         if place is not None and score >= 0.7:
             fixed = Parsed(place.en, score, [] if score >= 0.9 else [f"matched master '{place.en}' at {score:.0%}"],
-                           {"en": place.en, "hi": place.hi, "read_as": p.value})
+                           {"en": place.en, "hi": place.hi, "hi_verified": place.verified, "read_as": p.value})
         else:
             fixed = Parsed(p.value, min(score, 0.5), ["not found in master database"])
         fields[lvl] = _field(lvl, c, fixed)
@@ -145,7 +145,8 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
             "value": parent_place.en, "raw": None, "confidence": 0.0,
             "ocr_confidence": None, "label_score": None, "rule_score": 1.0, "valid": True,
             "issues": [f"inferred from {child} via master database"], "page": fields[child]["page"], "bbox": None,
-            "source": "inferred", "normalized": {"en": parent_place.en, "hi": parent_place.hi},
+            "source": "inferred", "normalized": {"en": parent_place.en, "hi": parent_place.hi,
+                                                 "hi_verified": parent_place.verified},
         }
         inferred["confidence"] = min(field_confidence(parent, inferred), fields[child]["confidence"])
         fields[parent] = inferred

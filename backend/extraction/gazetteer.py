@@ -22,6 +22,11 @@ class Place:
     state: str
     district: str | None = None
     tehsil: str | None = None
+    # False for every village today: village Hindi spellings come from transliterate.py,
+    # a rule-based guess, not a verified source (see that module's docstring). State/
+    # district/tehsil Hindi names are the original hand-checked entries. If a genuinely
+    # verified village is ever added, this level-based rule needs to become per-entry.
+    verified: bool = True
 
 
 @lru_cache(maxsize=1)
@@ -37,7 +42,7 @@ def load() -> dict:
             for t in d["tehsils"]:
                 places["tehsil"].append(Place("tehsil", t["en"], t["hi"], s["en"], d["en"]))
                 for v_en, v_hi in t["villages"]:
-                    places["village"].append(Place("village", v_en, v_hi, s["en"], d["en"], t["en"]))
+                    places["village"].append(Place("village", v_en, v_hi, s["en"], d["en"], t["en"], verified=False))
     return {"places": places, "states": states}
 
 
