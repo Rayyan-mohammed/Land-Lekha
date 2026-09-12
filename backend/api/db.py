@@ -34,12 +34,20 @@ def upgrade_schema(bind: Engine | None = None) -> list[str]:
     model gains a column (e.g. documents.owners) an older database fails with "no such
     column" on startup. This adds new *nullable* columns in place (SQLite and Postgres);
     anything else (renames, NOT NULL without default, type changes) needs a real migration.
-    Returns the columns added, as "table.column"."""
+    Returns the columns added, as "table.column".
+
+    With more than one replica sharing a Postgres database (docker-compose --scale), every
+    replica calls this on startup. A `pg_advisory_xact_lock` serializes them so only one
+    replica actually runs the ALTER TABLEs; the rest block until it commits, then see every
+    column already present and add nothing - no "column already exists" race. SQLite has no
+    equivalent, but it isn't used with more than one process anyway."""
     bind = bind or engine
-    insp = inspect(bind)
     quote = bind.dialect.identifier_preparer.quote
     added = []
     with bind.begin() as conn:
+        if bind.dialect.name == "postgresql":
+            conn.execute(text("SELECT pg_advisory_xact_lock(727277001)"))
+        insp = inspect(conn)  # inspect via this connection: consistent with the lock above
         for table in Base.metadata.sorted_tables:
             if not insp.has_table(table.name):
                 continue  # create_all makes it with every column
