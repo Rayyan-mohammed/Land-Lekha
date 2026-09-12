@@ -8,13 +8,20 @@ RUN npm ci
 COPY frontend/ ./
 RUN npm run build
 
-FROM python:3.11-slim AS runtime
+FROM python:3.11-slim-bookworm AS runtime
 WORKDIR /app
 # libgl1/libglib2.0-0: runtime libs opencv/easyocr's torch backend link against
-RUN apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 \
+# https:// (not the default http://) works around networks that block/403 the plain-HTTP mirror
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 COPY backend/requirements.txt backend/requirements.txt
-RUN pip install --no-cache-dir -r backend/requirements.txt
+# CPU-only torch wheels first: easyocr depends on torch/torchvision, and without this
+# pip resolves the default (CUDA-bundled) wheels - several GB of GPU libraries this
+# container never uses. Installing the CPU build first satisfies that dependency so pip
+# skips it below.
+RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch torchvision \
+    && pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ backend/
 COPY --from=frontend /app/frontend/dist frontend/dist
 EXPOSE 8000
