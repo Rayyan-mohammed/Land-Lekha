@@ -72,11 +72,11 @@ Every screen works in Hindi and English (one click in the sidebar): labels, revi
 | Human-assisted verification | Side-by-side review screen, confirm / correct / reject per field; the queue shows how many fields each document needs checked and can be ordered lowest-confidence or fewest-fields first; unsaved corrections survive a reload |
 | Learning that improves over time | Verifier corrections are remembered and re-applied; fields that are corrected often get stricter thresholds |
 | LRMS / DILRMP / GIS / cadastral integration | Documented REST endpoints: LRMS exchange format + push, DILRMP progress report, GeoJSON parcels on a Leaflet map (external systems simulated) |
-| Secure repository, metadata, audit trail | Stored originals + SHA-256, per-document metadata, append-only audit log of every action |
-| Dashboards | Processed count, auto-accept rate, accuracy, validation status, pending cases, error statistics, state/district progress |
+| Secure repository, metadata, audit trail | Stored originals + SHA-256, per-document metadata, append-only audit log of every action, filterable by person or kind of event and downloadable as a spreadsheet for the compliance file |
+| Dashboards | Processed count, auto-accept rate, accuracy, validation status, pending cases, error statistics, state/district progress; each status opens the documents behind it, and any filtered list downloads as a spreadsheet |
 | APIs | FastAPI with OpenAPI docs at `/docs` |
 | Role-based access | JWT; operator / verifier / admin enforced on every endpoint |
-| Usability and accessibility | Every screen in Hindi and English, with a test that fails if any on-screen string lacks Hindi; axe audit with 0 violations on 11 screens; phone layouts (cards instead of wide tables) |
+| Usability and accessibility | Every screen in Hindi and English, with a test that fails if any on-screen string lacks Hindi; axe audit with 0 violations on 11 screens; phone layouts (cards instead of wide tables) with thumb-sized controls |
 
 ## Run it
 
