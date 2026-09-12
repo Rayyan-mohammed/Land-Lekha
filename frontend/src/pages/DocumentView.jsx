@@ -293,7 +293,10 @@ export default function DocumentView() {
       </div>
       <StatusBadge status={doc.status} />
       {doc.overall_confidence != null && <ConfidenceBar value={doc.overall_confidence} threshold={threshold} />}
-      {doc.record_id && <Link to={`/records?focus=${doc.record_id}`} className="btn-outline py-1.5"><MapPin size={15} /> {t('Record')} #{doc.record_id}</Link>}
+      {/* the register is a verifier's screen, so an operator gets the number without a dead link */}
+      {doc.record_id && (can('verifier')
+        ? <Link to={`/records?focus=${doc.record_id}`} className="btn-outline py-1.5"><MapPin size={15} /> {t('Record')} #{doc.record_id}</Link>
+        : <span className="text-sm text-slate-500">{t('Record')} #{doc.record_id}</span>)}
       {can() && !['verified', 'rejected'].includes(doc.status) && !processing &&
         <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(() => { toast(t('Processing again'), { type: 'info', body: t('The page will update when it is done') }); load() })}><RotateCcw size={15} /> {t('Re-run')}</button>}
     </div>
@@ -324,7 +327,9 @@ export default function DocumentView() {
         <div className="flex items-center gap-2 font-medium"><Copy size={16} /> {t('Possible duplicate of existing record')}</div>
         {doc.duplicates.map((d) => <div key={d.record_id} className="text-[13px] mt-1">
           {/* open the record it matches, so the two can be compared before anything is approved */}
-          <Link to={`/records?focus=${d.record_id}`} className="font-medium underline">{t('Record')} #{d.record_id}</Link>
+          {can('verifier')
+            ? <Link to={`/records?focus=${d.record_id}`} className="font-medium underline">{t('Record')} #{d.record_id}</Link>
+            : <span className="font-medium">{t('Record')} #{d.record_id}</span>}
           {' — '}{t('match')} {Math.round(d.score * 100)}% ({d.reasons.map((r) => explainDuplicateReason(r, lang)).join(', ')})
         </div>)}
       </div>}
