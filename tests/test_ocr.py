@@ -208,3 +208,76 @@ def test_well_read_page_is_read_once(monkeypatch):
     png = cv2.imencode(".png", _text_page())[1].tobytes()
     out = pipeline.run_ocr(png, "page.png")
     assert len(reads) == 1 and "second read" not in out["pages"][0]["preprocess"]["steps"]
+
+
+class FakeNumberEngine:
+    """Main model unsure about the numbers; the english-only reader gets them right."""
+    name = "fake"
+
+    def __init__(self, answers):
+        self.answers = answers
+        self.asked: list[list[int]] = []
+
+    def read_numbers(self, image, boxes):
+        self.asked = list(boxes)
+        return [self.answers.get(tuple(b)) for b in boxes]
+
+
+def test_unsure_numbers_are_read_again_in_english():
+    from backend.ocr.numbers import refine_numbers
+
+    tokens = [
+        {"text": "/q0/4", "confidence": 0.21, "bbox": [0, 0, 10, 10]},
+        {"text": "Tehsil", "confidence": 0.30, "bbox": [0, 20, 10, 30]},      # not a number
+        {"text": "1124/6\u0915", "confidence": 0.18, "bbox": [0, 40, 10, 50]},  # has a devanagari letter
+        {"text": "00806", "confidence": 0.97, "bbox": [0, 60, 10, 70]},       # already confident
+    ]
+    eng = FakeNumberEngine({(0, 0, 10, 10): {"text": "190/4", "confidence": 0.81}})
+    assert refine_numbers(None, tokens, eng) == 1
+    assert eng.asked == [[0, 0, 10, 10]]  # only the unsure number was asked about
+    assert tokens[0]["text"] == "190/4" and tokens[0]["confidence"] == 0.81
+    assert [t["text"] for t in tokens[1:]] == ["Tehsil", "1124/6\u0915", "00806"]
+
+
+def test_a_worse_or_non_numeric_second_reading_is_ignored():
+    from backend.ocr.numbers import refine_numbers
+
+    tokens = [
+        {"text": "/q0/4", "confidence": 0.45, "bbox": [0, 0, 10, 10]},
+        {"text": "S45", "confidence": 0.25, "bbox": [0, 20, 10, 30]},
+    ]
+    eng = FakeNumberEngine({
+        (0, 0, 10, 10): {"text": "190/4", "confidence": 0.52},   # only 0.07 better
+        (0, 20, 10, 30): {"text": "//-.", "confidence": 0.90},   # confident, but not a number
+    })
+    assert refine_numbers(None, tokens, eng) == 0
+    assert [t["text"] for t in tokens] == ["/q0/4", "S45"]
+
+
+def test_an_engine_without_a_number_reader_is_left_alone():
+    from backend.ocr.numbers import refine_numbers
+
+    tokens = [{"text": "/q0/4", "confidence": 0.21, "bbox": [0, 0, 10, 10]}]
+    assert refine_numbers(None, tokens, object()) == 0
+
+
+def test_a_number_written_in_devanagari_digits_is_left_alone():
+    """The english reader has no Devanagari: asked to re-read "\u0966\u0968/\u0966\u0969/\u0968\u0966\u0966\u0968" it answers
+    "03/03/3002". Extraction reads Devanagari digits, so that token was already right."""
+    from backend.ocr.numbers import looks_numeric
+
+    assert not looks_numeric("\u0966\u0968/\u0966\u0969/\u0968\u0966\u0966\u0968")   # a date, read correctly
+    assert not looks_numeric("\u0968\u096b\u0967\u096c")                             # a plain number
+    assert not looks_numeric("\u0966\u0968|\u0966\u096f/\u0968\u0966\u0967\u096f")   # with a stray bar in it
+    assert looks_numeric("/\u0967\u09676/\u096b\u0966\u096b\u096b\u0966")            # mixed scripts: a bad read
+    assert looks_numeric("S\u096a\u096b")                                            # a letter no number can hold
+    assert looks_numeric("0109") and looks_numeric("190/4") and looks_numeric("3.598")
+
+
+def test_words_and_khasra_letters_are_not_numbers():
+    from backend.ocr.numbers import looks_numeric
+
+    assert not looks_numeric("Tehsil")
+    assert not looks_numeric("\u0916\u0938\u0930\u093e")       # खसरा
+    assert not looks_numeric("1124/6\u0915")                   # 1124/6क - the letter would be lost
+    assert not looks_numeric("")

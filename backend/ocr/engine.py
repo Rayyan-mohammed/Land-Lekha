@@ -11,6 +11,11 @@ import numpy as np
 # text-detection resolution (px). Detection is the slowest step on CPU.
 DETECT_CANVAS = int(os.getenv("LL_OCR_CANVAS", "1280"))
 
+# what a land-record number may contain: digits, the "/" of 1124/6क, decimals, and the
+# A/B/C suffixes some khasra numbers carry
+NUMBER_ALLOWLIST = "0123456789/-.ABC"
+NUMBER_ZOOM = 3  # the recogniser reads a small crop better when it is enlarged first
+
 
 class Engine(Protocol):
     name: str
@@ -31,6 +36,8 @@ class EasyOCREngine:
         if gpu is None:
             gpu = torch.cuda.is_available()
         self._reader = easyocr.Reader(self.languages, gpu=gpu, verbose=False)
+        self._numbers = None  # english-only recogniser, built on demand (see read_numbers)
+        self._numbers_lock = threading.Lock()
         self._lock = threading.Lock()
 
     def recognize(self, gray: np.ndarray) -> list[dict]:
@@ -59,6 +66,37 @@ class EasyOCREngine:
         with self._lock:
             res = self._reader.recognize(gray, horizontal_list=hl, free_list=[], detail=1, batch_size=16)
         return self._tokens(res)
+
+    def read_numbers(self, gray: np.ndarray, boxes: list[list[int]]) -> list[dict | None]:
+        """Read the given boxes as numbers with an English-only recogniser, one result per box.
+
+        The Hindi+English alphabet is what makes digits hard: it lets the model answer with
+        Devanagari digits and look-alike letters. This reader has neither."""
+        import cv2
+
+        reader = self._number_reader()
+        out: list[dict | None] = []
+        for x0, y0, x1, y1 in boxes:
+            pad = 4
+            crop = gray[max(0, y0 - pad):y1 + pad, max(0, x0 - pad):x1 + pad]
+            if crop.size == 0:
+                out.append(None)
+                continue
+            big = cv2.resize(crop, None, fx=NUMBER_ZOOM, fy=NUMBER_ZOOM, interpolation=cv2.INTER_CUBIC)
+            with self._lock:
+                res = reader.recognize(big, horizontal_list=[[0, big.shape[1], 0, big.shape[0]]],
+                                       free_list=[], detail=1, allowlist=NUMBER_ALLOWLIST)
+            out.append({"text": res[0][1].strip(), "confidence": round(float(res[0][2]), 4)} if res else None)
+        return out
+
+    def _number_reader(self):
+        """Loaded on first use: pages with no unsure numbers never pay for it."""
+        with self._numbers_lock:  # two documents can be read at once
+            if self._numbers is None:
+                import easyocr
+
+                self._numbers = easyocr.Reader(["en"], gpu=False, verbose=False)
+            return self._numbers
 
     @staticmethod
     def _tokens(results) -> list[dict]:

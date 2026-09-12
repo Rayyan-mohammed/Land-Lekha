@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from .engine import get_engine, group_lines
+from .numbers import NUMBER_PASS, refine_numbers
 from .preprocess import preprocess
 from .quality import assess
 from .tables import TABLE_CELLS, read_table_cells
@@ -142,6 +143,13 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
                 page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H)
                 quality = assess(page_img, tokens, img.shape)
                 pre.steps.append("second read")
+            # Numbers last, on the reading we keep. Not on a poor page: there the english
+            # recogniser answers confidently with digits that are not on the page at all,
+            # and a confident wrong khasra number is worse than an obviously unsure one.
+            if NUMBER_PASS and quality["verdict"] != "poor":
+                n_numbers = refine_numbers(page_img, tokens, eng)
+                if n_numbers:
+                    pre.steps.append(f"numbers:{n_numbers}")
             preprocess_info = {"deskew_angle": pre.deskew_angle, "steps": pre.steps, "scale": pre.scale}
             used = eng.name
         if used not in engines_used:
