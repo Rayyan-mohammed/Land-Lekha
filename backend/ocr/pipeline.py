@@ -71,6 +71,8 @@ def load_pages(data: bytes, filename: str = "") -> list[tuple[np.ndarray, list[d
                                "bbox": [int(w[0] * scale), int(w[1] * scale), int(w[2] * scale) + 1, int(w[3] * scale) + 1]}
                               for w in words]
                 pages.append((img, tokens))
+        if not pages:
+            raise ValueError("PDF has no pages")
         return pages
     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
     if img is None:
