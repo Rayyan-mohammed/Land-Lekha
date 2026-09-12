@@ -110,12 +110,14 @@ function FieldRow({ def, f, decision, onDecision, editable, threshold, selected,
       {editable ? (
         def.name === 'land_classification' ? (
           <select className={`input ${d.action === 'reject' ? 'line-through opacity-50' : ''}`} value={value || ''}
+            aria-label={lang === 'hi' ? def.hi : def.en}
             onChange={(e) => onDecision({ action: 'correct', value: e.target.value })}>
             <option value="">—</option>
             {Object.entries(LAND_CLASSES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         ) : (
           <input className={`input ${d.action === 'reject' ? 'line-through opacity-50' : ''} ${d.action === 'correct' ? 'border-brand-500 bg-brand-50' : ''}`}
+            aria-label={lang === 'hi' ? def.hi : def.en}
             value={value || ''} placeholder={f ? '' : t('not found — type to add')}
             onChange={(e) => onDecision(e.target.value === (f?.value ?? '') ? null : { action: 'correct', value: e.target.value })} />
         )
@@ -397,7 +399,7 @@ export default function DocumentView() {
             <textarea className="input" rows={2} placeholder={t('Note for the audit trail (optional)')} value={note} onChange={(e) => setNote(e.target.value)} />
             <ErrorNote error={error} />
             <div className="flex gap-2">
-              <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> {t('Approve record')}{left > 0 && <span className="font-normal opacity-80"> · {left} {t('left')}</span>}</button>
+              <button className="btn-ok flex-1" disabled={busy} onClick={() => submit('approve')}><CheckCircle2 size={16} /> {t('Approve record')}{left > 0 && <span className="font-normal"> · {left} {t('left')}</span>}</button>
               <button className="btn-danger" disabled={busy} onClick={() => submit('reject')}><X size={16} /> {t('Reject')}</button>
               {left > 0 && <button className="btn-outline" disabled={busy} onClick={skip}
                 title={t('Leave this one for later; your changes stay as a draft')}>{t('Skip')}</button>}
