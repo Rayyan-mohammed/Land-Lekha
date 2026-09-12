@@ -17,6 +17,7 @@ function FitBounds({ data, focus }) {
     if (!data?.features.length) return
     const coords = data.features
       .filter((f) => !focus || f.id === focus)
+      .filter((f) => f.geometry?.coordinates?.[0]?.length)
       .flatMap((f) => f.geometry.coordinates[0].map(([lon, lat]) => [lat, lon]))
     if (!coords.length) return
     const lats = coords.map((c) => c[0])
@@ -43,7 +44,7 @@ export default function Records() {
   const landClass = (k) => LAND_CLASSES[k]?.split(' · ')[lang === 'hi' ? 1 : 0] || '—'
 
   const load = () => Promise.all([api.lrmsRecords({ limit: 200 }), api.parcels(), api.dilrmp()])
-    .then(([r, g, d]) => { setRecs(r.records); setGeo(g); setDilrmp(d) }).catch(setError)
+    .then(([r, g, d]) => { setRecs(r.records); setGeo(g); setDilrmp(d); setError(null) }).catch(setError)
   useEffect(() => { load() }, [])
 
   const push = async (id) => {
@@ -70,6 +71,9 @@ export default function Records() {
   const style = useMemo(() => (f) => ({
     color: f.id === focus ? '#b91c1c' : '#0f3d3e', weight: f.id === focus ? 3 : 1.5, fillColor: '#f2c14e', fillOpacity: 0.45,
   }), [focus])
+  // a feature with missing/non-polygon geometry (valid GeoJSON, e.g. geometry: null) should
+  // be skipped, not crash the whole map - filter once, upstream of every consumer below
+  const safeGeo = useMemo(() => geo && { ...geo, features: geo.features.filter((f) => f.geometry?.coordinates?.[0]?.length) }, [geo])
 
   if (error) return <ErrorNote error={error} />
   if (!recs) return <div className="space-y-4"><PageHeader title={t('Records & GIS')} /><div className="card"><SkeletonRows cols={7} /></div></div>
@@ -100,11 +104,11 @@ export default function Records() {
           <MapContainer center={[25.5, 80]} zoom={5} className="h-full w-full" scrollWheelZoom>
             <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {/* lang in the key: Leaflet popups are plain HTML built once, so rebuild them on a language switch */}
-            {geo && <GeoJSON key={`${geo.features.length}-${focus}-${lang}`} data={geo} style={style}
+            {safeGeo && <GeoJSON key={`${safeGeo.features.length}-${focus}-${lang}`} data={safeGeo} style={style}
               onEachFeature={(f, layer) => layer.bindPopup(
                 `<b>${t('Khasra')} ${f.properties.khasra_no}</b> · ${t('Khata')} ${f.properties.khata_no}<br/>${f.properties.owner}<br/>${f.properties.village}, ${f.properties.district}<br/>${f.properties.area_hectares ?? '?'} ha`)} />}
             {/* parcels are a few hectares: invisible at state zoom, so also mark their centroids */}
-            {geo?.features.map((f) => {
+            {safeGeo?.features.map((f) => {
               const ring = f.geometry.coordinates[0]
               const lat = ring.reduce((a, c) => a + c[1], 0) / ring.length
               const lon = ring.reduce((a, c) => a + c[0], 0) / ring.length
@@ -115,7 +119,7 @@ export default function Records() {
                   {f.properties.village}, {f.properties.district} · {f.properties.area_hectares ?? '?'} ha</Popup>
               </CircleMarker>
             })}
-            <FitBounds data={geo} focus={focus} />
+            <FitBounds data={safeGeo} focus={focus} />
           </MapContainer>
         </div>
       </div>
