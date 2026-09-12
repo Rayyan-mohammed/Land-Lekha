@@ -250,7 +250,7 @@ Devanagari digits*:
 | Page | Hindi+English | English only | Truth |
 | --- | --- | --- | --- |
 | dev-022 | `०२/०३/२००२` (0.44) | `03/03/3002` (0.88) | 02/03/2002 |
-| dev-035 | `०२|०९/२०१९` (0.37) | `02/08/3098` (0.53) | 02/09/2019 |
+| dev-035 | `०२\|०९/२०१९` (0.37) | `02/08/3098` (0.53) | 02/09/2019 |
 
 Extraction reads Devanagari digits, so those tokens were already right; a model with no Devanagari
 can only transliterate them by shape, and it guesses. The rule that follows is simple: **a number
@@ -258,7 +258,7 @@ written entirely in Devanagari digits is left alone**. What is worth a second lo
 Latin digits, or one holding a letter no number can contain (the `S` of `S४५`, the `q` of `/q०/4`).
 Mixed scripts count as Latin — `/११6/५०५५०` mixes them and is a bad read.
 
-| Gate | Fields fixed | Fields broken | Precision of unflagged |
+| Gate (both at the threshold of the day, 0.88) | Fields fixed | Fields broken | Precision of unflagged |
 | --- | --- | --- | --- |
 | every unsure number-shaped token | 4 | 2 | 96.4% |
 | Devanagari-only numbers left alone | **3** | **0** | **96.5%** |
