@@ -13,13 +13,17 @@ import { getQueueOrder, sortQueue } from '../queue'
 // preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
 const STEP_HI = { grayscale: 'धूसर', resize: 'आकार बदला', page_crop: 'पन्ना काटा', illumination: 'रोशनी समतल', rotate90: '90° घुमाया',
   rotate180: 'उल्टा सीधा किया', deskew: 'तिरछापन ठीक', denoise: 'शोर हटाया', sharpen: 'धार बढ़ाई', clahe: 'कंट्रास्ट बढ़ाया',
-  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने', 'second read': 'दूसरी बार पढ़ा' }
+  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने', 'second read': 'दूसरी बार पढ़ा', numbers: 'अंक फिर पढ़े' }
 const stepLabel = (s, lang) => {
   if (lang !== 'hi') return s
   if (STEP_HI[s]) return STEP_HI[s]            // whole step name (e.g. "second read")
   const [k, n] = s.split(/[: ]/)
   return STEP_HI[k] ? `${STEP_HI[k]}${n ? ` ${n}` : ''}` : s
 }
+
+// "numbers:3" in the steps: how many number tokens were read a second time
+const numbersReread = (page) =>
+  Number(page.preprocess?.steps?.find((s) => s.startsWith('numbers:'))?.split(':')[1] || 0)
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
 
@@ -38,6 +42,11 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
         {page.preprocess?.steps?.includes('second read') &&
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
             title={t('This page read badly, so it was read again with lighter denoising')}>{t('read twice')}</span>}
+        {/* numbers that read unsurely were read again by an english-only recogniser */}
+        {numbersReread(page) > 0 &&
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
+            title={t('Numbers that read unsurely were read again in English alone, where digits are not confused with Devanagari')}>
+            {numbersReread(page)} {t(numbersReread(page) === 1 ? 'number read again' : 'numbers read again')}</span>}
         {page.preprocess?.steps?.includes('pdf_text_layer')
           ? <span>{t("read from the PDF's text layer (no OCR needed)")}</span>
           : <span>{lang === 'hi' ? 'तिरछापन' : 'deskew'} {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.map((s) => stepLabel(s, lang)).join(' → ')}</span>}
