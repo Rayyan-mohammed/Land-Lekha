@@ -7,6 +7,11 @@ untouched; only each matching tehsil's "villages" list is replaced. Hindi spelli
 are filled in with backend/extraction/transliterate.py, which is a best-effort
 approximation, NOT an official source - see that module's docstring.
 
+Only touches states marked "local_script": "devanagari" (or unmarked, for backward
+compatibility). States using another script - Andhra Pradesh and Telangana use Telugu -
+already carry real local-script names taken directly from the LGD download and are
+left untouched here.
+
     python -m backend.extraction.build_gazetteer
 """
 from __future__ import annotations
@@ -39,6 +44,13 @@ def main() -> None:
     gaz = json.loads(GAZETTEER.read_text(encoding="utf-8"))
     replaced = 0
     for state in gaz["states"]:
+        if state.get("local_script", "devanagari") != "devanagari":
+            # transliterate.py only produces Devanagari (Hindi). Andhra Pradesh and
+            # Telangana use Telugu script: their villages already carry real Telugu
+            # names taken directly from lgdirectory.gov.in (see gazetteer.json's
+            # "_note"). Running this replacement on them would overwrite real Telugu
+            # text with wrong-script, fabricated Hindi - so those states are skipped.
+            continue
         for district in state["districts"]:
             for tehsil in district["tehsils"]:
                 key = (state["en"], district["en"], tehsil["en"])
