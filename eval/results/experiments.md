@@ -217,6 +217,12 @@ runtime was tried and dropped: median confidence and the count of confident toke
 worse reading on half of the dev cases (dev-004, dev-009 and dev-030), so the second reading is
 simply kept.
 
+Cost, measured end to end on this laptop: a blurred phone photo goes from about 70 s to about
+145 s, because the page is read twice. Pages that read well are unaffected. The upload screen
+says so ("a blurred page is read twice and takes longer") and the review screen marks such a page
+`read twice`. If the wait matters more than the last point of accuracy at a busy counter, set
+`LL_OCR_RETRY_SOFT=0`.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.

@@ -174,6 +174,9 @@ export const HI = {
   'Good image': 'चित्र अच्छा',
   'Fair image': 'चित्र औसत',
   'Poor image — retake': 'चित्र ख़राब — दोबारा लें',
+  'read twice': 'दो बार पढ़ा',
+  'This page read badly, so it was read again with lighter denoising':
+    'यह पन्ना पहली बार ठीक से नहीं पढ़ा गया, इसलिए हल्की सफ़ाई के साथ दोबारा पढ़ा गया',
   // records export
   'Downloaded': 'डाउनलोड हुए',
   'records': 'अभिलेख',

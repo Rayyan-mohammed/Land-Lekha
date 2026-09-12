@@ -34,6 +34,10 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
       <span className="flex flex-wrap items-center gap-2">
         <span>{t('Page')} {page.page}</span>
         <QualityBadge quality={page.quality} />
+        {/* the page read badly the first time, so the pipeline read it again */}
+        {page.preprocess?.steps?.includes('second read') &&
+          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
+            title={t('This page read badly, so it was read again with lighter denoising')}>{t('read twice')}</span>}
         {page.preprocess?.steps?.includes('pdf_text_layer')
           ? <span>{t("read from the PDF's text layer (no OCR needed)")}</span>
           : <span>{lang === 'hi' ? 'तिरछापन' : 'deskew'} {page.preprocess?.deskew_angle ?? 0}° · {page.preprocess?.steps?.map((s) => stepLabel(s, lang)).join(' → ')}</span>}
