@@ -15,17 +15,17 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 @router.post("/login", response_model=TokenOut)
 def login(request: Request, form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     ip = request.client.host if request.client else "unknown"
-    locked_for = ratelimit.check(ip, form.username)
+    locked_for = ratelimit.check(db, ip, form.username)
     if locked_for is not None:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS,
                             f"too many failed attempts, try again in {int(locked_for) + 1}s")
     user = db.scalar(select(User).where(User.username == form.username))
     if user is None or not user.active or not verify_password(form.password, user.password_hash):
-        ratelimit.record_failure(ip, form.username)
+        ratelimit.record_failure(db, ip, form.username)
         audit.log(db, "auth.login_failed", None, "user", None, {"username": form.username}, request)
         db.commit()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "wrong username or password")
-    ratelimit.record_success(ip, form.username)
+    ratelimit.record_success(db, ip, form.username)
     audit.log(db, "auth.login", user, "user", user.id, None, request)
     db.commit()
     return TokenOut(access_token=create_token(user), user=UserOut.model_validate(user))

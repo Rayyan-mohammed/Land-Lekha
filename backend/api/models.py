@@ -145,3 +145,15 @@ class AuditLog(Base):
     # so an entry that is edited or removed later stops matching (see backend/api/audit.py).
     prev_hash: Mapped[str | None] = mapped_column(String(64))
     row_hash: Mapped[str | None] = mapped_column(String(64), index=True)
+
+
+class LoginAttempt(Base):
+    """Login brute-force throttling state, one row per (ip, username) - see ratelimit.py.
+    A database table rather than an in-memory dict so the lockout is shared across every
+    replica behind a load balancer (docker-compose --scale api=N), not just the one that
+    happened to see a given request."""
+    __tablename__ = "login_attempts"
+    key: Mapped[str] = mapped_column(String(128), primary_key=True)  # "ip:username"
+    count: Mapped[int] = mapped_column(Integer, default=0)
+    window_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
