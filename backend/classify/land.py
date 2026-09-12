@@ -30,7 +30,7 @@ from rapidfuzz import fuzz
 from .vocabulary import GOVERNMENT, LAND_GROUPS, NOT_LAND
 
 MIN_GROUPS = int(os.getenv("LL_CLASSIFY_MIN_GROUPS", "2"))
-MIN_TOKENS_TO_JUDGE = int(os.getenv("LL_CLASSIFY_MIN_TOKENS", "12"))  # fewer read: cannot say either way
+MIN_WORDS_TO_JUDGE = int(os.getenv("LL_CLASSIFY_MIN_WORDS", "12"))  # fewer words read: cannot say either way
 LAND_THRESHOLD = float(os.getenv("LL_CLASSIFY_THRESHOLD", "0.5"))
 TYPE_MARGIN = float(os.getenv("LL_CLASSIFY_TYPE_MARGIN", "1.5"))
 
@@ -165,18 +165,20 @@ def _type_scores(hay: str) -> dict[str, float]:
     return scores
 
 
-def classify(text: str, *, tokens: int | None = None, quality: str | None = None) -> dict:
+def classify(text: str, *, words: int | None = None, quality: str | None = None) -> dict:
     """Decide whether this page is a land record, and what kind.
 
     `text` is the OCR text of the whole document, exactly as read - never a template."""
     hay = _normalise(text)
     # A page the quality check calls poor is already going back for a retake; what little was
     # read from it is noise, and noise must not be turned into "not a land document".
-    if (tokens is not None and tokens < MIN_TOKENS_TO_JUDGE) or quality == "poor":
+    if words is None:
+        words = len(text.split())
+    if words < MIN_WORDS_TO_JUDGE or quality == "poor":
         # nothing legible was read - that is a quality problem, not a verdict on the document
         return {"is_land_document": None, "undetermined": True, "confidence": 0.0, "evidence": {},
                 "evidence_kinds": 0, "evidence_against": {}, "government_indicators": [],
-                "scripts": detect_scripts(text), "tokens": tokens, "document_type": None,
+                "scripts": detect_scripts(text), "words": words, "document_type": None,
                 "document_type_confidence": 0.0,
                 "reason": "too little was read from this page to say what it is"}
     groups = {name: _hits(hay, terms) for name, terms in LAND_GROUPS.items()}
@@ -205,7 +207,7 @@ def classify(text: str, *, tokens: int | None = None, quality: str | None = None
         "evidence_against": {k: v[:4] for k, v in against.items()},
         "government_indicators": government[:6],
         "scripts": detect_scripts(text),
-        "tokens": tokens,
+        "words": words,
         "document_type": None,
         "document_type_confidence": 0.0,
         "reason": "",

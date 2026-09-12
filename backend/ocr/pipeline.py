@@ -71,7 +71,9 @@ def load_pages(data: bytes, filename: str = "") -> list[tuple[np.ndarray, list[d
                         tokens = [{"text": w[4], "confidence": TEXT_LAYER_CONFIDENCE,
                                    "bbox": [int(w[0] * scale), int(w[1] * scale), int(w[2] * scale) + 1, int(w[3] * scale) + 1]}
                                   for w in words]
-                    pages.append((img, tokens))
+                    # A refused text layer (no land words, or pre-Unicode gibberish) still says what
+                    # the page is - "TAX INVOICE" - so the land-document classifier gets to see it.
+                    pages.append((img, tokens, " ".join(w[4] for w in words) if tokens is None and words else None))
         except ValueError:
             raise
         except Exception as exc:  # noqa: BLE001 - PyMuPDF raises its own exception types for a corrupt file
@@ -82,7 +84,7 @@ def load_pages(data: bytes, filename: str = "") -> list[tuple[np.ndarray, list[d
     img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
     if img is None:
         raise ValueError("unsupported or corrupt image file")
-    return [(img, None)]
+    return [(img, None, None)]
 
 
 LOW_MEDIAN_CONFIDENCE = 0.4  # upright readable pages sit around 0.7+
@@ -129,7 +131,7 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
     eng = None  # loaded only if some page needs OCR (digital PDFs never do)
     engines_used: list[str] = []
     pages_out = []
-    for n, (img, text_tokens) in enumerate(load_pages(data, filename), start=1):
+    for n, (img, text_tokens, text_layer_hint) in enumerate(load_pages(data, filename), start=1):
         early_quality = None
         if text_tokens is not None:
             # born-digital PDF page: exact text, no OCR, no geometric changes (boxes stay aligned)
@@ -198,6 +200,7 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
             "quality": quality,
             "tokens": tokens,
             "lines": group_lines(tokens),
+            **({"text_layer": text_layer_hint} if text_layer_hint else {}),
         })
     return {
         "engine": "+".join(engines_used),

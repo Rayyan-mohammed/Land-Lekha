@@ -146,10 +146,11 @@ def process_document(doc_id: int) -> None:
 
         # Is this a land record at all? Decided from what was read, before anything is
         # extracted, so a bill or a marksheet never comes back wearing a khasra number.
-        text = chr(10).join(l["text"] for pg in ocr["pages"] for l in pg.get("lines", []))
+        text = chr(10).join([l["text"] for pg in ocr["pages"] for l in pg.get("lines", [])]
+                            + [pg["text_layer"] for pg in ocr["pages"] if pg.get("text_layer")])
         worst = min((pg.get("quality", {}).get("verdict", "good") for pg in ocr["pages"]),
                     key=lambda v: {"poor": 0, "fair": 1, "good": 2}.get(v, 2), default="good")
-        verdict = classify(text, tokens=sum(len(pg.get("tokens", [])) for pg in ocr["pages"]), quality=worst)
+        verdict = classify(text, words=len(text.split()), quality=worst)
         doc.classification = verdict
         doc.ocr = ocr
         doc.page_count = len(ocr["pages"])
