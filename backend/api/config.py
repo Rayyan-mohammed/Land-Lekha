@@ -33,6 +33,9 @@ STALE_PROCESSING_MINUTES = int(os.getenv("LL_STALE_PROCESSING_MINUTES", "15"))
 AUTO_ACCEPT_THRESHOLD = float(os.environ["LL_AUTO_ACCEPT_THRESHOLD"]) if os.getenv("LL_AUTO_ACCEPT_THRESHOLD") else None
 OCR_ENGINE = os.getenv("LL_OCR_ENGINE", "easyocr")
 MAX_UPLOAD_MB = int(os.getenv("LL_MAX_UPLOAD_MB", "20"))
+# A 20 MB file can still decode to billions of pixels ("decompression bomb"). OCR runs in one
+# shared worker thread, so an out-of-memory there takes down every other document with it.
+MAX_IMAGE_PIXELS = int(os.getenv("LL_MAX_IMAGE_PIXELS", "60000000"))  # 60 MP ~ a 9000x6600 scan
 SEED_DEMO_USERS = os.getenv("LL_SEED_DEMO_USERS", "1") == "1"
 CORS_ORIGINS = [o.strip() for o in os.getenv("LL_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if o.strip()]
 

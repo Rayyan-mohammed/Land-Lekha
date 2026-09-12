@@ -226,3 +226,37 @@ def test_an_operator_cannot_read_the_register_or_other_peoples_trails(client):
     own = next(iter(mine))
     assert client.get("/api/admin/audit", headers=op,
                       params={"entity_type": "document", "entity_id": own}).status_code == 200
+
+
+def test_an_upload_that_would_blow_up_memory_is_refused(client):
+    """A small file can decode to an enormous image. OCR runs in one shared worker thread, so
+    that would take every other document down with it."""
+    import io as _io
+
+    from PIL import Image as _Image
+
+    op = _login(client, "operator", "upload@123")
+    buf = _io.BytesIO()
+    _Image.new("L", (9000, 9000), 255).save(buf, format="PNG", optimize=True)  # ~90 KB, 81 megapixels
+    bomb = buf.getvalue()
+    assert len(bomb) < 1_000_000
+    r = client.post("/api/documents", headers=op, files={"file": ("huge.png", bomb, "image/png")})
+    assert r.status_code == 413 and "megapixel" in r.json()["detail"]
+
+    # and a file that is not the thing its name claims
+    r = client.post("/api/documents", headers=op, files={"file": ("fake.jpg", b"I am text", "image/jpeg")})
+    assert r.status_code == 415
+    r = client.post("/api/documents", headers=op, files={"file": ("fake.pdf", b"I am text", "application/pdf")})
+    assert r.status_code == 415
+
+
+def test_only_one_live_document_per_file(client):
+    """The duplicate check is a lookup followed by an insert, so the database has to be the one
+    that decides - otherwise two uploads landing together both get through."""
+    from sqlalchemy import text as _text
+
+    from backend.api.db import engine
+
+    with engine.connect() as conn:
+        names = {r[1] for r in conn.execute(_text("PRAGMA index_list('documents')"))}
+    assert "ux_documents_sha256_active" in names, "the unique index was not created at startup"

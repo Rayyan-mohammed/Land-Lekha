@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import hashlib
+import io
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from fastapi.responses import FileResponse
+from PIL import Image
 from sqlalchemy import func, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .. import audit
 from ..auth import current_user, require
-from ..config import ALLOWED_EXTENSIONS, MAX_UPLOAD_MB, STORAGE_DIR
+from ..config import ALLOWED_EXTENSIONS, MAX_IMAGE_PIXELS, MAX_UPLOAD_MB, STORAGE_DIR
 from ..db import get_db
 from ..models import Document, LandRecord, User
 from ..processing import enqueue
@@ -18,6 +21,27 @@ from ..schemas import DocumentDetail, DocumentSummary
 from .review import flagged_counts
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
+
+
+def _check_decodable(data: bytes, ext: str) -> None:
+    """The name says .jpg - do the bytes agree, and will they fit in memory?
+
+    Only the extension was checked before, so a file could be anything. Worse, a small
+    heavily-compressed image can decode to billions of pixels; OpenCV would allocate the lot
+    inside the single OCR worker thread and take the process down with it. Pillow reads just
+    the header here, so the size is known before anything decodes it."""
+    if ext == ".pdf":
+        if not data.startswith(b"%PDF-"):
+            raise HTTPException(415, "this file is named .pdf but is not a PDF")
+        return
+    try:
+        with Image.open(io.BytesIO(data)) as im:
+            width, height = im.size
+    except Exception:
+        raise HTTPException(415, "this file is not an image that can be read") from None
+    if width * height > MAX_IMAGE_PIXELS:
+        raise HTTPException(413, f"image is {width}x{height} pixels, over the "
+                                 f"{MAX_IMAGE_PIXELS // 1_000_000} megapixel limit; scan at a lower resolution")
 
 
 def _get_visible(db: Session, doc_id: int, user: User) -> Document:
@@ -40,6 +64,7 @@ async def upload(request: Request, file: UploadFile = File(...),
         raise HTTPException(400, "empty file")
     if len(data) > MAX_UPLOAD_MB * 1024 * 1024:
         raise HTTPException(413, f"file larger than {MAX_UPLOAD_MB} MB")
+    _check_decodable(data, ext)
     sha = hashlib.sha256(data).hexdigest()
     existing = db.scalar(select(Document).where(Document.sha256 == sha, Document.status != "failed"))
     if existing:
@@ -57,7 +82,15 @@ async def upload(request: Request, file: UploadFile = File(...),
     path.write_bytes(data)
     doc.stored_path = str(path)
     audit.log(db, "document.uploaded", user, "document", doc.id, {"filename": doc.filename, "bytes": len(data)}, request)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # somebody uploaded the same file in the moment between the check above and this commit;
+        # the database's partial unique index is what actually decides who wins
+        db.rollback()
+        winner = db.scalar(select(Document).where(Document.sha256 == sha, Document.status != "failed"))
+        raise HTTPException(409, {"message": "this exact file was already uploaded",
+                                  "document_id": winner.id if winner else None}) from None
     enqueue(doc.id)
     return doc
 

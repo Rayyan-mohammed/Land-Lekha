@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Iterator
 
 from sqlalchemy import Engine, create_engine, event, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from .config import DATABASE_URL, STORAGE_DIR
+
+log = logging.getLogger("landlekha")
 
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -62,6 +65,25 @@ def upgrade_schema(bind: Engine | None = None) -> list[str]:
                                   f"{col.type.compile(dialect=bind.dialect)}"))
                 added.append(f"{table.name}.{col.name}")
     return added
+
+
+def ensure_unique_active_document(bind: Engine | None = None) -> bool:
+    """One live document per file, enforced by the database rather than by a lookup.
+
+    The upload endpoint checks for an existing sha256 before inserting, which leaves a gap:
+    two uploads of the same file at the same moment both pass the check and both insert. A
+    partial unique index closes it - "failed" documents are left out so a file that failed to
+    process can be sent again. Returns False when the index cannot be created, which means an
+    older database already holds duplicates; the pre-check still applies there."""
+    bind = bind or engine
+    try:
+        with bind.begin() as conn:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ux_documents_sha256_active "
+                              "ON documents (sha256) WHERE status != 'failed'"))
+        return True
+    except Exception as exc:  # duplicates already stored, or a backend without partial indexes
+        log.warning("could not enforce one-live-document-per-file: %s", exc)
+        return False
 
 
 def get_db() -> Iterator[Session]:
