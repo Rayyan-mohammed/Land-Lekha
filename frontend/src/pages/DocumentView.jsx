@@ -13,9 +13,10 @@ import { getQueueOrder, sortQueue } from '../queue'
 // preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
 const STEP_HI = { grayscale: 'धूसर', resize: 'आकार बदला', page_crop: 'पन्ना काटा', illumination: 'रोशनी समतल', rotate90: '90° घुमाया',
   rotate180: 'उल्टा सीधा किया', deskew: 'तिरछापन ठीक', denoise: 'शोर हटाया', sharpen: 'धार बढ़ाई', clahe: 'कंट्रास्ट बढ़ाया',
-  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने' }
+  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने', 'second read': 'दूसरी बार पढ़ा' }
 const stepLabel = (s, lang) => {
   if (lang !== 'hi') return s
+  if (STEP_HI[s]) return STEP_HI[s]            // whole step name (e.g. "second read")
   const [k, n] = s.split(/[: ]/)
   return STEP_HI[k] ? `${STEP_HI[k]}${n ? ` ${n}` : ''}` : s
 }
