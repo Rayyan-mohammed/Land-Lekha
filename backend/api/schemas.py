@@ -96,4 +96,8 @@ class VerifyIn(BaseModel):
     note: str | None = Field(default=None, max_length=2000)
 
 
+class DisputeIn(BaseModel):
+    note: str = Field(min_length=1, max_length=2000)
+
+
 TokenOut.model_rebuild()

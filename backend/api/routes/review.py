@@ -18,7 +18,7 @@ from ..db import get_db
 from ..models import Correction, Document, ExtractedField, User, utcnow
 from ..notifications import notify_document_reviewed
 from ..processing import invalidate_memory, upsert_record
-from ..schemas import DocumentSummary, VerifyIn
+from ..schemas import DisputeIn, DocumentSummary, VerifyIn
 
 router = APIRouter(prefix="/api", tags=["review"])
 
@@ -145,3 +145,26 @@ def verify(doc_id: int, body: VerifyIn, request: Request, db: Session = Depends(
     notify_document_reviewed(uploader_email=None, uploader_name=doc.uploader.full_name if doc.uploader else "operator",
                              document_id=doc.id, status=doc.status, reviewer_name=user.full_name, note=doc.review_note)
     return {"id": doc.id, "status": doc.status, "changes": changes}
+
+
+@router.post("/documents/{doc_id}/dispute")
+def dispute(doc_id: int, body: DisputeIn, request: Request, db: Session = Depends(get_db),
+           user: User = Depends(require("verifier"))):
+    """Send a verified document back for a second look. Every field is reopened for
+    re-confirmation - the verified LandRecord is left as-is (still visible, still pushable
+    to LRMS) until the re-verification actually replaces it, so a dispute never blanks a
+    record that citizens or other systems may already be relying on."""
+    doc = db.get(Document, doc_id)
+    if doc is None:
+        raise HTTPException(404, "document not found")
+    if doc.status != "verified":
+        raise HTTPException(409, f"document is '{doc.status}', only a verified document can be sent for re-verification")
+    for f in doc.fields:
+        f.status = "pending"
+    doc.status = "needs_review"
+    doc.reviewed_by = None
+    doc.reviewed_at = None
+    audit.log(db, "document.disputed", user, "document", doc.id, {"note": body.note}, request)
+    db.commit()
+    invalidate_memory()
+    return {"id": doc.id, "status": doc.status}

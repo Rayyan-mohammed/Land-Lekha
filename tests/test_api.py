@@ -301,3 +301,35 @@ def test_issuing_an_extract_is_a_verifiers_job(client):
     assert public.status_code == 200 and public.json()["valid"] is True
     tampered = client.get(f"/api/public/records/{rid}/verify", params={"fp": "0" * len(fp)})
     assert tampered.status_code == 200 and tampered.json()["valid"] is False
+
+
+def test_disputing_a_verified_document_sends_it_back_for_review(client):
+    """An officer who spots something wrong on an already-verified document can send it
+    back for a second look - every field reopens for re-confirmation."""
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+    admin = _login(client, "admin", "admin@123")
+    lines = [l.replace("00245", "00891").replace("123/2", "77/3") for l in RECORD]
+    doc = _wait(client, client.post("/api/documents", headers=op,
+                                    files={"file": ("dispute.pdf", _pdf(lines), "application/pdf")}).json()["id"], op)
+    assert client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"}).status_code == 200
+
+    assert client.post(f"/api/documents/{doc['id']}/dispute", headers=op, json={"note": "wrong khasra"}).status_code == 403
+    assert client.post(f"/api/documents/{doc['id']}/dispute", headers=ver, json={"note": ""}).status_code == 422
+    ok = client.post(f"/api/documents/{doc['id']}/dispute", headers=ver, json={"note": "wrong khasra"})
+    assert ok.status_code == 200, ok.text
+
+    reopened = client.get(f"/api/documents/{doc['id']}", headers=ver).json()
+    assert reopened["status"] == "needs_review"
+    assert reopened["reviewed_at"] is None
+    assert all(f["status"] == "pending" for f in reopened["fields"])
+
+    # only a verified document can be disputed - not one already back in the queue
+    assert client.post(f"/api/documents/{doc['id']}/dispute", headers=ver, json={"note": "again"}).status_code == 409
+
+    trail = client.get("/api/admin/audit", headers=admin,
+                       params={"entity_type": "document", "entity_id": doc["id"]}).json()
+    assert any(e["action"] == "document.disputed" and e["details"]["note"] == "wrong khasra" for e in trail["items"])
+
+    # re-verifying clears it
+    assert client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"}).status_code == 200
