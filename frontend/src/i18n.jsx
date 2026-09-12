@@ -180,6 +180,7 @@ export const HI = {
   // records export
   'Downloaded': 'डाउनलोड हुए',
   'records': 'अभिलेख',
+  'Download these documents as a spreadsheet (CSV)': 'ये दस्तावेज़ स्प्रेडशीट (CSV) में डाउनलोड करें',
   'Download these records as a spreadsheet (CSV)': 'ये अभिलेख स्प्रेडशीट (CSV) में डाउनलोड करें',
   // records page
   'No data yet.': 'अभी कोई आँकड़ा नहीं।',

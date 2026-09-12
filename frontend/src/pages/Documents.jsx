@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { FileUp, RefreshCw, Search } from 'lucide-react'
+import { Download, FileUp, RefreshCw, Search } from 'lucide-react'
 import { api } from '../api'
 import { ConfidenceBar, EmptyState, ErrorNote, fmtDate, PageHeader, SkeletonRows, StatusBadge } from '../components/ui'
 import { docTypeLabel, STATUS } from '../constants'
 import { useT } from '../i18n'
+import { useToast } from '../components/toast'
 
 export default function Documents() {
   const { t, lang } = useT()
+  const toast = useToast()
   const [params, setParams] = useSearchParams()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
@@ -23,12 +25,42 @@ export default function Documents() {
     return () => clearTimeout(t)
   }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // the list as a spreadsheet for a status report; exports what the filters select, not just this page
+  const [saving, setSaving] = useState(false)
+  const downloadCsv = async () => {
+    setSaving(true)
+    try {
+      const items = []
+      for (let p = 1; p <= 10; p += 1) {
+        const r = await api.documents({ status, q: params.get('q') || '', page: p, page_size: 100 })
+        items.push(...r.items)
+        if (items.length >= r.total) break
+      }
+      const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
+      const head = ['id', 'file', 'type', 'district', 'state', 'status', 'confidence', 'fields to check', 'seconds', 'uploaded']
+      const rows = items.map((d) => [d.id, d.filename, d.document_type ? docTypeLabel(d.document_type, 'en') : '', d.district, d.state,
+        d.status, d.overall_confidence, d.flagged, d.processing_ms ? (d.processing_ms / 1000).toFixed(1) : '', d.created_at])
+      const BOM = String.fromCharCode(0xFEFF)
+      const CRLF = String.fromCharCode(13, 10)
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(new Blob([BOM + [head, ...rows].map((r) => r.map(cell).join(',')).join(CRLF)], { type: 'text/csv;charset=utf-8' }))
+      a.download = `landlekha-documents-${new Date().toISOString().slice(0, 10)}.csv`
+      a.click()
+      URL.revokeObjectURL(a.href)
+      toast(`${t('Downloaded')} ${rows.length} ${t(rows.length === 1 ? 'document' : 'documents')}`)
+    } finally { setSaving(false) }
+  }
+
   const set = (k, v) => { const p = new URLSearchParams(params); v ? p.set(k, v) : p.delete(k); if (k !== 'page') p.delete('page'); setParams(p) }
   const pages = data ? Math.max(1, Math.ceil(data.total / data.page_size)) : 1
 
   return <div>
     <PageHeader title={t('Documents')} subtitle={data ? `${data.total} ${t(data.total === 1 ? 'document' : 'documents')}` : ' '}
-      actions={<button className="btn-outline" onClick={load}><RefreshCw size={15} /> {t('Refresh')}</button>} />
+      actions={<>
+        <button className="btn-outline" onClick={downloadCsv} disabled={saving || !data?.items.length}
+          title={t('Download these documents as a spreadsheet (CSV)')}><Download size={15} /> CSV</button>
+        <button className="btn-outline" onClick={load}><RefreshCw size={15} /> {t('Refresh')}</button>
+      </>} />
     <div className="card">
       <div className="flex flex-wrap gap-2 border-b border-slate-100 p-3">
         <form onSubmit={(e) => { e.preventDefault(); set('q', q) }} className="relative flex-1 min-w-48">
