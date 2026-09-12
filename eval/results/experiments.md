@@ -327,6 +327,21 @@ instead of twelve, and the extra one carries a wrong field. And dev precision sl
 to 96.4%. Precision over fields on the held-out split - the number a verifier actually feels - is
 unchanged at 96.4%.
 
+The multi-owner split, which is the hardest of the three, moved both ways:
+
+| Multi-owner split (30 documents) | Before (0.88) | After (0.90) |
+| --- | --- | --- |
+| Field accuracy | 84.7% | **85.2%** |
+| Parcel rows recovered | 53.3% | **55.6%** |
+| Fields flagged for a person | 19.6% | 20.8% |
+| Precision of unflagged fields | 95.0% | 94.3% |
+| Every co-owner found | 4 of 6 | 3 of 6 |
+
+The co-owner count is all-or-nothing over six documents, so one changed name moves it; it moved
+the same way when the second read was adopted and moved back after. Unflagged precision on this
+split has never reached the other two, which is the honest reason to keep the multi-owner Khatauni
+in front of a verifier.
+
 Cost: one extra recognition per unsure number. Across 220 pages the worst page offers six tokens
 and the median offers one, and each is a small crop, so this is not the expensive part of a read.
 The English model is loaded on first use, so a run with no unsure numbers never pays for it.
