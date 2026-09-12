@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import QRCode from 'qrcode'
-import { Printer, ShieldCheck } from 'lucide-react'
+import { Copy, Printer, ShieldCheck } from 'lucide-react'
 import { api } from '../api'
 import { ErrorNote, parseTs, Spinner } from '../components/ui'
 import { LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
+import { useToast } from '../components/toast'
 
 function Row({ label, hi, children }) {
   return <tr className="border-b border-slate-200">
@@ -20,6 +21,7 @@ const cls = (k) => LAND_CLASSES[k] || k || '—'
 // bilingual (English and Hindi), like an official copy; only the toolbar follows the app language.
 export default function Extract() {
   const { t } = useT()
+  const toast = useToast()
   const { id } = useParams()
   const [ex, setEx] = useState(null)
   const [qr, setQr] = useState(null)
@@ -89,7 +91,12 @@ export default function Extract() {
         </div>
         <div className="space-y-0.5">
           <div className="font-medium text-slate-800">Record fingerprint · अभिलेख फ़िंगरप्रिंट</div>
-          <div className="font-mono text-sm tracking-wider text-slate-900">{ex.fingerprint_short}</div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-sm tracking-wider text-slate-900">{ex.fingerprint_short}</span>
+            {/* officers quote this code on paper files; the button is not printed */}
+            <button className="no-print btn-ghost px-1 py-0.5" title={t('Copy')} aria-label={t('Copy')}
+              onClick={() => { navigator.clipboard?.writeText(ex.fingerprint_short); toast(t('Fingerprint copied')) }}><Copy size={13} /></button>
+          </div>
           <div>Scan the QR code to check this extract against the live record. If anything in the record has changed, the check fails.</div>
           <div>QR कोड स्कैन करके इस नकल को मौजूदा अभिलेख से मिलाएँ। अभिलेख में कुछ भी बदला हो तो जाँच विफल होगी।</div>
         </div>
