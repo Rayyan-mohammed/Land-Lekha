@@ -66,6 +66,7 @@ export const api = {
 
   queue: () => request('/api/review/queue'),
   verify: (id, body) => request(`/api/documents/${id}/verify`, { method: 'POST', body }),
+  dispute: (id, note) => request(`/api/documents/${id}/dispute`, { method: 'POST', body: { note } }),
 
   stats: () => request('/api/admin/stats'),
   audit: (params = {}) => request('/api/admin/audit?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== '' && v != null))),

@@ -167,6 +167,9 @@ export const HI = {
   'not found — type to add': 'नहीं मिला — लिखकर जोड़ें',
   'OCR read': 'OCR ने पढ़ा',
   'Re-run': 'फिर से चलाएँ',
+  'Flag for re-verification': 'फिर से जाँच के लिए भेजें',
+  'Why does this need another look?': 'इसे दोबारा जाँचने की ज़रूरत क्यों है?',
+  'Sent back for re-verification': 'फिर से जाँच के लिए भेज दिया गया',
   'Record': 'अभिलेख',
   // statuses
   'Queued': 'कतार में',

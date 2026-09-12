@@ -301,6 +301,18 @@ export default function DocumentView() {
         : <span className="text-sm text-slate-500">{t('Record')} #{doc.record_id}</span>)}
       {can() && !['verified', 'rejected'].includes(doc.status) && !processing &&
         <button className="btn-outline py-1.5" onClick={() => api.reprocess(doc.id).then(() => { toast(t('Processing again'), { type: 'info', body: t('The page will update when it is done') }); load() })}><RotateCcw size={15} /> {t('Re-run')}</button>}
+      {/* an officer who spots something wrong after approval can reopen it - every field goes
+          back to pending, exactly like a fresh review, rather than a one-off patch */}
+      {can('verifier') && doc.status === 'verified' &&
+        <button className="btn-outline py-1.5" onClick={async () => {
+          const note = window.prompt(t('Why does this need another look?'))
+          if (!note) return
+          try {
+            await api.dispute(doc.id, note)
+            toast(t('Sent back for re-verification'), { type: 'info' })
+            load()
+          } catch (e) { toast(t('Could not save the review'), { type: 'error', body: t(e.message) }) }
+        }}><AlertTriangle size={15} /> {t('Flag for re-verification')}</button>}
     </div>
 
     {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> {t('Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…')}</div>}
