@@ -31,7 +31,8 @@ class Base(DeclarativeBase):
 
 
 def upgrade_schema(bind: Engine | None = None) -> list[str]:
-    """Add columns that the models define but an existing database does not have yet.
+    """Create any missing tables, then add columns that the models define but an existing
+    table does not have yet.
 
     `create_all()` creates missing tables but never alters existing ones, so after a
     model gains a column (e.g. documents.owners) an older database fails with "no such
@@ -41,15 +42,18 @@ def upgrade_schema(bind: Engine | None = None) -> list[str]:
 
     With more than one replica sharing a Postgres database (docker-compose --scale), every
     replica calls this on startup. A `pg_advisory_xact_lock` serializes them so only one
-    replica actually runs the ALTER TABLEs; the rest block until it commits, then see every
-    column already present and add nothing - no "column already exists" race. SQLite has no
-    equivalent, but it isn't used with more than one process anyway."""
+    replica actually runs the CREATE/ALTER TABLEs; the rest block until it commits, then
+    see every table and column already present and do nothing - no "already exists" race
+    on a brand-new database either (create_all() runs inside the same lock, not before it;
+    a table added by a fresh model - e.g. login_attempts - used to race here). SQLite has
+    no equivalent, but it isn't used with more than one process anyway."""
     bind = bind or engine
     quote = bind.dialect.identifier_preparer.quote
     added = []
     with bind.begin() as conn:
         if bind.dialect.name == "postgresql":
             conn.execute(text("SELECT pg_advisory_xact_lock(727277001)"))
+        Base.metadata.create_all(conn)
         insp = inspect(conn)  # inspect via this connection: consistent with the lock above
         for table in Base.metadata.sorted_tables:
             if not insp.has_table(table.name):
@@ -83,6 +87,23 @@ def ensure_unique_active_document(bind: Engine | None = None) -> bool:
         return True
     except Exception as exc:  # duplicates already stored, or a backend without partial indexes
         log.warning("could not enforce one-live-document-per-file: %s", exc)
+        return False
+
+
+def ensure_unique_audit_chain(bind: Engine | None = None) -> bool:
+    """Each audit entry names the row it chains onto (prev_hash); this makes the database
+    itself refuse a second entry chaining onto the same one. Without it, two requests
+    logging an entry at the same moment can both read the same "last row", both compute a
+    hash chained to it, and both commit - forking the chain, which verify_chain() then
+    misreports as tampering. NULL prev_hash (the very first entry, and rows written before
+    hashing existed) is unrestricted: unique indexes allow any number of NULLs."""
+    bind = bind or engine
+    try:
+        with bind.begin() as conn:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ux_audit_log_prev_hash ON audit_log (prev_hash)"))
+        return True
+    except Exception as exc:  # noqa: BLE001 - an older database already holds a fork
+        log.warning("could not enforce a single audit chain: %s", exc)
         return False
 
 

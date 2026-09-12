@@ -19,7 +19,7 @@ from sqlalchemy import or_, select
 
 from .auth import hash_password
 from .config import CORS_ORIGINS, JWT_SECRET_SET, ROOT, SEED_DEMO_USERS, STALE_PROCESSING_MINUTES
-from .db import Base, SessionLocal, engine, ensure_unique_active_document, upgrade_schema
+from .db import SessionLocal, ensure_unique_active_document, ensure_unique_audit_chain, upgrade_schema
 from .graphql_api import graphql_router
 from .models import Document, User
 from .routes import admin, auth, documents, integration, public, review
@@ -39,11 +39,11 @@ def _init_db() -> None:
         log.warning("LL_JWT_SECRET is not set - using a random secret for this process only. Fine for a single "
                     "process; running more than one (docker-compose --scale, multiple uvicorn workers) without "
                     "setting it means each process verifies tokens with a different secret and logins randomly 401.")
-    Base.metadata.create_all(engine)
-    added = upgrade_schema()
+    added = upgrade_schema()  # also creates any missing tables, under the same replica-safe lock
     if added:
         log.warning("database upgraded, added columns: %s", ", ".join(added))
     ensure_unique_active_document()
+    ensure_unique_audit_chain()
     with SessionLocal() as db:
         if SEED_DEMO_USERS and db.scalar(select(User).limit(1)) is None:
             for username, name, role, pw in DEMO_USERS:
