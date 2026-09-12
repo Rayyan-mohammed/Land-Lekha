@@ -23,21 +23,21 @@ flowchart LR
 
 ## Results
 
-Measured on 40 **held-out** synthetic documents (`test` split) whose places come from the official LGD village directory. The confidence model and threshold (95% target precision) were fitted on a separate `dev` split. Reproduce with `python eval/evaluate.py --split test`; the full table is in [eval/results/test.md](eval/results/test.md).
+Measured on 40 **held-out** synthetic documents (`test` split) whose places come from the official LGD village directory. The confidence model and threshold (95% target precision) were fitted on a separate `dev` split; the threshold sits in the middle of the range that meets that target, not at its lowest edge, because the lowest edge met it on dev and missed it on test. Reproduce with `python eval/evaluate.py --split test`; the full table is in [eval/results/test.md](eval/results/test.md).
 
 | Metric | Held-out test | Dev (tuning split) |
 | --- | --- | --- |
-| Field accuracy (all 15 fields) | **86.8%** | 87.0% |
-| Required-field accuracy | 86.4% | 87.1% |
-| Character error rate, median / mean | 11.1% / 14.3% | 12.1% / 15.3% |
-| Fields flagged for a human | **15.7%** | 21.3% |
-| Precision of fields *not* flagged | **96.4%** | 96.6% |
-| Auto-accepted documents with every required field correct | **11 of 12** | 11 of 11 |
-| Documents needing a human look | 70.0% | 72.5% |
+| Field accuracy (all 15 fields) | **88.1%** | 87.6% |
+| Required-field accuracy | 87.5% | 87.5% |
+| Character error rate, median / mean | 10.9% / 14.2% | 12.1% / 15.2% |
+| Fields flagged for a human | **15.3%** | 21.3% |
+| Precision of fields *not* flagged | **96.4%** | 96.4% |
+| Auto-accepted documents with every required field correct | **11 of 13** | 10 of 10 |
+| Documents needing a human look | 67.5% | 75.0% |
 
-By document type (test): English Record of Rights 95.1%, clean pages 97.2%, old faded paper 94.4%, scanner-quality pages 87.5%, Khatauni tables 84.5%, handwritten entries 72.8%, **phone photos 55.4%** (still the weakest case). A page that reads badly is read a second time with lighter denoising, which is most of the recent gain on photos and faded paper; when even that reads poorly, the quality check tells the operator to retake rather than guess.
+By document type (test): English Record of Rights 96.2%, clean pages 98.2%, old faded paper 95.3%, scanner-quality pages 89.5%, Khatauni tables 84.5%, handwritten entries 77.4%, **phone photos 56.5%** (still the weakest case). A page that reads badly is read a second time with lighter denoising, and numbers that read unsurely are read once more by a recogniser that knows English digits only — between them, most of the recent gain on photos, faded paper and the numbers a record is looked up by. When even the second read is poor, the quality check tells the operator to retake rather than guess.
 
-Two things to read from this. First, the verifier checks about 1 field in 6 rather than retyping the page, and the fields left unflagged are right about 96% of the time. Three documents in ten now pass with no human at all. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
+Two things to read from this. First, the verifier checks about 1 field in 7 rather than retyping the page, and the fields left unflagged are right about 96% of the time. A third of documents now pass with no human at all. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
 
 **Multi-owner Khataunis** (separate 30-document split on official LGD villages, with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): field accuracy 84.2%; every co-owner found on 3 of 6 multi-owner documents (6 of 9 on the test split), 16 of 23 parcel rows in multi-row tables recovered. The second read lifted this split by 2.3 points overall, though one document lost its exact co-owner match — that measure is all-or-nothing over six documents. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
 

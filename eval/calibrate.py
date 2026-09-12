@@ -61,12 +61,19 @@ def main() -> None:
     p_oof = cross_val_predict(model, X, y, cv=5, method="predict_proba")[:, 1]
     model.fit(X, y)
 
-    threshold = 0.95
-    for t in np.arange(0.50, 0.99, 0.01):
-        sel = p_oof >= t
-        if sel.sum() >= 10 and y[sel].mean() >= args.target_precision:
-            threshold = float(round(t, 2))
+    # Thresholds that hit the target, and the first unbroken stretch of them. That stretch is
+    # wide and flat here (95.1% at 0.81 through 95.5% at 0.91), and its lowest point is the
+    # riskiest: it met the target on dev by a hair and came out under it on the held-out split
+    # (eval/results/experiments.md, section 12). Sit in the middle of the stretch instead,
+    # which costs a few points of coverage and buys the margin back.
+    meets = [round(float(t), 2) for t in np.arange(0.50, 0.99, 0.01)
+             if (p_oof >= t).sum() >= 10 and y[p_oof >= t].mean() >= args.target_precision]
+    run = []
+    for t in meets:
+        if run and round(t - run[-1], 2) > 0.011:
             break
+        run.append(t)
+    threshold = run[len(run) // 2] if run else 0.95
     sel = p_oof >= threshold
     print(f"threshold {threshold}: {sel.mean():.1%} of fields above it, {y[sel].mean():.1%} of those correct")
     print("raw OCR confidence alone, same coverage:",

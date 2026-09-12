@@ -5,11 +5,11 @@
 | CER (mean / median) | 15.2% / 12.1% |
 | Field accuracy (all fields) | 87.6% |
 | Field accuracy (required fields) | 87.5% |
-| Review rate | 57.5% |
+| Review rate | 75.0% |
 | Straight-through accuracy (auto-accepted docs fully correct) | 100.0% |
-| Fields flagged for a human (all extracted fields) | 11.1% |
-| Precision of fields *not* flagged | 95.5% |
-| Auto-accept threshold (calibrated on dev) | 0.81 |
+| Fields flagged for a human (all extracted fields) | 21.3% |
+| Precision of fields *not* flagged | 96.4% |
+| Auto-accept threshold (calibrated on dev) | 0.9 |
 | OCR time per document (CPU) | 60.76 s |
 | Owner list exactly right (all documents) | 82.5% |
 | Every co-owner found (multi-owner documents) | 9 of 13 |

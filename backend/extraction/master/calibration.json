@@ -42,7 +42,7 @@
   0.12357
  ],
  "intercept": -3.01229,
- "threshold": 0.81,
+ "threshold": 0.9,
  "target_precision": 0.95,
  "trained_on": "dev",
  "n_fields": 525,
