@@ -3,12 +3,14 @@
 These run against their own throwaway database: the tests deliberately damage the trail, and
 that must not leak into any other test.
 """
+import threading
+
 import pytest
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from backend.api import audit
-from backend.api.db import Base
+from backend.api.db import Base, ensure_unique_audit_chain
 from backend.api.models import AuditLog
 
 
@@ -63,3 +65,41 @@ def test_the_hash_covers_who_did_what_to_which_document(db):
         assert audit.verify_chain(db)["ok"] is False, f"editing {attr} went unnoticed"
         setattr(row, attr, before)
     assert audit.verify_chain(db)["ok"] is True   # and putting it back makes it whole again
+
+
+def test_concurrent_writers_never_fork_the_chain(tmp_path):
+    """Two requests logging an entry at the same moment must not both chain onto the same
+    predecessor - that forks the chain, and verify_chain then misreports the fork as
+    tampering. Uses its own database (not the `db` fixture) since it needs a fresh engine
+    with multi-threaded access and the ensure_unique_audit_chain() index applied."""
+    eng = create_engine(f"sqlite:///{(tmp_path / 'race.sqlite3').as_posix()}", connect_args={"check_same_thread": False})
+    Base.metadata.create_all(eng)
+    assert ensure_unique_audit_chain(eng)
+    Session = sessionmaker(bind=eng)
+
+    n = 8
+    barrier = threading.Barrier(n)
+    errors = []
+
+    def write(i):
+        session = Session()
+        try:
+            barrier.wait()  # maximise the chance every thread reads the same "last row"
+            audit.log(session, f"test.action.{i}")
+            session.commit()
+        except Exception as exc:  # noqa: BLE001
+            errors.append(exc)
+        finally:
+            session.close()
+
+    threads = [threading.Thread(target=write, args=(i,)) for i in range(n)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert not errors, errors
+    check = Session()
+    result = audit.verify_chain(check)
+    check.close()
+    assert result == {"ok": True, "checked": n, "unhashed": 0, "broken_at": None, "detail": "the chain is intact"}

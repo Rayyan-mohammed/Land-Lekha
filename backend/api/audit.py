@@ -16,11 +16,13 @@ from datetime import timezone
 
 from fastapi import Request
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .models import AuditLog, User
 
 _chain_lock = threading.Lock()  # two requests must not chain onto the same row at once
+_MAX_ATTEMPTS = 5
 
 
 def _utc_text(ts) -> str | None:
@@ -46,19 +48,35 @@ def row_digest(row: AuditLog, prev_hash: str | None) -> str:
 
 def log(db: Session, action: str, user: User | None = None, entity_type: str | None = None,
         entity_id: int | None = None, details: dict | None = None, request: Request | None = None) -> None:
-    """Append an audit entry. Caller commits."""
-    entry = AuditLog(
-        user_id=user.id if user else None,
-        username=user.username if user else "system",
-        action=action, entity_type=entity_type, entity_id=entity_id, details=details,
-        ip=request.client.host if request and request.client else None,
-    )
-    with _chain_lock:
-        last = db.scalar(select(AuditLog).order_by(AuditLog.id.desc()).limit(1))
-        db.add(entry)
-        db.flush()  # gives the row its ts default and id
-        entry.prev_hash = last.row_hash if last else None
-        entry.row_hash = row_digest(entry, entry.prev_hash)
+    """Append an audit entry. Caller commits.
+
+    `_chain_lock` only serializes threads in *this* process; with more than one replica
+    sharing a database, two processes can still both read the same "last row" and both
+    commit a hash chained to it, forking the chain (verify_chain then misreports the fork
+    as tampering). A unique index on prev_hash (db.py's ensure_unique_audit_chain) makes the
+    database itself refuse the second writer's flush; the retry here reads the new last row
+    and tries again, inside a SAVEPOINT so only this entry's insert is rolled back on a
+    collision - not whatever else the caller already added to this transaction."""
+    for attempt in range(_MAX_ATTEMPTS):
+        entry = AuditLog(
+            user_id=user.id if user else None,
+            username=user.username if user else "system",
+            action=action, entity_type=entity_type, entity_id=entity_id, details=details,
+            ip=request.client.host if request and request.client else None,
+        )
+        try:
+            with _chain_lock, db.begin_nested():
+                last = db.scalar(select(AuditLog).order_by(AuditLog.id.desc()).limit(1))
+                db.add(entry)
+                db.flush()  # gives the row its ts default and id
+                entry.prev_hash = last.row_hash if last else None
+                entry.row_hash = row_digest(entry, entry.prev_hash)
+                db.flush()  # the unique index on prev_hash catches a concurrent racer here
+            return
+        except IntegrityError:
+            if attempt == _MAX_ATTEMPTS - 1:
+                raise
+            continue
 
 
 def verify_chain(db: Session, limit: int | None = None) -> dict:
