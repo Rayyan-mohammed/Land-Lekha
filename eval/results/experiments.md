@@ -205,6 +205,10 @@ Auto-accepted documents went from 3 to 12 of 40, and 11 of those 12 have every r
 right (the earlier 100% was 3 of 3). So roughly a third of documents now pass without a person
 at all, and the ones that do reach a verifier carry fewer flagged fields.
 
+The multi-owner split moved the same way: field accuracy 81.9% → 84.2%, flagged fields 29.3% →
+20.3%, parcel rows 15 → 16 of 23. Its strict "every co-owner found" count slipped from 4 to 3 of
+6 documents: that measure is all-or-nothing over six documents, so one changed name moves it.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.
