@@ -221,6 +221,8 @@ export const HI = {
   'Digitized': 'डिजिटल',
   'Documents by overall confidence': 'कुल विश्वसनीयता के अनुसार दस्तावेज़',
   'auto-accept threshold': 'स्वतः स्वीकृति सीमा',
+  'confidence': 'विश्वास',
+  'auto-accept at': 'स्वतः स्वीकृति इस पर', 
   'per field': 'प्रति विवरण',
   'No reviewed fields yet.': 'अभी कोई विवरण जाँचा नहीं गया।',
   'reviewed': 'जाँचे गए',

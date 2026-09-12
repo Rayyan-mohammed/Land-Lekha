@@ -38,15 +38,23 @@ export function confColor(c, threshold = 0.8) {
   return 'text-bad'
 }
 
-export function ConfidenceBar({ value, threshold = 0.8, className = '' }) {
+// `threshold` is the document's own auto-accept threshold, which only the review screen knows.
+// Lists colour the bar against a nominal 0.8 and say nothing about auto-accept, rather than
+// naming a threshold that is not the one the field was actually judged against.
+export function ConfidenceBar({ value, threshold, className = '' }) {
+  const { t } = useT()
   if (value == null) return <span className="text-xs text-slate-500">—</span>
+  const mark = threshold ?? 0.8
   const pct = Math.round(value * 100)
-  const bar = value >= threshold ? 'bg-ok' : value >= threshold - 0.2 ? 'bg-warn' : 'bg-bad'
-  return <div className={`flex items-center gap-2 ${className}`} title={`confidence ${pct}% (auto-accept at ${Math.round(threshold * 100)}%)`}>
+  const bar = value >= mark ? 'bg-ok' : value >= mark - 0.2 ? 'bg-warn' : 'bg-bad'
+  const title = threshold
+    ? `${t('confidence')} ${pct}% (${t('auto-accept at')} ${Math.round(threshold * 100)}%)`
+    : `${t('confidence')} ${pct}%`
+  return <div className={`flex items-center gap-2 ${className}`} title={title}>
     <div className="relative h-1.5 w-16 rounded-full bg-slate-200 overflow-hidden">
       <div className={`absolute inset-y-0 left-0 ${bar}`} style={{ width: `${pct}%` }} />
     </div>
-    <span className={`text-xs tabular-nums font-medium ${confColor(value, threshold)}`}>{pct}%</span>
+    <span className={`text-xs tabular-nums font-medium ${confColor(value, mark)}`}>{pct}%</span>
   </div>
 }
 
