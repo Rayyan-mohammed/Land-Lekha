@@ -31,7 +31,7 @@ export default function UsersPage() {
   const [form, setForm] = useState({ username: '', full_name: '', role: 'operator', password: '' })
   const [error, setError] = useState(null)
   const [reset, setReset] = useState(null) // {user, password}
-  const load = () => api.users().then(setUsers).catch(setError)
+  const load = () => api.users().then((v) => { setUsers(v); setError(null) }).catch(setError)
   useEffect(() => { load() }, [])
 
   const create = async (e) => {
