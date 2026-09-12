@@ -24,7 +24,39 @@ _load_dotenv()
 STORAGE_DIR = Path(os.getenv("LL_STORAGE_DIR", ROOT / "storage"))
 DATABASE_URL = os.getenv("LL_DATABASE_URL", f"sqlite:///{(STORAGE_DIR / 'landlekha.sqlite3').as_posix()}")
 JWT_SECRET_SET = bool(os.getenv("LL_JWT_SECRET"))
-JWT_SECRET = os.getenv("LL_JWT_SECRET") or secrets.token_hex(32)  # random per run if not set
+
+
+def _jwt_secret() -> str:
+    """The signing key. Set LL_JWT_SECRET in anything but a demo.
+
+    Without it the key used to be random per process, which is fine for one `uvicorn` but
+    quietly breaks the moment there is more than one: `--workers 4`, or two containers behind
+    a load balancer, each mint tokens the others reject, and users see random 401s. So when
+    the variable is absent the key is generated once and kept in the storage directory, which
+    every worker on that machine shares. It is still only a fallback - across machines, set
+    the variable (docker-compose.yml already insists on it)."""
+    from_env = os.getenv("LL_JWT_SECRET")
+    if from_env:
+        return from_env
+    keyfile = STORAGE_DIR / "jwt_secret"
+    try:
+        if keyfile.exists():
+            saved = keyfile.read_text(encoding="utf-8").strip()
+            if saved:
+                return saved
+        STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+        generated = secrets.token_hex(32)
+        keyfile.write_text(generated, encoding="utf-8")
+        try:
+            keyfile.chmod(0o600)
+        except OSError:
+            pass  # windows, or a filesystem without permissions
+        return generated
+    except OSError:
+        return secrets.token_hex(32)  # read-only storage: one process only, as before
+
+
+JWT_SECRET = _jwt_secret()
 JWT_EXPIRE_MINUTES = int(os.getenv("LL_JWT_EXPIRE_MINUTES", "720"))
 # a document stuck in "processing" this long on startup is treated as crashed, not as another
 # live replica's in-flight work, and is reclaimed; see backend/api/main.py's _init_db

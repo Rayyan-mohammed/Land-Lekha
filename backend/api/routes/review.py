@@ -71,7 +71,10 @@ def _reparse(name: str, value: str, state: str | None):
 @router.post("/documents/{doc_id}/verify")
 def verify(doc_id: int, body: VerifyIn, request: Request, db: Session = Depends(get_db),
            user: User = Depends(require("verifier"))):
-    doc = db.get(Document, doc_id)
+    # Locked for this transaction: two verifiers pressing Approve on the same document at the
+    # same moment would otherwise both pass the status check below, and the loser would hit the
+    # unique constraint on land_records.document_id and get a 500 out of a race it can't see.
+    doc = db.get(Document, doc_id, with_for_update=True)
     if doc is None:
         raise HTTPException(404, "document not found")
     if doc.status not in ("needs_review", "auto_accepted"):

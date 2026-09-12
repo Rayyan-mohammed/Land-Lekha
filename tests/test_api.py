@@ -260,3 +260,16 @@ def test_only_one_live_document_per_file(client):
     with engine.connect() as conn:
         names = {r[1] for r in conn.execute(_text("PRAGMA index_list('documents')"))}
     assert "ux_documents_sha256_active" in names, "the unique index was not created at startup"
+
+
+def test_verifying_a_document_twice_is_refused_politely(client):
+    """The second verifier to press Approve must get a clear 409, never a 500."""
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+    lines = [l.replace("00245", "00733").replace("123/2", "88/1") for l in RECORD]
+    doc = _wait(client, client.post("/api/documents", headers=op,
+                                    files={"file": ("twice.pdf", _pdf(lines), "application/pdf")}).json()["id"], op)
+    first = client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"})
+    assert first.status_code == 200, first.text
+    again = client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"})
+    assert again.status_code == 409 and "cannot be verified" in again.json()["detail"]
