@@ -338,3 +338,49 @@ def test_words_and_khasra_letters_are_not_numbers():
     assert not looks_numeric("\u0916\u0938\u0930\u093e")       # खसरा
     assert not looks_numeric("1124/6\u0915")                   # 1124/6क - the letter would be lost
     assert not looks_numeric("")
+
+
+def _page(paper=200, text_rows=12):
+    """A page of paper with some text-like ink on it."""
+    import numpy as np
+
+    img = np.full((900, 640), paper, dtype=np.uint8)
+    for r in range(text_rows):
+        y = 80 + r * 60
+        img[y:y + 16, 60:580] = max(0, paper - 150)
+    return img
+
+
+def _with_flash(img, radius_frac=0.18):
+    """Paint a blown-out reflection, the way a phone flash does."""
+    import numpy as np
+
+    out = img.astype(np.float32)
+    h, w = out.shape
+    yy, xx = np.mgrid[0:h, 0:w]
+    d = np.sqrt((yy - int(h * 0.42)) ** 2 + (xx - int(w * 0.55)) ** 2)
+    glow = np.clip(1.4 - d / (radius_frac * min(h, w)), 0, 1) ** 1.5
+    return np.clip(out + glow * 255, 0, 255).astype(np.uint8)
+
+
+def test_an_ordinary_bright_page_is_not_glare():
+    """The old check called any near-white page glare - 19 of 48 scanned pages with no
+    reflection on them at all, and every clean one."""
+    from backend.ocr.quality import has_glare
+
+    assert not has_glare(_page(paper=255))   # a flatbed scan: pure white paper
+    assert not has_glare(_page(paper=236))   # a scan
+    assert not has_glare(_page(paper=193))   # a phone photo
+
+
+def test_a_reflection_on_a_photographed_page_is_glare():
+    from backend.ocr.quality import has_glare
+
+    assert has_glare(_with_flash(_page(paper=190)))
+    assert has_glare(_with_flash(_page(paper=170)))
+
+
+def test_a_speck_is_not_a_reflection():
+    from backend.ocr.quality import has_glare
+
+    assert not has_glare(_with_flash(_page(paper=190), radius_frac=0.01))
