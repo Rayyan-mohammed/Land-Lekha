@@ -308,7 +308,14 @@ export default function DocumentView() {
             {quality.verdict === 'poor' ? t('The image is too poor to read reliably — please rescan or retake it') : t('Image quality is only fair — check the flagged fields carefully')}</div>
           <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{explainAdvice(a, lang)}</li>)}</ul>
         </div>}
-      {(doc.route_reasons?.length > 0 || doc.duplicates?.length > 0 || doc.consistency?.some((c) => !c.ok)) && doc.status === 'needs_review' &&
+      {/* nothing at all was recognised: usually the wrong page, not a bad scan. Saying so beats
+          seven "missing required field" bullets. */}
+      {doc.fields?.length === 0 && doc.status === 'needs_review' &&
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <div className="flex items-center gap-2 font-medium"><AlertTriangle size={16} /> {t('No land-record fields were found on this page')}</div>
+          <div className="mt-1 text-[13px]">{t('The page was read, but it does not look like a Khatauni, Khasra, Jamabandi or Record of Rights. Check that the right page was uploaded.')}</div>
+        </div>}
+      {doc.fields?.length > 0 && (doc.route_reasons?.length > 0 || doc.duplicates?.length > 0 || doc.consistency?.some((c) => !c.ok)) && doc.status === 'needs_review' &&
         <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           <div className="flex items-center gap-2 font-medium"><AlertTriangle size={16} /> {t('Why this needs a human')}</div>
           <ul className="mt-1 list-disc pl-6 text-[13px]">{doc.route_reasons.slice(0, 8).map((r) => <li key={r}>{explainReason(r, lang)}</li>)}</ul>

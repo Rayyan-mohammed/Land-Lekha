@@ -147,6 +147,8 @@ export const HI = {
   'Extracted fields': 'निकाले गए विवरण',
   'flagged': 'संदिग्ध',
   'auto-accept': 'स्वतः स्वीकृति',
+  'No land-record fields were found on this page': 'इस पन्ने पर भू-अभिलेख का कोई खाना नहीं मिला',
+  'The page was read, but it does not look like a Khatauni, Khasra, Jamabandi or Record of Rights. Check that the right page was uploaded.': 'पन्ना पढ़ लिया गया, पर यह खतौनी, खसरा, जमाबंदी या अधिकार अभिलेख जैसा नहीं लगता। जाँचें कि सही पन्ना अपलोड हुआ है।',
   'Why this needs a human': 'इसे जाँच की ज़रूरत क्यों है',
   'Possible duplicate of existing record': 'मौजूदा अभिलेख की संभावित प्रति',
   'The image is too poor to read reliably — please rescan or retake it': 'चित्र साफ़ पढ़ने योग्य नहीं है — कृपया दोबारा स्कैन करें या फ़ोटो लें',
