@@ -283,3 +283,21 @@ def test_an_admin_can_check_the_audit_trail_has_not_been_rewritten(client):
     body = r.json()
     assert body["ok"] is True and body["checked"] > 0, body
     assert client.get("/api/admin/audit/verify", headers=ver).status_code == 403
+
+
+def test_issuing_an_extract_is_a_verifiers_job(client):
+    """An extract carries the owner's name and the fingerprint a bank checks. The public
+    check that reads that fingerprint back still needs no login at all."""
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+    records = client.get("/api/integration/lrms/records", headers=ver).json()["records"]
+    assert records, "no verified record to issue an extract for"
+    rid = records[0]["record_id"]
+    assert client.get(f"/api/records/{rid}/extract", headers=op).status_code == 403
+    r = client.get(f"/api/records/{rid}/extract", headers=ver)
+    assert r.status_code == 200
+    fp = r.json()["fingerprint"]
+    public = client.get(f"/api/public/records/{rid}/verify", params={"fp": fp})   # no headers at all
+    assert public.status_code == 200 and public.json()["valid"] is True
+    tampered = client.get(f"/api/public/records/{rid}/verify", params={"fp": "0" * len(fp)})
+    assert tampered.status_code == 200 and tampered.json()["valid"] is False

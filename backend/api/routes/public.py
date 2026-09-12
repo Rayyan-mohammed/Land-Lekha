@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from .. import audit
-from ..auth import current_user
+from ..auth import require
 from ..db import get_db
 from ..fingerprint import fingerprint, record_content, short
 from ..models import LandRecord, User, utcnow
@@ -21,8 +21,13 @@ router = APIRouter(tags=["verified extracts"])
 
 
 @router.get("/api/records/{record_id}/extract")
-def extract(record_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(current_user)):
-    """Data for a printable verified extract (the UI renders and prints it)."""
+def extract(record_id: int, request: Request, db: Session = Depends(get_db),
+            user: User = Depends(require("verifier"))):
+    """Data for a printable verified extract (the UI renders and prints it).
+
+    Issuing an extract is a verifier's act - it carries the owner's name and the fingerprint
+    a bank will check - so it sits behind the same door as the rest of the register. The
+    public check below deliberately needs no login at all."""
     r = db.get(LandRecord, record_id)
     if r is None:
         raise HTTPException(404, "record not found")
