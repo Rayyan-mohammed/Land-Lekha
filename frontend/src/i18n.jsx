@@ -262,6 +262,7 @@ export const HI = {
   'every upload, decision, correction, sign-in and integration call, with who and when':
     'हर अपलोड, निर्णय, सुधार, साइन इन और एकीकरण कॉल — किसने और कब',
   'filter events': 'घटनाएँ छाँटें',
+  'Everyone': 'सभी',
   'No events here yet': 'यहाँ अभी कोई घटना नहीं',
   'system': 'सिस्टम',
   'rejected': 'अस्वीकृत',

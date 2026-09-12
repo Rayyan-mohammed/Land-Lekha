@@ -102,6 +102,8 @@ def test_full_flow(client):
 
     stats = client.get("/api/admin/stats", headers=admin).json()
     assert stats["totals"]["land_records"] >= 1 and stats["learning"]["corrections"] >= 1
+    mine = client.get("/api/admin/audit", headers=admin, params={"username": "verifier"}).json()
+    assert mine["items"] and {a["user"] for a in mine["items"]} == {"verifier"}  # audit filtered by person
     actions = {a["action"] for a in client.get("/api/admin/audit", headers=admin).json()["items"]}
     assert {"document.uploaded", "document.processed", "document.verified", "auth.login"} <= actions
 

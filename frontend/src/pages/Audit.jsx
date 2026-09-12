@@ -61,12 +61,15 @@ export default function Audit() {
   const [rows, setRows] = useState(null)
   const [total, setTotal] = useState(0)
   const [action, setAction] = useState('')
+  const [who, setWho] = useState('')          // '' = everyone
+  const [people, setPeople] = useState([])
   const [page, setPage] = useState(1)
   const [error, setError] = useState(null)
+  useEffect(() => { api.users().then(setPeople).catch(() => {}) }, [])
   useEffect(() => {
     setRows(null)
-    api.audit({ action, page, page_size: 50 }).then((r) => { setRows(r.items); setTotal(r.total) }).catch(setError)
-  }, [action, page])
+    api.audit({ action, username: who, page, page_size: 50 }).then((r) => { setRows(r.items); setTotal(r.total) }).catch(setError)
+  }, [action, who, page])
   const fieldName = (n) => FIELD_MAP[n]?.[hi ? 'hi' : 'en'] || n
 
   return <div>
@@ -75,6 +78,12 @@ export default function Audit() {
       {FILTERS.map(([k, label]) => <button key={k || 'all'} aria-pressed={action === k} onClick={() => { setAction(k); setPage(1) }}
         className={`min-h-8 rounded-full border px-3 text-xs font-medium transition-colors duration-200 ${action === k
           ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-brand-500 hover:text-brand-700'}`}>{t(label)}</button>)}
+      {/* "who did this?" — the other half of an audit trail */}
+      <select className="input w-auto py-1 text-xs" value={who} aria-label={t('User')}
+        onChange={(e) => { setWho(e.target.value); setPage(1) }}>
+        <option value="">{t('Everyone')}</option>
+        {people.map((u) => <option key={u.id} value={u.username}>{u.full_name} ({u.username})</option>)}
+      </select>
     </div>
     <ErrorNote error={error} />
     <div className="card">

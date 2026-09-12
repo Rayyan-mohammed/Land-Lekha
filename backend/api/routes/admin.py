@@ -115,7 +115,7 @@ def stats(db: Session = Depends(get_db), user: User = Depends(require("verifier"
 
 @router.get("/audit")
 def audit_log(entity_type: str | None = None, entity_id: int | None = None, action: str | None = None,
-              page: int = Query(1, ge=1), page_size: int = Query(50, ge=1, le=200),
+              username: str | None = None, page: int = Query(1, ge=1), page_size: int = Query(50, ge=1, le=200),
               db: Session = Depends(get_db), user: User = Depends(current_user)):
     stmt = select(AuditLog)
     if user.role != "admin":
@@ -128,6 +128,8 @@ def audit_log(entity_type: str | None = None, entity_id: int | None = None, acti
         stmt = stmt.where(AuditLog.entity_id == entity_id)
     if action:
         stmt = stmt.where(AuditLog.action.like(f"{action}%"))
+    if username:  # "who did this?" — the trail keeps the username as it was at the time
+        stmt = stmt.where(AuditLog.username == username)
     total = db.scalar(select(func.count()).select_from(stmt.subquery()))
     rows = db.scalars(stmt.order_by(AuditLog.ts.desc()).offset((page - 1) * page_size).limit(page_size))
     return {"total": total, "items": [
