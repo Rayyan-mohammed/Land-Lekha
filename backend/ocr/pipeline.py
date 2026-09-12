@@ -11,7 +11,7 @@ import numpy as np
 from .engine import get_engine, group_lines
 from .numbers import NUMBER_PASS, refine_numbers
 from .preprocess import preprocess
-from .quality import assess
+from .quality import assess, precheck
 from .tables import TABLE_CELLS, read_table_cells
 
 # A page that reads badly is read a second time with lighter denoising (see run_ocr).
@@ -123,6 +123,7 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
     engines_used: list[str] = []
     pages_out = []
     for n, (img, text_tokens) in enumerate(load_pages(data, filename), start=1):
+        early_quality = None
         if text_tokens is not None:
             # born-digital PDF page: exact text, no OCR, no geometric changes (boxes stay aligned)
             page_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -131,27 +132,38 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
             quality = assess(page_img, tokens, img.shape)
             used = "pdf-text"
         else:
-            eng = eng or get_engine(engine)
-            page_img, tokens, pre = _read_page(img, eng, do_binarize, None)
-            quality = assess(page_img, tokens, img.shape)
-            # Second chance: strong denoising erases strokes on blurred or faded pages. When a page
-            # reads badly, read it again with lighter denoising and keep that reading. Measured on
-            # the dev set: +13 of 81 fields on fair/poor pages, and never worse on any of them
-            # (eval/results/experiments.md, section 11). Good pages are untouched, so the extra
-            # OCR pass only costs time on pages that were going to a verifier anyway.
-            if RETRY_SOFT and quality["verdict"] != "good":
-                page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H)
+            pre = preprocess(img, do_binarize=do_binarize)
+            early_quality = precheck(pre.image, img.shape)
+            if early_quality is not None:
+                # unusable image (too blurred/low-res even after preprocessing): skip the
+                # 8-12s neural OCR pass and return the retake advice immediately
+                tokens = []
+                pre.steps.append("skipped_ocr:poor_quality")
+                page_img = pre.image
+                quality = early_quality
+                used = "none"
+            else:
+                eng = eng or get_engine(engine)
+                page_img, tokens, pre = _read_page(img, eng, do_binarize, None)
                 quality = assess(page_img, tokens, img.shape)
-                pre.steps.append("second read")
-            # Numbers last, on the reading we keep. Not on a poor page: there the english
-            # recogniser answers confidently with digits that are not on the page at all,
-            # and a confident wrong khasra number is worse than an obviously unsure one.
-            if NUMBER_PASS and quality["verdict"] != "poor":
-                n_numbers = refine_numbers(page_img, tokens, eng)
-                if n_numbers:
-                    pre.steps.append(f"numbers:{n_numbers}")
+                # Second chance: strong denoising erases strokes on blurred or faded pages. When a page
+                # reads badly, read it again with lighter denoising and keep that reading. Measured on
+                # the dev set: +13 of 81 fields on fair/poor pages, and never worse on any of them
+                # (eval/results/experiments.md, section 11). Good pages are untouched, so the extra
+                # OCR pass only costs time on pages that were going to a verifier anyway.
+                if RETRY_SOFT and quality["verdict"] != "good":
+                    page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H)
+                    quality = assess(page_img, tokens, img.shape)
+                    pre.steps.append("second read")
+                # Numbers last, on the reading we keep. Not on a poor page: there the english
+                # recogniser answers confidently with digits that are not on the page at all,
+                # and a confident wrong khasra number is worse than an obviously unsure one.
+                if NUMBER_PASS and quality["verdict"] != "poor":
+                    n_numbers = refine_numbers(page_img, tokens, eng)
+                    if n_numbers:
+                        pre.steps.append(f"numbers:{n_numbers}")
+                used = eng.name
             preprocess_info = {"deskew_angle": pre.deskew_angle, "steps": pre.steps, "scale": pre.scale}
-            used = eng.name
         if used not in engines_used:
             engines_used.append(used)
         image_path = None

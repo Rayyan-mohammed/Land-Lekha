@@ -175,16 +175,43 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
     class_rows = _below_rows("land_classification")
     parcels_list: list[dict] = []
     if max(len(khasra_rows), len(area_rows), len(class_rows)) > 1:
-        for i in range(max(len(khasra_rows), len(area_rows), len(class_rows))):
+        # Rows are matched by vertical position, not list index: if OCR drops a single
+        # cell in one column (e.g. a blank land-classification box), naive index-zip
+        # would shift every row after it and misalign the remaining columns.
+        columns = {"khasra_number": khasra_rows, "plot_area": area_rows, "land_classification": class_rows}
+        anchor_name = max(columns, key=lambda n: len(columns[n]))
+        anchors = [c.bbox[1] for c in columns[anchor_name] if c.bbox]
+        gaps = [b - a for a, b in zip(anchors, anchors[1:])]
+        tolerance = max(15, (sorted(gaps)[len(gaps) // 2] if gaps else 30) * 0.5)
+        used = {name: set() for name in columns}
+
+        def _nearest(name: str, y: float):
+            best_idx, best_dist = None, tolerance
+            for idx, c in enumerate(columns[name]):
+                if idx in used[name] or not c.bbox:
+                    continue
+                dist = abs(c.bbox[1] - y)
+                if dist <= best_dist:
+                    best_idx, best_dist = idx, dist
+            if best_idx is not None:
+                used[name].add(best_idx)
+                return columns[name][best_idx]
+            return None
+
+        row_ys = anchors or [c.bbox[1] for c in (area_rows or class_rows) if c.bbox]
+        for y in row_ys:
             row: dict = {}
-            if i < len(khasra_rows):
-                row["khasra_number"] = PARSERS["khasra_number"](khasra_rows[i].text).value
-            if i < len(area_rows):
-                ap = parse_area(area_rows[i].text, find_unit(area_rows[i].context), bigha, default_unit)
+            k = _nearest("khasra_number", y)
+            if k:
+                row["khasra_number"] = PARSERS["khasra_number"](k.text).value
+            a = _nearest("plot_area", y)
+            if a:
+                ap = parse_area(a.text, find_unit(a.context), bigha, default_unit)
                 row["plot_area"] = ap.value
                 row["plot_area_normalized"] = ap.normalized
-            if i < len(class_rows):
-                row["land_classification"] = PARSERS["land_classification"](class_rows[i].text).value
+            cl = _nearest("land_classification", y)
+            if cl:
+                row["land_classification"] = PARSERS["land_classification"](cl.text).value
             parcels_list.append(row)
         if khasra_rows:
             fields["khasra_number"] = _field("khasra_number", khasra_rows[0], PARSERS["khasra_number"](khasra_rows[0].text))

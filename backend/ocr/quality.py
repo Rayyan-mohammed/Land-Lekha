@@ -15,6 +15,37 @@ FAIR_CONFIDENCE = 0.4
 MIN_TEXT_HEIGHT = 14      # px in the preprocessed page; smaller text is misread often
 MIN_LONG_SIDE = 1000      # px of the original upload (~120 dpi for A4)
 MIN_TOKENS = 5
+GLARE_PIXEL_THRESHOLD = 248   # near-pure-white: a flash/sunlight reflection off the paper
+GLARE_AREA_FRACTION = 0.02    # a flatbed scan can legitimately have some bright margin;
+                              # a phone-photo glare spot is small and blown out, not the margin
+# below this sharpness even after preprocessing, OCR reliably reads nothing usable
+# (eval/results/experiments.md dev set) - checked before the neural OCR pass runs, so an
+# obviously unusable phone photo is rejected in milliseconds instead of after 8-12s of OCR.
+HOPELESS_SHARPNESS = 90.0
+
+
+def has_glare(gray: np.ndarray) -> bool:
+    """A phone flash or direct sunlight reflecting off the page leaves a small, almost
+    pure-white blown-out patch - distinct from ordinary bright paper, which is closer to
+    200-230 and covers the whole page rather than a concentrated spot."""
+    frac = float(np.mean(gray >= GLARE_PIXEL_THRESHOLD))
+    return frac >= GLARE_AREA_FRACTION
+
+
+def precheck(gray: np.ndarray, original_shape: tuple[int, ...]) -> dict | None:
+    """Fast checks that need only the preprocessed image, no OCR tokens. Returns a
+    verdict dict to skip OCR entirely, or None to proceed to the full neural OCR pass."""
+    sharpness = edge_sharpness(gray)
+    long_side = max(original_shape[:2])
+    advice = []
+    if sharpness < HOPELESS_SHARPNESS:
+        advice.append("image is too blurred to read - hold the camera steady, tap to focus and retake")
+    if long_side < MIN_LONG_SIDE:
+        advice.append(f"low resolution ({long_side}px) - use at least {MIN_LONG_SIDE}px / 150 dpi")
+    if not advice:
+        return None
+    return {"verdict": "poor", "median_confidence": 0.0, "sharpness": round(sharpness, 1),
+           "text_height_px": 0.0, "tokens": 0, "advice": advice, "skipped_ocr": True}
 
 
 def assess(gray: np.ndarray, tokens: list[dict], original_shape: tuple[int, ...]) -> dict:
@@ -42,6 +73,8 @@ def assess(gray: np.ndarray, tokens: list[dict], original_shape: tuple[int, ...]
             advice.append("text is small - move the camera closer or scan at 300 dpi")
         if long_side < MIN_LONG_SIDE:
             advice.append(f"low resolution ({long_side}px) - use at least {MIN_LONG_SIDE}px / 150 dpi")
+        if has_glare(gray):
+            advice.append("glare or reflection detected - avoid direct light/flash on the page, or tilt the camera")
         if not advice:
             advice.append("text is hard to read - retake in even light, or scan the page")
     return {
