@@ -31,7 +31,10 @@ Land records sit in handwritten registers and old scans, and they get retyped by
   - Right: each value, the raw OCR text, and *why* it was flagged.
   - Places are checked against the master database (village ∈ tehsil ∈ district).
 - Correct one flagged value and **Approve**. Say: *"the verifier doesn't retype the document, they check one or two fields"*.
-- Mention: the correction is stored, and the same misreading is fixed automatically next time (the learning loop).
+- Mention: the correction is stored, and the same misreading is fixed automatically next time (the learning loop). If a judge
+  pushes on it, run the test in front of them — it corrects one owner's name, sends in a second document misread the same
+  way, and asserts the fix arrived with no person involved:
+  `python -m pytest tests/test_api.py -k carried_over -q` (about 6 seconds, no OCR model needed).
 - Close the tab halfway through a review and open the document again: the unsaved corrections come back, so nothing is lost if the power or the connection drops. **Skip** leaves a hard document for later without losing those corrections.
 - Upload and open **`09-multi-owner-khatauni.jpg`**: one khata, three co-owners, three khasra rows. The review screen lists every co-owner with their father's name, and every parcel row. Real Khataunis look like this; a single "owner" field would lose two of the three owners.
 
