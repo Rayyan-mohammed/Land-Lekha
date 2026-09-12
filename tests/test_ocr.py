@@ -188,6 +188,63 @@ def test_badly_read_page_gets_a_second_read(monkeypatch):
     assert out["pages"][0]["quality"]["verdict"] == "good"  # the second reading is the one kept
 
 
+def test_precheck_rejection_is_rechecked_on_lighter_denoise(monkeypatch):
+    """precheck() runs on the default (heavier) denoise, which can erase strokes on a blurred
+    page and make it look hopeless when it isn't. A page precheck rejects must be re-checked
+    on the lighter denoise the second-read retry uses before OCR is skipped entirely - a page
+    that page actually reads is not treated as hopeless."""
+    from backend.ocr import pipeline
+
+    calls = []
+
+    def fake_precheck(gray, shape):
+        calls.append(gray.shape)
+        # first call (default denoise): hopeless; second call (light denoise): readable
+        return {"verdict": "poor", "median_confidence": 0.0, "sharpness": 10.0, "text_height_px": 0.0,
+                "tokens": 0, "advice": ["image is too blurred to read - hold the camera steady, tap to focus and retake"],
+                "skipped_ocr": True} if len(calls) == 1 else None
+
+    class Eng:
+        name = "fake"
+        languages = ["hi", "en"]
+
+        def recognize(self, gray):
+            return [{"text": "क", "confidence": 0.9, "bbox": [40 * i, 40, 40 * i + 30, 70]} for i in range(8)]
+
+        def sample_confidence(self, gray, boxes):
+            return 0.9
+
+    monkeypatch.setattr(pipeline, "precheck", fake_precheck)
+    monkeypatch.setattr(pipeline, "get_engine", lambda name: Eng())
+    png = cv2.imencode(".png", _text_page())[1].tobytes()
+    out = pipeline.run_ocr(png, "page.png")
+
+    assert len(calls) == 2, "must be rechecked on the lighter denoise before giving up"
+    steps = out["pages"][0]["preprocess"]["steps"]
+    assert "precheck retry" in steps and any(s.startswith("denoise h") for s in steps)
+    assert "skipped_ocr:poor_quality" not in steps, "a page that reads fine on the retry must not be skipped"
+    assert out["pages"][0]["tokens"], "OCR should have actually run"
+
+
+def test_precheck_rejection_stands_when_still_hopeless_on_retry(monkeypatch):
+    """If the lighter-denoise recheck is still hopeless, OCR is genuinely skipped - the retry
+    is a second chance, not a way to always force a read."""
+    from backend.ocr import pipeline
+
+    hopeless = {"verdict": "poor", "median_confidence": 0.0, "sharpness": 10.0, "text_height_px": 0.0,
+                "tokens": 0, "advice": ["image is too blurred to read - hold the camera steady, tap to focus and retake"],
+                "skipped_ocr": True}
+    monkeypatch.setattr(pipeline, "precheck", lambda gray, shape: hopeless)
+    engine_called = []
+    monkeypatch.setattr(pipeline, "get_engine", lambda name: engine_called.append(1))
+    png = cv2.imencode(".png", _text_page())[1].tobytes()
+    out = pipeline.run_ocr(png, "page.png")
+
+    assert not engine_called, "still-hopeless pages must not run the neural OCR pass"
+    assert "skipped_ocr:poor_quality" in out["pages"][0]["preprocess"]["steps"]
+    assert out["pages"][0]["quality"]["verdict"] == "poor"
+
+
 def test_well_read_page_is_read_once(monkeypatch):
     from backend.ocr import pipeline
 

@@ -57,20 +57,25 @@ def load_pages(data: bytes, filename: str = "") -> list[tuple[np.ndarray, list[d
 
         pages = []
         scale = PDF_DPI / 72
-        with fitz.open(stream=data, filetype="pdf") as pdf:
-            for i, page in enumerate(pdf):
-                if i >= MAX_PAGES:
-                    break
-                pix = page.get_pixmap(dpi=PDF_DPI)
-                arr = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width, pix.n)
-                img = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR if pix.n == 3 else cv2.COLOR_RGBA2BGR)
-                words = page.get_text("words")  # x0, y0, x1, y1, word, block, line, word_no
-                tokens = None
-                if text_layer_usable([w[4] for w in words]):
-                    tokens = [{"text": w[4], "confidence": TEXT_LAYER_CONFIDENCE,
-                               "bbox": [int(w[0] * scale), int(w[1] * scale), int(w[2] * scale) + 1, int(w[3] * scale) + 1]}
-                              for w in words]
-                pages.append((img, tokens))
+        try:
+            with fitz.open(stream=data, filetype="pdf") as pdf:
+                for i, page in enumerate(pdf):
+                    if i >= MAX_PAGES:
+                        break
+                    pix = page.get_pixmap(dpi=PDF_DPI)
+                    arr = np.frombuffer(pix.samples, np.uint8).reshape(pix.height, pix.width, pix.n)
+                    img = cv2.cvtColor(arr, cv2.COLOR_RGB2BGR if pix.n == 3 else cv2.COLOR_RGBA2BGR)
+                    words = page.get_text("words")  # x0, y0, x1, y1, word, block, line, word_no
+                    tokens = None
+                    if text_layer_usable([w[4] for w in words]):
+                        tokens = [{"text": w[4], "confidence": TEXT_LAYER_CONFIDENCE,
+                                   "bbox": [int(w[0] * scale), int(w[1] * scale), int(w[2] * scale) + 1, int(w[3] * scale) + 1]}
+                                  for w in words]
+                    pages.append((img, tokens))
+        except ValueError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - PyMuPDF raises its own exception types for a corrupt file
+            raise ValueError("unsupported or corrupt PDF file") from exc
         if not pages:
             raise ValueError("PDF has no pages")
         return pages
@@ -136,6 +141,15 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
         else:
             pre = preprocess(img, do_binarize=do_binarize)
             early_quality = precheck(pre.image, img.shape)
+            retried_precheck = False
+            if early_quality is not None and RETRY_SOFT:
+                # precheck ran on the default (heavier) denoise, which can erase strokes on a
+                # blurred page and make it look hopeless when it isn't. Before giving up on
+                # OCR entirely, check again on the same lighter denoise the second-read retry
+                # below uses - if that reads as hopeless too, it really is unreadable.
+                light = preprocess(img, do_binarize=do_binarize, denoise_h=RETRY_DENOISE_H)
+                if precheck(light.image, img.shape) is None:
+                    early_quality, pre, retried_precheck = None, light, True
             if early_quality is not None:
                 # unusable image (too blurred/low-res even after preprocessing): skip the
                 # 8-12s neural OCR pass and return the retake advice immediately
@@ -146,14 +160,17 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
                 used = "none"
             else:
                 eng = eng or get_engine(engine)
-                page_img, tokens, pre = _read_page(img, eng, do_binarize, None)
+                page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H if retried_precheck else None)
                 quality = assess(page_img, tokens, img.shape)
+                if retried_precheck:
+                    pre.steps.append("precheck retry")
                 # Second chance: strong denoising erases strokes on blurred or faded pages. When a page
                 # reads badly, read it again with lighter denoising and keep that reading. Measured on
                 # the dev set: +13 of 81 fields on fair/poor pages, and never worse on any of them
                 # (eval/results/experiments.md, section 11). Good pages are untouched, so the extra
-                # OCR pass only costs time on pages that were going to a verifier anyway.
-                if RETRY_SOFT and quality["verdict"] != "good":
+                # OCR pass only costs time on pages that were going to a verifier anyway. Skipped if
+                # the precheck retry above already used this same lighter denoise.
+                if RETRY_SOFT and quality["verdict"] != "good" and not retried_precheck:
                     page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H)
                     quality = assess(page_img, tokens, img.shape)
                     pre.steps.append("second read")
