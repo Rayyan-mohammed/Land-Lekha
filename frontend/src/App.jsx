@@ -1,4 +1,4 @@
-import { lazy } from 'react'
+import { lazy, useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth'
 import Layout from './components/Layout'
@@ -25,9 +25,35 @@ function Guard({ roles, children }) {
   return can(...roles) ? children : <Navigate to="/" replace />
 }
 
+// Screens are loaded per route, so the first visit to each one waits for its chunk. Tehsil
+// offices are often on a slow line, so once the app is idle we fetch the screens this person
+// will actually open next, in the order they usually open them.
+const NEXT_SCREENS = {
+  operator: [() => import('./pages/Documents'), () => import('./pages/DocumentView'), () => import('./pages/Records')],
+  verifier: [() => import('./pages/DocumentView'), () => import('./pages/Documents'), () => import('./pages/Dashboard'), () => import('./pages/Records')],
+  admin: [() => import('./pages/Records'), () => import('./pages/Documents'), () => import('./pages/Audit')],
+}
+
+function usePrefetch(role) {
+  useEffect(() => {
+    if (!role || navigator.connection?.saveData) return   // respect "data saver"
+    let cancelled = false
+    const load = async () => {
+      for (const screen of NEXT_SCREENS[role] || []) {
+        if (cancelled) return
+        try { await screen() } catch { return }           // offline: the route will load it later
+      }
+    }
+    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1500))
+    const id = idle(load, { timeout: 4000 })
+    return () => { cancelled = true; window.cancelIdleCallback?.(id) }
+  }, [role])
+}
+
 export default function App() {
   const { user, ready, offline, retry } = useAuth()
   const location = useLocation()
+  usePrefetch(user?.role)
   // the QR code on a printed extract opens this page: it must work without logging in
   if (location.pathname.startsWith('/verify/')) return <Routes><Route path="/verify/:id" element={<Verify />} /></Routes>
   if (!ready) return <div className="flex h-full items-center justify-center"><Spinner /></div>
