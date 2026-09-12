@@ -128,6 +128,8 @@ export const HI = {
   'Uploads, last 14 days': 'पिछले 14 दिनों के अपलोड',
   'State-wise and district-wise progress': 'राज्य और जिलेवार प्रगति',
   'Digitized = auto-accepted + verified': 'डिजिटल = स्वतः स्वीकृत + सत्यापित',
+  'Digitization map': 'डिजिटलीकरण मानचित्र',
+  'Circle size = documents received, colour = share digitized': 'गोले का आकार = प्राप्त दस्तावेज़, रंग = डिजिटल हुआ हिस्सा',
   'Confidence distribution': 'विश्वसनीयता वितरण',
   'Accuracy by field': 'विवरणवार शुद्धता',
   'Share of reviewed fields the verifier left unchanged': 'जाँचे गए विवरण जिन्हें बदला नहीं गया',

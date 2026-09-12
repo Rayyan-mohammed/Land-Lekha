@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, ArrowRight, Brain, CheckCircle2, Clock, FileStack, Gauge, Hourglass, ScanText, Target } from 'lucide-react'
 import { api } from '../api'
@@ -53,6 +54,11 @@ export default function Dashboard() {
   const hist = s.confidence.histogram.map((n, i) => ({ bucket: `${i * 10}–${i * 10 + 10}%`, documents: n }))
   const perField = Object.entries(s.accuracy.per_field).map(([k, v]) => ({ field: FIELD_MAP[k]?.[lang === 'hi' ? 'hi' : 'en'] || k, accuracy: Math.round(v.accuracy * 100), n: v.confirmed + v.corrected + v.rejected }))
     .sort((a, b) => a.accuracy - b.accuracy)
+  // districts with known HQ coordinates (master data covers 10), each with its digitized share
+  const districtPoints = s.geography.flatMap((g) => g.districts.filter((d) => d.lat != null).map((d) => {
+    const done = (d.auto_accepted || 0) + (d.verified || 0)
+    return { ...d, state: g.state, pct: d.total ? done / d.total : 0 }
+  }))
 
   return <div className="space-y-4">
     <PageHeader title={`${greeting(tr)}, ${user?.full_name?.split(' ')[0] || ''}`}
@@ -131,6 +137,20 @@ export default function Dashboard() {
           ])}</tbody>
         </table></div>
         {s.geography.length === 0 && <div className="text-sm text-slate-500">{tr('No data yet.')}</div>}
+      </Section>
+      <Section title="Digitization map" subtitle="Circle size = documents received, colour = share digitized" className="lg:col-span-2">
+        <div className="h-64 overflow-hidden rounded-lg">
+          <MapContainer center={[24.5, 80]} zoom={5} className="h-full w-full" scrollWheelZoom={false}>
+            <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            {districtPoints.map((d) => <CircleMarker key={`${d.state}-${d.district}`} center={[d.lat, d.lon]}
+              radius={Math.max(8, Math.min(28, Math.sqrt(d.total) * 3))}
+              pathOptions={{ color: d.pct >= 0.66 ? '#15803d' : d.pct >= 0.33 ? '#d97706' : '#b91c1c',
+                            fillColor: d.pct >= 0.66 ? '#15803d' : d.pct >= 0.33 ? '#d97706' : '#b91c1c', fillOpacity: 0.55, weight: 2 }}>
+              <Popup><b>{tr(d.district)}</b>, {tr(d.state)}<br />{d.total} {tr('received')} · {Math.round(d.pct * 100)}% {tr('digitized')}</Popup>
+            </CircleMarker>)}
+          </MapContainer>
+        </div>
+        {districtPoints.length === 0 && <div className="mt-2 text-sm text-slate-500">{tr('No data yet.')}</div>}
       </Section>
       <Section title="Confidence distribution" subtitle={`${tr('Documents by overall confidence')} · ${tr('auto-accept threshold')} ${pct(s.confidence.threshold, 0)} ${tr('per field')}`}>
         <ResponsiveContainer width="100%" height={240}>
