@@ -402,6 +402,7 @@ export const HI = {
   'you cannot demote or deactivate yourself': 'आप स्वयं को पद से हटा या निष्क्रिय नहीं कर सकते',
   'ValueError: PDF has no pages': 'PDF में कोई पन्ना नहीं है',
   'ValueError: unsupported or corrupt image file': 'फ़ाइल असमर्थित या ख़राब है',
+  'ValueError: unsupported or corrupt PDF file': 'PDF असमर्थित या ख़राब है',
 }
 
 const KEY = 'landlekha.lang'
