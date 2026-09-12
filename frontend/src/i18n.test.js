@@ -29,6 +29,12 @@ function translatedKeys(code) {
   return keys
 }
 
+// Text that reaches the screen without passing through t() in the same file: a title/subtitle
+// prop the component translates for us (<Section title="..."), and a plain tooltip.
+function attributeStrings(code) {
+  return new Set([...code.matchAll(/\s(?:title|subtitle|placeholder)="([^"]+)"/g)].map((m) => m[1]))
+}
+
 describe('Hindi translations', () => {
   it('cover every string the screens pass to t()', () => {
     const missing = []
@@ -40,6 +46,16 @@ describe('Hindi translations', () => {
       }
     }
     expect(checked).toBeGreaterThan(100) // the scan itself works (a broken pattern would find nothing)
+    expect(missing).toEqual([])
+  })
+
+  it('cover the titles handed to a component that translates them', () => {
+    const missing = []
+    for (const file of sourceFiles(SRC)) {
+      for (const key of attributeStrings(readFileSync(file, 'utf8'))) {
+        if (!HI[key]) missing.push(`${file.slice(SRC.length + 1)}: ${key}`)
+      }
+    }
     expect(missing).toEqual([])
   })
 
