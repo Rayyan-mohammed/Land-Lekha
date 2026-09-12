@@ -125,6 +125,10 @@ def audit_log(entity_type: str | None = None, entity_id: int | None = None, acti
         # non-admins may only read the trail of a specific document
         if entity_type != "document" or entity_id is None:
             raise HTTPException(403, "only admins can browse the full audit log")
+        # ...and only of a document they are allowed to open. Without this an operator could
+        # walk document ids and read who reviewed what, with the reviewers' IP addresses.
+        # A document that does not exist simply yields an empty trail, which tells the caller
+        # nothing about which ids are real.
         if user.role == "operator":
             doc = db.get(Document, entity_id)
             if doc is not None and doc.uploaded_by != user.id:

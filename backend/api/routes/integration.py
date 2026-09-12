@@ -52,10 +52,13 @@ def _lrms_record(r: LandRecord) -> dict:
     }
 
 
+# Verified records hold owner and father names, khata and khasra numbers. An operator
+# uploads pages and sees their own uploads (routes/documents.py); they have no business
+# reading the whole register, so every record read here is verifier-and-above.
 @router.get("/lrms/records")
 def lrms_records(district: str | None = None, village: str | None = None, khata: str | None = None,
                  khasra: str | None = None, limit: int = 100, db: Session = Depends(get_db),
-                 user: User = Depends(current_user)):
+                 user: User = Depends(require("verifier"))):
     """Query verified records in LRMS exchange format."""
     stmt = select(LandRecord)
     for col, val in ((LandRecord.district, district), (LandRecord.village, village),
@@ -67,7 +70,7 @@ def lrms_records(district: str | None = None, village: str | None = None, khata:
 
 
 @router.get("/lrms/records/{record_id}")
-def lrms_record(record_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+def lrms_record(record_id: int, db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
     r = db.get(LandRecord, record_id)
     if r is None:
         raise HTTPException(404, "record not found")
@@ -91,7 +94,7 @@ def lrms_push(record_id: int, request: Request, db: Session = Depends(get_db), u
 
 
 @router.get("/dilrmp/progress")
-def dilrmp_progress(db: Session = Depends(get_db), user: User = Depends(current_user)):
+def dilrmp_progress(db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
     """DILRMP-style MIS progress report: digitization status by state and district."""
     rows = db.execute(select(Document.state, Document.district, Document.status, func.count())
                       .group_by(Document.state, Document.district, Document.status)).all()
@@ -140,7 +143,7 @@ def _feature(r: LandRecord) -> dict:
 
 
 @router.get("/gis/parcels")
-def gis_parcels(district: str | None = None, db: Session = Depends(get_db), user: User = Depends(current_user)):
+def gis_parcels(district: str | None = None, db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
     """GeoJSON FeatureCollection of digitized parcels (synthetic geometry)."""
     stmt = select(LandRecord)
     if district:
@@ -150,7 +153,7 @@ def gis_parcels(district: str | None = None, db: Session = Depends(get_db), user
 
 
 @router.get("/gis/parcels/{record_id}")
-def gis_parcel(record_id: int, db: Session = Depends(get_db), user: User = Depends(current_user)):
+def gis_parcel(record_id: int, db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
     r = db.get(LandRecord, record_id)
     if r is None:
         raise HTTPException(404, "record not found")

@@ -29,7 +29,7 @@ function Guard({ roles, children }) {
 // offices are often on a slow line, so once the app is idle we fetch the screens this person
 // will actually open next, in the order they usually open them.
 const NEXT_SCREENS = {
-  operator: [() => import('./pages/Documents'), () => import('./pages/DocumentView'), () => import('./pages/Records')],
+  operator: [() => import('./pages/Documents'), () => import('./pages/DocumentView'), () => import('./pages/Upload')],
   verifier: [() => import('./pages/DocumentView'), () => import('./pages/Documents'), () => import('./pages/Dashboard'), () => import('./pages/Records')],
   admin: [() => import('./pages/Records'), () => import('./pages/Documents'), () => import('./pages/Audit')],
 }
@@ -68,8 +68,8 @@ export default function App() {
       <Route path="documents/:id" element={<DocumentView />} />
       <Route path="review" element={<Guard roles={['verifier']}><ReviewQueue /></Guard>} />
       <Route path="dashboard" element={<Guard roles={['verifier']}><Dashboard /></Guard>} />
-      <Route path="records" element={<Records />} />
-      <Route path="records/:id/extract" element={<Extract />} />
+      <Route path="records" element={<Guard roles={['verifier']}><Records /></Guard>} />
+      <Route path="records/:id/extract" element={<Guard roles={['verifier']}><Extract /></Guard>} />
       <Route path="help" element={<Help />} />
       <Route path="audit" element={<Guard roles={[]}><Audit /></Guard>} />
       <Route path="users" element={<Guard roles={[]}><UsersPage /></Guard>} />

@@ -12,7 +12,7 @@ const NAV = [
   { to: '/documents', label: 'Documents', icon: FileStack, roles: ['operator', 'verifier'] },
   { to: '/review', label: 'Review queue', icon: ClipboardCheck, roles: ['verifier'] },
   { to: '/dashboard', label: 'Dashboard', icon: BarChart3, roles: ['verifier'] },
-  { to: '/records', label: 'Records & GIS', icon: Map, roles: ['operator', 'verifier'] },
+  { to: '/records', label: 'Records & GIS', icon: Map, roles: ['verifier'] },  // the register carries owner names
   { to: '/audit', label: 'Audit trail', icon: ScrollText, roles: [] },
   { to: '/users', label: 'Users', icon: Users, roles: [] },
   { to: '/help', label: 'Help', icon: CircleHelp, roles: ['operator', 'verifier'] },

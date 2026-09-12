@@ -130,6 +130,12 @@ async def get_context(request: Request) -> dict:
     if user is None or not user.active:
         db.close()
         raise HTTPException(401, "invalid or expired token")
+    # Every query here reads verified land records, which carry owner names. That is the same
+    # data REST serves from /api/integration/lrms/*, and it is gated the same way: an operator
+    # uploads pages and sees their own uploads, and does not get the register through GraphQL.
+    if user.role not in ("verifier", "admin"):
+        db.close()
+        raise HTTPException(403, "requires role: verifier")
     return {"db": db, "user": user}
 
 

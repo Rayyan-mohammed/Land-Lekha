@@ -111,14 +111,14 @@ def test_full_flow(client):
     assert {"document.uploaded", "document.processed", "document.verified", "auth.login"} <= actions
 
     # integrations
-    recs = client.get("/api/integration/lrms/records", headers=op).json()["records"]
+    recs = client.get("/api/integration/lrms/records", headers=ver).json()["records"]  # verifier and above
     rec = next(x for x in recs if x["provenance"]["source_document_id"] == doc["id"])
     assert rec["account"]["owners"][0]["name"] == "Ram Prasad Sharma"
     push = client.post(f"/api/integration/lrms/push/{rec['record_id']}", headers=ver).json()
     assert push["mock"] is True and push["lrms_ref"].startswith("LRMS-UP-")
-    gis = client.get("/api/integration/gis/parcels", headers=op).json()
+    gis = client.get("/api/integration/gis/parcels", headers=ver).json()
     assert gis["type"] == "FeatureCollection" and gis["features"]
-    assert client.get("/api/integration/dilrmp/progress", headers=op).json()["states"]
+    assert client.get("/api/integration/dilrmp/progress", headers=ver).json()["states"]
 
 
 def test_verified_extract_detects_tampering(client):
@@ -198,3 +198,31 @@ def test_a_page_that_is_not_a_land_record_invents_nothing(client):
     assert doc["fields"] == []          # nothing was recognised, so nothing is offered as fact
     assert doc["record_id"] is None     # and nothing reached the register
     assert doc["overall_confidence"] in (None, 0.0)
+
+
+def test_an_operator_cannot_read_the_register_or_other_peoples_trails(client):
+    """Least privilege. An operator uploads pages and sees their own uploads; they do not get
+    every district's owner names through the integration APIs, GraphQL, or the audit trail."""
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+
+    for path in ("/api/integration/lrms/records", "/api/integration/gis/parcels",
+                 "/api/integration/dilrmp/progress"):
+        assert client.get(path, headers=op).status_code == 403, path
+        assert client.get(path, headers=ver).status_code == 200, path
+
+    q = {"query": "{ landRecords { recordId khataNumber } }"}
+    assert client.post("/api/graphql", headers=op, json=q).status_code == 403
+    assert client.post("/api/graphql", headers=ver, json=q).status_code == 200
+
+    # the audit trail of somebody else's document is not browsable by id
+    admin = _login(client, "admin", "admin@123")
+    others = client.get("/api/documents", headers=admin).json()["items"]
+    mine = {d["id"] for d in client.get("/api/documents", headers=op).json()["items"]}
+    not_mine = next((d["id"] for d in others if d["id"] not in mine), None)
+    if not_mine is not None:
+        r = client.get("/api/admin/audit", headers=op, params={"entity_type": "document", "entity_id": not_mine})
+        assert r.status_code == 403, r.text
+    own = next(iter(mine))
+    assert client.get("/api/admin/audit", headers=op,
+                      params={"entity_type": "document", "entity_id": own}).status_code == 200
