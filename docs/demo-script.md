@@ -36,6 +36,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 
 ## 4. Governance (1 min) — log in as `admin`
 - **Dashboard**: documents processed, auto-accept rate, pending verification, error statistics, state- and district-wise progress, benchmark CER and field accuracy.
+- **Documents**: filter to one status (or search a district) and press **CSV** — the day's list for a progress report, with status, confidence and fields still to check. The status bars on the dashboard open the same filtered list.
 - **Records & GIS**: the verified record in LRMS exchange format with every co-owner and parcel row, **Push** to LRMS (simulated acknowledgement), the parcel on the map, the DILRMP progress report, and a **CSV** download of the list for the tehsil office. Press **Not sent to LRMS**, then **Send all to LRMS**: the day's backlog goes in one click, with one summary message.
 - Open **Extract** on a record: the printed copy is bilingual (English and Hindi) with a QR code. Scan it with a phone: the public check page says whether the paper still matches the record, in both languages.
 - **Audit trail**: every upload, decision and correction, with who, when and from which IP. Filter by person or by kind of event, and press **CSV** to keep a copy for the compliance file.
