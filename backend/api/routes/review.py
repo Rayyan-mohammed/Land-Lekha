@@ -15,6 +15,7 @@ from ..auth import require
 from ..config import AUTO_ACCEPT_THRESHOLD
 from ..db import get_db
 from ..models import Correction, Document, ExtractedField, User, utcnow
+from ..notifications import notify_document_reviewed
 from ..processing import invalidate_memory, upsert_record
 from ..schemas import DocumentSummary, VerifyIn
 
@@ -131,4 +132,6 @@ def verify(doc_id: int, body: VerifyIn, request: Request, db: Session = Depends(
               {"changes": changes, "note": body.note}, request)
     db.commit()
     invalidate_memory()
+    notify_document_reviewed(uploader_email=None, uploader_name=doc.uploader.full_name if doc.uploader else "operator",
+                             document_id=doc.id, status=doc.status, reviewer_name=user.full_name, note=doc.review_note)
     return {"id": doc.id, "status": doc.status, "changes": changes}

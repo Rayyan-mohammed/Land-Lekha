@@ -19,6 +19,7 @@ from sqlalchemy import select
 from .auth import hash_password
 from .config import CORS_ORIGINS, ROOT, SEED_DEMO_USERS
 from .db import Base, SessionLocal, engine, upgrade_schema
+from .graphql_api import graphql_router
 from .models import Document, User
 from .routes import admin, auth, documents, integration, public, review
 
@@ -79,6 +80,7 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_credentials
 
 for r in (auth.router, documents.router, review.router, admin.router, integration.router, public.router):
     app.include_router(r)
+app.include_router(graphql_router, tags=["integration (mock external systems)"])
 
 
 @app.get("/api/health", tags=["meta"])

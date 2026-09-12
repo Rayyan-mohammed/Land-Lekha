@@ -11,5 +11,6 @@ pillow>=10.0
 pymupdf>=1.24
 easyocr>=1.7
 rapidfuzz>=3.6
+strawberry-graphql>=0.230  # GraphQL integration surface (PS 26018 REST/GraphQL requirement)
 # dataset generator only
 playwright>=1.45
