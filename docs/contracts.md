@@ -36,6 +36,13 @@ These are the only shapes each track can rely on from its neighbour. Change them
 * A page whose first reading is not `good` is read a second time with lighter denoising (h=5) and that
   reading is kept; `steps` then contains `denoise h5` and ends with `second read`. Pages that read well
   are read once. Turn it off with `LL_OCR_RETRY_SOFT=0`.
+* Number tokens that read unsurely are read a second time by an **english-only** recogniser
+  and replaced when it is clearly more confident; `steps` then contains `numbers:<how many>`.
+  Only tokens written in Latin digits, or holding a letter no number can contain, are offered:
+  a date that came out as `०२/०३/२००२` is already right and is left alone, and so is anything
+  with a Devanagari letter in it (`1124/6क`). Poor pages are skipped entirely - there the
+  english reader answers confidently with digits that are not on the page. `LL_OCR_NUMBER_PASS=0`
+  turns it off.
 * `quality.verdict` is `good` / `fair` / `poor` (thresholds from the dev set: median token confidence < 0.2 gave no correct fields, 0.2–0.4 was unreliable). `advice` holds plain-language retake tips. **Surface `poor` pages to the operator right after upload (L3), and route them to review with the advice as the reason (L2).**
 
 ## B → C: extraction output (`backend/extraction` → `backend/api`)
