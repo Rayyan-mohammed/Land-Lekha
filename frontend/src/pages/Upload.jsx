@@ -62,7 +62,9 @@ export default function UploadPage() {
       const key = `${file.name}-${file.size}-${Math.random()}`
       const problem = fileProblem(file)
       if (problem) {
-        setItems((xs) => [{ key, file, doc: null, error: t(problem), started: Date.now() }, ...xs])
+        // stored untranslated (translated at render time below) so it retranslates if the
+        // operator switches language after the error is already on screen
+        setItems((xs) => [{ key, file, doc: null, error: problem, started: Date.now() }, ...xs])
         continue
       }
       setItems((xs) => [{ key, file, doc: null, error: null, started: Date.now() }, ...xs])
@@ -71,7 +73,7 @@ export default function UploadPage() {
         setItems((xs) => xs.map((x) => (x.key === key ? { ...x, doc } : x)))
       } catch (e) {
         const dupId = e.detail?.document_id
-        setItems((xs) => xs.map((x) => (x.key === key ? { ...x, error: t(e.message), dupId } : x)))
+        setItems((xs) => xs.map((x) => (x.key === key ? { ...x, error: e.message, dupId } : x)))
         toast(`${file.name}: ${t(dupId ? 'already uploaded' : 'could not be uploaded')}`, { type: dupId ? 'info' : 'error', body: t(e.message) })
       }
     }
@@ -183,7 +185,7 @@ export default function UploadPage() {
             <div className="text-xs text-slate-500">
               {/* a duplicate is not a failure: the file is already on record, so say so plainly and link to it */}
               {x.dupId ? <span className="text-slate-600">{t('already uploaded')} — <Link className="underline" to={`/documents/${x.dupId}`}>{t('open existing')}</Link></span>
-                : x.error ? <span className="text-bad">{x.error}</span>
+                : x.error ? <span className="text-bad">{t(x.error)}</span>
                 : !d ? t('Uploading…')
                   : !done ? t('usually 10–30 seconds per page; a blurred page is read twice and takes longer; digital PDFs about a second')
                     : d.status === 'failed' ? t('Could not process this file')
