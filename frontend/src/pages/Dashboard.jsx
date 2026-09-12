@@ -97,7 +97,8 @@ export default function Dashboard() {
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={s.trend} margin={{ left: -20, right: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis dataKey="day" tickFormatter={(d) => d.slice(5)} fontSize={11} />
+            {/* 14 daily labels do not fit on a phone: let recharts drop the ones that would collide */}
+            <XAxis dataKey="day" tickFormatter={(d) => d.slice(5)} fontSize={11} interval="preserveStartEnd" minTickGap={24} />
             <YAxis allowDecimals={false} fontSize={11} />
             <Tooltip /><Legend />
             <Line type="monotone" dataKey="uploaded" stroke="#1f6f69" strokeWidth={2} dot={false} name={tr('Uploaded')} />
