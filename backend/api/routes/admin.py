@@ -21,6 +21,7 @@ from ..db import get_db
 from ..models import AuditLog, Correction, Document, ExtractedField, LandRecord, User
 from ..processing import get_memory
 from ..schemas import UserCreate, UserOut, UserUpdate
+from .integration import DISTRICT_HQ
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -61,7 +62,12 @@ def stats(db: Session = Depends(get_db), user: User = Depends(require("verifier"
     for st, dist, status_, n in db.execute(select(Document.state, Document.district, Document.status, func.count())
                                            .group_by(Document.state, Document.district, Document.status)):
         geo[st or "Unknown"][dist or "Unknown"][status_] += n
-    geography = [{"state": st, "districts": [{"district": d, "total": sum(c.values()), **c} for d, c in ds.items()],
+    # district HQ coordinates (DISTRICT_HQ) let the dashboard plot a progress map alongside
+    # the table; districts outside the 10-district master data just have no lat/lon
+    geography = [{"state": st, "districts": [
+                     {"district": d, "total": sum(c.values()), **c,
+                      **({"lat": DISTRICT_HQ[d][0], "lon": DISTRICT_HQ[d][1]} if d in DISTRICT_HQ else {})}
+                     for d, c in ds.items()],
                   "total": sum(sum(c.values()) for c in ds.values())} for st, ds in geo.items()]
     geography.sort(key=lambda g: -g["total"])
 
