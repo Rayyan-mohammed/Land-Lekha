@@ -5,6 +5,15 @@
 #   docker compose up --build -d
 #
 # First start still downloads the EasyOCR models (~100 MB) into the ocr_models volume.
+#
+# Horizontal scaling: `docker compose up --scale api=3` runs three API replicas sharing
+# one Postgres database and one `storage` volume. Every replica polls the database for
+# queued documents and claims them atomically (backend/api/processing.py), so this is
+# safe - a document can't be double-processed just because more than one replica sees
+# it. This only works with Postgres (LL_DATABASE_URL above); the default SQLite mode is
+# single-process only and must not be scaled. `ports: "8000:8000"` must become a range
+# or be removed in favour of a load balancer/reverse proxy when scale > 1, since compose
+# cannot bind the same host port from multiple replicas.
 
 services:
   db:

@@ -8,7 +8,7 @@ import time
 import traceback
 from pathlib import Path
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from backend.extraction.extractor import extract
@@ -29,12 +29,23 @@ RECORD_FIELDS = ["owner_name", "father_name", "khata_number", "khasra_number", "
 _memory: CorrectionMemory | None = None
 _memory_lock = threading.Lock()
 
-# One worker thread processes documents in upload order. OCR is CPU-bound and the
-# engine is shared, so parallel threads would only wait on each other (and make the
-# per-document timings meaningless).
+# One worker thread per process runs documents in upload order. OCR is CPU-bound and the
+# engine is shared, so parallel threads within a process would only wait on each other.
+#
+# Scaling out means running more than one API replica against the same (Postgres)
+# database. Each replica's queue.Queue only holds doc_ids it learned about locally - a
+# document uploaded to replica A never reaches replica B's in-memory queue - so a poller
+# thread in every replica also scans the database for anything left "queued" and feeds it
+# to that replica's own worker. Two replicas racing to pick up the same row is resolved by
+# an atomic conditional UPDATE (claim_document): only the replica whose UPDATE actually
+# matched the row moves on to process it, so double-processing can't happen even though
+# both replicas will try.
 _queue: queue.Queue[int] = queue.Queue()
 _worker: threading.Thread | None = None
 _worker_lock = threading.Lock()
+_poller: threading.Thread | None = None
+_poller_lock = threading.Lock()
+POLL_INTERVAL_SECONDS = 5
 
 
 def _work() -> None:
@@ -46,17 +57,46 @@ def _work() -> None:
             _queue.task_done()
 
 
+def _poll() -> None:
+    while True:
+        time.sleep(POLL_INTERVAL_SECONDS)
+        try:
+            db = SessionLocal()
+            try:
+                ids = list(db.scalars(select(Document.id).where(Document.status == "queued")))
+            finally:
+                db.close()
+            for doc_id in ids:
+                _queue.put(doc_id)
+        except Exception:  # noqa: BLE001 - a poll failure must not kill the poller
+            log.exception("queue poll failed")
+
+
 def enqueue(doc_id: int) -> None:
-    global _worker
+    global _worker, _poller
     with _worker_lock:
         if _worker is None or not _worker.is_alive():
             _worker = threading.Thread(target=_work, name="landlekha-worker", daemon=True)
             _worker.start()
+    with _poller_lock:
+        if _poller is None or not _poller.is_alive():
+            _poller = threading.Thread(target=_poll, name="landlekha-queue-poller", daemon=True)
+            _poller.start()
     _queue.put(doc_id)
 
 
 def queue_length() -> int:
     return _queue.qsize()
+
+
+def claim_document(db: Session, doc_id: int) -> bool:
+    """Atomically moves one document from queued -> processing. Returns whether *this*
+    caller won the claim - false means another worker (in this process or another
+    replica) already picked it up, and processing it again would be wasted or wrong."""
+    result = db.execute(update(Document).where(Document.id == doc_id, Document.status == "queued")
+                        .values(status="processing"))
+    db.commit()
+    return result.rowcount > 0
 
 
 def get_memory(db: Session) -> CorrectionMemory:
@@ -96,8 +136,9 @@ def process_document(doc_id: int) -> None:
         doc = db.get(Document, doc_id)
         if doc is None:
             return
-        doc.status = "processing"
-        db.commit()
+        if not claim_document(db, doc_id):
+            return  # already claimed by another worker/replica
+        db.refresh(doc)
         t0 = time.perf_counter()
         path = Path(doc.stored_path)
         ocr = run_ocr(path.read_bytes(), doc.filename, out_dir=path.parent, engine=OCR_ENGINE)
