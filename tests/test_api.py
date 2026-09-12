@@ -148,3 +148,32 @@ def test_verified_extract_detects_tampering(client):
     changed = client.get(f"/api/public/records/{rec_id}/verify", params={"fp": ex["fingerprint"]}).json()
     assert changed["valid"] is False and "changed" in changed["reason"]
     assert client.get(f"/api/records/{rec_id}/extract").status_code == 401  # issuing needs a login
+
+
+def test_a_correction_is_carried_over_to_the_next_document(client):
+    """The learning loop, end to end. The demo says "the same misreading is fixed automatically
+    next time", so prove it: correct one owner's name, then send in another document that was
+    misread the same way and expect the correction to have been applied without a person."""
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+
+    # "rn" read as "m" is the classic scanning confusion
+    misread = [l.replace("Ram Prasad Sharma", "Ram Prasad Sharrna").replace("00245", "00811").replace("123/2", "451/7")
+               for l in RECORD]
+    first = _wait(client, client.post("/api/documents", headers=op,
+                                      files={"file": ("learn-1.pdf", _pdf(misread), "application/pdf")}).json()["id"], op)
+    assert {x["name"]: x["value"] for x in first["fields"]}["owner_name"] == "Ram Prasad Sharrna"
+
+    r = client.post(f"/api/documents/{first['id']}/verify", headers=ver,
+                    json={"decision": "approve",
+                          "fields": {"owner_name": {"action": "correct", "value": "Ram Prasad Sharma"}}})
+    assert r.status_code == 200, r.text
+
+    # the same misreading, on a different khata so it is not held as a duplicate record
+    again = [l.replace("00811", "00907").replace("451/7", "12/3") for l in misread]
+    second = _wait(client, client.post("/api/documents", headers=op,
+                                       files={"file": ("learn-2.pdf", _pdf(again), "application/pdf")}).json()["id"], op)
+    owner = next(x for x in second["fields"] if x["name"] == "owner_name")
+    assert owner["value"] == "Ram Prasad Sharma", f"correction not carried over: {owner['value']!r}"
+    assert owner["source"] == "learned"
+    assert owner["raw_value"] == "Ram Prasad Sharrna"  # what the page actually said is still on the record
