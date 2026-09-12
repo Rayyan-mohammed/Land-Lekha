@@ -9,15 +9,16 @@ from __future__ import annotations
 import logging
 import threading
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from .auth import hash_password
-from .config import CORS_ORIGINS, ROOT, SEED_DEMO_USERS
+from .config import CORS_ORIGINS, JWT_SECRET_SET, ROOT, SEED_DEMO_USERS, STALE_PROCESSING_MINUTES
 from .db import Base, SessionLocal, engine, upgrade_schema
 from .graphql_api import graphql_router
 from .models import Document, User
@@ -34,6 +35,10 @@ DEMO_USERS = [
 
 
 def _init_db() -> None:
+    if not JWT_SECRET_SET:
+        log.warning("LL_JWT_SECRET is not set - using a random secret for this process only. Fine for a single "
+                    "process; running more than one (docker-compose --scale, multiple uvicorn workers) without "
+                    "setting it means each process verifies tokens with a different secret and logins randomly 401.")
     Base.metadata.create_all(engine)
     added = upgrade_schema()
     if added:
@@ -43,9 +48,20 @@ def _init_db() -> None:
             for username, name, role, pw in DEMO_USERS:
                 db.add(User(username=username, full_name=name, role=role, password_hash=hash_password(pw)))
             log.warning("seeded demo users (admin / verifier / operator) - change passwords outside the demo")
-        # documents interrupted by a restart go back to the queue
-        stuck = list(db.scalars(select(Document).where(Document.status.in_(("queued", "processing")))))
+        # "queued" documents are always safe to re-enqueue: claim_document()'s atomic
+        # UPDATE means at most one worker ever wins a queued document, in this process or
+        # another replica. "processing" is different - with more than one replica sharing
+        # this database, another replica may be mid-flight on it right now, so only a
+        # document that has been "processing" for implausibly long (a crash, not a slow
+        # page) is reclaimed here.
+        stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=STALE_PROCESSING_MINUTES)
+        stuck = list(db.scalars(select(Document).where(
+            or_(Document.status == "queued",
+                (Document.status == "processing")
+                & or_(Document.processing_started_at.is_(None), Document.processing_started_at < stale_cutoff)))))
         for d in stuck:
+            if d.status == "processing":
+                log.warning("reclaiming document %s: stuck in 'processing' since %s", d.id, d.processing_started_at)
             d.status = "queued"
         db.commit()
     if stuck:

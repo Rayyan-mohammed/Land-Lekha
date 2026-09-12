@@ -49,6 +49,9 @@ class Document(Base):
     route_reasons: Mapped[list | None] = mapped_column(JSON)
     owners: Mapped[list | None] = mapped_column(JSON)  # co-owners under one khata, see docs/contracts.md
     parcels: Mapped[list | None] = mapped_column(JSON)  # khasra/area/class rows under one khata
+    # set when a worker claims the document (claim_document); tells a restarting replica
+    # whether "processing" here means another live replica is mid-flight, or genuinely crashed
+    processing_started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     state: Mapped[str | None] = mapped_column(String(64), index=True)
     district: Mapped[str | None] = mapped_column(String(64), index=True)
     processing_ms: Mapped[int | None] = mapped_column(Integer)

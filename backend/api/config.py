@@ -23,8 +23,12 @@ _load_dotenv()
 
 STORAGE_DIR = Path(os.getenv("LL_STORAGE_DIR", ROOT / "storage"))
 DATABASE_URL = os.getenv("LL_DATABASE_URL", f"sqlite:///{(STORAGE_DIR / 'landlekha.sqlite3').as_posix()}")
+JWT_SECRET_SET = bool(os.getenv("LL_JWT_SECRET"))
 JWT_SECRET = os.getenv("LL_JWT_SECRET") or secrets.token_hex(32)  # random per run if not set
 JWT_EXPIRE_MINUTES = int(os.getenv("LL_JWT_EXPIRE_MINUTES", "720"))
+# a document stuck in "processing" this long on startup is treated as crashed, not as another
+# live replica's in-flight work, and is reclaimed; see backend/api/main.py's _init_db
+STALE_PROCESSING_MINUTES = int(os.getenv("LL_STALE_PROCESSING_MINUTES", "15"))
 # unset -> use the threshold chosen during calibration (backend/extraction/master/calibration.json)
 AUTO_ACCEPT_THRESHOLD = float(os.environ["LL_AUTO_ACCEPT_THRESHOLD"]) if os.getenv("LL_AUTO_ACCEPT_THRESHOLD") else None
 OCR_ENGINE = os.getenv("LL_OCR_ENGINE", "easyocr")

@@ -94,7 +94,7 @@ def claim_document(db: Session, doc_id: int) -> bool:
     caller won the claim - false means another worker (in this process or another
     replica) already picked it up, and processing it again would be wasted or wrong."""
     result = db.execute(update(Document).where(Document.id == doc_id, Document.status == "queued")
-                        .values(status="processing"))
+                        .values(status="processing", processing_started_at=utcnow()))
     db.commit()
     return result.rowcount > 0
 
