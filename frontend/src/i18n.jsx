@@ -307,6 +307,10 @@ export const HI = {
   'Kept in the audit trail with your note': 'आपकी टिप्पणी के साथ ऑडिट लॉग में दर्ज',
   'The review queue is empty. Nice work.': 'जाँच सूची खाली है। बढ़िया काम!',
   'Could not save the review': 'जाँच सहेजी नहीं जा सकी',
+  'You are still signed in; nothing has been lost.': 'आप अब भी साइन इन हैं; कुछ भी नहीं खोया।',
+  'Try again': 'दोबारा कोशिश करें',
+  'Could not reach the server. Check that it is running, then try again.':
+    'सर्वर से संपर्क नहीं हो सका। जाँचें कि वह चल रहा है, फिर दोबारा कोशिश करें।',
   'Fill in these required fields first': 'पहले ये ज़रूरी विवरण भरें',
   'The fields above show the first row; correct individual rows on the scan if needed.':
     'ऊपर के विवरण पहली पंक्ति के हैं; ज़रूरत हो तो बाकी पंक्तियाँ स्कैन देखकर सुधारें।',

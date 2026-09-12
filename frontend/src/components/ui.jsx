@@ -73,8 +73,12 @@ export function PageHeader({ title, subtitle, actions }) {
 }
 
 export function ErrorNote({ error }) {
+  const { t } = useT()
   if (!error) return null
-  return <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{String(error.message || error)}</div>
+  // status 0 means the request never reached the server; say that plainly instead of "Failed to fetch"
+  const text = error.status === 0 ? t('Could not reach the server. Check that it is running, then try again.')
+    : String(error.message || error)
+  return <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{text}</div>
 }
 
 export function Spinner({ className = '' }) {

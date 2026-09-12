@@ -22,7 +22,13 @@ async function request(path, { method = 'GET', body, form, raw } = {}) {
     headers['Content-Type'] = 'application/json'
     payload = JSON.stringify(body)
   }
-  const res = await fetch(path, { method, headers, body: payload })
+  let res
+  try {
+    res = await fetch(path, { method, headers, body: payload })
+  } catch {
+    // the browser could not reach the server at all (backend restarting, network gone)
+    throw new ApiError(0, 'offline')
+  }
   if (res.status === 401 && token) {
     setToken(null)
     // tell the sign-in page why the user is back there (a deliberate sign-out never gets here)

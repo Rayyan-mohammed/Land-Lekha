@@ -2,6 +2,7 @@ import { lazy } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './auth'
 import Layout from './components/Layout'
+import { ServerDown } from './components/Resilience'
 import { Spinner } from './components/ui'
 import Login from './pages/Login'
 import Verify from './pages/Verify'
@@ -25,11 +26,12 @@ function Guard({ roles, children }) {
 }
 
 export default function App() {
-  const { user, ready } = useAuth()
+  const { user, ready, offline, retry } = useAuth()
   const location = useLocation()
   // the QR code on a printed extract opens this page: it must work without logging in
   if (location.pathname.startsWith('/verify/')) return <Routes><Route path="/verify/:id" element={<Verify />} /></Routes>
   if (!ready) return <div className="flex h-full items-center justify-center"><Spinner /></div>
+  if (offline && !user) return <ServerDown onRetry={retry} />
   if (!user) return <Login />
   const home = user.role === 'operator' ? '/upload' : user.role === 'verifier' ? '/review' : '/dashboard'
   return <Routes>
