@@ -86,10 +86,12 @@ export default function Dashboard() {
     <div className="grid gap-4 lg:grid-cols-3">
       <Section title="Validation status" subtitle="Where every document stands" className="lg:col-span-1">
         <div className="space-y-2">
-          {statusData.sort((a, b) => b.value - a.value).map((d) => <div key={d.key}>
+          {/* each bar opens the documents list filtered to that status */}
+          {statusData.sort((a, b) => b.value - a.value).map((d) => <Link key={d.key} to={`/documents?status=${d.key}`}
+            className="-mx-2 block rounded-md px-2 py-1 transition-colors duration-200 hover:bg-slate-50">
             <div className="flex justify-between text-sm"><span>{d.name}</span><span className="tabular-nums font-medium">{d.value}</span></div>
-            <div className="h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full" style={{ width: `${(d.value / Math.max(1, t.documents)) * 100}%`, background: STATUS_COLORS[d.key] }} /></div>
-          </div>)}
+            <div className="mt-1 h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full" style={{ width: `${(d.value / Math.max(1, t.documents)) * 100}%`, background: STATUS_COLORS[d.key] }} /></div>
+          </Link>)}
           {statusData.length === 0 && <div className="text-sm text-slate-500">{tr('No documents yet.')}</div>}
         </div>
       </Section>
