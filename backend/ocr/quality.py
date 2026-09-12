@@ -18,9 +18,11 @@ MIN_TOKENS = 5
 GLARE_PIXEL_THRESHOLD = 248   # near-pure-white: a flash/sunlight reflection off the paper
 GLARE_AREA_FRACTION = 0.02    # a flatbed scan can legitimately have some bright margin;
                               # a phone-photo glare spot is small and blown out, not the margin
-# below this sharpness even after preprocessing, OCR reliably reads nothing usable
-# (eval/results/experiments.md dev set) - checked before the neural OCR pass runs, so an
-# obviously unusable phone photo is rejected in milliseconds instead of after 8-12s of OCR.
+# Below this sharpness even after preprocessing, OCR reliably reads nothing usable - checked
+# before the neural OCR pass runs, so an obviously unusable phone photo is rejected in
+# milliseconds instead of after 8-12s of OCR. Unlike the thresholds above, this one is not
+# backed by a dedicated eval/results/experiments.md measurement; treat it as a reasonable
+# starting point pending real validation, not a tuned figure.
 HOPELESS_SHARPNESS = 90.0
 
 
