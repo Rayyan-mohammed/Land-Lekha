@@ -319,6 +319,8 @@ export default function DocumentView() {
     {processing && <div className="card flex items-center gap-3 p-6"><Spinner /> {t('Reading the document: preprocessing, OCR and field extraction. This takes a few seconds per page…')}</div>}
     {doc.status === 'failed' && <ErrorNote error={doc.error || 'processing failed'} />}
 
+    {/* first of all: is it a land record? decided before any field was read, shown whatever happened next */}
+    {!processing && <ClassificationCard verdict={doc.classification} layoutType={doc.extraction?.document_type} />}
     {!processing && doc.status !== 'failed' && doc.status !== 'not_land' && <>
       {quality && quality.verdict !== 'good' &&
         <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
@@ -326,8 +328,6 @@ export default function DocumentView() {
             {quality.verdict === 'poor' ? t('The image is too poor to read reliably — please rescan or retake it') : t('Image quality is only fair — check the flagged fields carefully')}</div>
           <ul className="mt-1 list-disc pl-6 text-[13px]">{quality.advice.map((a) => <li key={a}>{explainAdvice(a, lang)}</li>)}</ul>
         </div>}
-      {/* first of all: is it a land record? decided before any field was read */}
-      {!processing && <ClassificationCard verdict={doc.classification} layoutType={doc.extraction?.document_type} />}
       {/* nothing at all was recognised: usually the wrong page, not a bad scan. Saying so beats
           seven "missing required field" bullets. */}
       {doc.fields?.length === 0 && doc.status === 'needs_review' &&
