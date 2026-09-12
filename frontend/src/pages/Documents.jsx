@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Download, FileUp, RefreshCw, Search } from 'lucide-react'
 import { api } from '../api'
+import { saveCsv } from '../csv'
 import { ConfidenceBar, EmptyState, ErrorNote, fmtDate, PageHeader, SkeletonRows, StatusBadge } from '../components/ui'
 import { docTypeLabel, STATUS } from '../constants'
 import { useT } from '../i18n'
@@ -36,17 +37,10 @@ export default function Documents() {
         items.push(...r.items)
         if (items.length >= r.total) break
       }
-      const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
       const head = ['id', 'file', 'type', 'district', 'state', 'status', 'confidence', 'fields to check', 'seconds', 'uploaded']
       const rows = items.map((d) => [d.id, d.filename, d.document_type ? docTypeLabel(d.document_type, 'en') : '', d.district, d.state,
         d.status, d.overall_confidence, d.flagged, d.processing_ms ? (d.processing_ms / 1000).toFixed(1) : '', d.created_at])
-      const BOM = String.fromCharCode(0xFEFF)
-      const CRLF = String.fromCharCode(13, 10)
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(new Blob([BOM + [head, ...rows].map((r) => r.map(cell).join(',')).join(CRLF)], { type: 'text/csv;charset=utf-8' }))
-      a.download = `landlekha-documents-${new Date().toISOString().slice(0, 10)}.csv`
-      a.click()
-      URL.revokeObjectURL(a.href)
+      saveCsv('documents', head, rows)
       toast(`${t('Downloaded')} ${rows.length} ${t(rows.length === 1 ? 'document' : 'documents')}`)
     } finally { setSaving(false) }
   }

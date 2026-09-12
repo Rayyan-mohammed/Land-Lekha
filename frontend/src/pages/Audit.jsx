@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, Download, FileText, FileUp, KeyRound, LogIn, Printer, RotateCcw, Send, ShieldAlert, UserCog, XCircle } from 'lucide-react'
 import { api } from '../api'
+import { saveCsv } from '../csv'
 import { EmptyState, ErrorNote, fmtDate, locale, PageHeader, parseTs, SkeletonRows } from '../components/ui'
 import { FIELD_MAP } from '../constants'
 import { useT } from '../i18n'
@@ -86,18 +87,10 @@ export default function Audit() {
         events.push(...r.items)
         if (events.length >= r.total) break
       }
-      const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
       const head = ['time', 'user', 'action', 'subject', 'subject id', 'ip', 'details']
       const rows = events.map((e) => [parseTs(e.ts).toISOString(), e.user || 'system', e.action, e.entity_type,
         e.entity_id, e.ip, JSON.stringify(e.details ?? {})])
-      const BOM = String.fromCharCode(0xFEFF)   // so Excel reads Hindi correctly
-      const CRLF = String.fromCharCode(13, 10)
-      const csv = BOM + [head, ...rows].map((row) => row.map(cell).join(',')).join(CRLF)
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-      a.download = `landlekha-audit-${new Date().toISOString().slice(0, 10)}.csv`
-      a.click()
-      URL.revokeObjectURL(a.href)
+      saveCsv('audit', head, rows)
       toast(`${t('Downloaded')} ${rows.length} ${t('events')}`)
     } finally { setSaving(false) }
   }

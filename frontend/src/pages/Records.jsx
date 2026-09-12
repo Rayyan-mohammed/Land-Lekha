@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet'
 import { Download, Map as MapIcon, Search, Send } from 'lucide-react'
 import { api } from '../api'
+import { saveCsv } from '../csv'
 import { useAuth } from '../auth'
 import { Empty, EmptyState, ErrorNote, PageHeader, SkeletonRows } from '../components/ui'
 import { LAND_CLASSES } from '../constants'
@@ -80,7 +81,6 @@ export default function Records() {
 
   // the rows on screen (after search) as a spreadsheet; the BOM makes Excel read Hindi names correctly
   const downloadCsv = () => {
-    const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`
     const head = ['record', 'owners', 'father / husband', 'khata', 'khasra', 'area', 'area_ha', 'class', 'village', 'tehsil', 'district',
       'verified by', 'source document', 'lrms ref']
     const rows = shown.map((r) => [r.record_id, r.account.owners.map((o) => o.name).join('; '),
@@ -88,12 +88,7 @@ export default function Records() {
       (r.parcels?.length > 1 ? r.parcels : [r.parcel]).map((p) => p.khasra_no).join('; '), r.parcel.area, r.parcel.area_hectares,
       r.parcel.land_class, r.location.village, r.location.tehsil, r.location.district, r.provenance.verification,
       r.provenance.source_document_id, r.lrms_ref])
-    const csv = '﻿' + [head, ...rows].map((row) => row.map(cell).join(',')).join('\r\n')
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-    a.download = `landlekha-records-${new Date().toISOString().slice(0, 10)}.csv`
-    a.click()
-    URL.revokeObjectURL(a.href)
+    saveCsv('records', head, rows)
     toast(t('Downloaded') + ` ${rows.length} ` + t('records'))
   }
   return <div className="space-y-4">
