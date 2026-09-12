@@ -5,6 +5,7 @@ import { docTypeLabel } from './constants'
 import { areaInLang, explainAdvice, explainIssue, explainReason } from './reasons'
 import { parseTs } from './components/ui'
 import { sortQueue } from './queue'
+import { numbersReread } from './pages/DocumentView'
 
 describe('sortQueue', () => {
   const rows = [
@@ -98,5 +99,26 @@ describe('parseTs', () => {
     expect(parseTs('2026-09-11T10:00:00').getTime()).toBe(Date.UTC(2026, 8, 11, 10, 0, 0))
     expect(parseTs('2026-09-11T10:00:00Z').getTime()).toBe(Date.UTC(2026, 8, 11, 10, 0, 0))
     expect(parseTs('2026-09-11T15:30:00+05:30').getTime()).toBe(Date.UTC(2026, 8, 11, 10, 0, 0))
+  })
+})
+
+describe('numbersReread', () => {
+  const page = (...steps) => ({ preprocess: { steps } })
+
+  it('reads the count out of the step the pipeline wrote', () => {
+    expect(numbersReread(page('grayscale', 'denoise', 'numbers:3'))).toBe(3)
+  })
+
+  it('is zero when no number was read again', () => {
+    expect(numbersReread(page('grayscale', 'second read'))).toBe(0)
+  })
+
+  it('does not fall over on a page that has no preprocessing at all', () => {
+    expect(numbersReread({})).toBe(0)
+    expect(numbersReread({ preprocess: {} })).toBe(0)
+  })
+
+  it('is not confused by the table-cell step, which looks the same', () => {
+    expect(numbersReread(page('table_cells:4'))).toBe(0)
   })
 })

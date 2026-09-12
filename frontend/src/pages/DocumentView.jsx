@@ -22,7 +22,7 @@ const stepLabel = (s, lang) => {
 }
 
 // "numbers:3" in the steps: how many number tokens were read a second time
-const numbersReread = (page) =>
+export const numbersReread = (page) =>
   Number(page.preprocess?.steps?.find((s) => s.startsWith('numbers:'))?.split(':')[1] || 0)
 
 const SOURCE_LABEL = { same_line: 'same line', near_right: 'beside label', below: 'table cell', inferred: 'inferred from master data', learned: 'learned correction', manual: 'entered by verifier' }
