@@ -78,6 +78,7 @@ export const HI = {
   'Help': 'सहायता',
   'Verified records in LRMS exchange format, parcel map, and DILRMP progress report': 'LRMS प्रारूप में सत्यापित अभिलेख, खसरा मानचित्र और DILRMP प्रगति रिपोर्ट',
   'Parcel map': 'खसरा मानचित्र',
+  'Show on the map': 'मानचित्र पर दिखाएँ',
   'geometry is synthetic in this prototype (placed near district HQ, sized by area)': 'इस प्रोटोटाइप में सीमाएँ काल्पनिक हैं (जिला मुख्यालय के पास, क्षेत्रफल के अनुसार)',
   'DILRMP progress report': 'DILRMP प्रगति रिपोर्ट',
   'Land records': 'भूमि अभिलेख',
@@ -302,6 +303,7 @@ export const HI = {
     'केवल डेमो के लिए: एक क्लिक में साइन इन। असली उपयोग में ये खाते बंद रहते हैं।',
   // app frame
   'Skip to content': 'मुख्य सामग्री पर जाएँ',
+  'open menu': 'मेन्यू खोलें',
   'close menu': 'मेन्यू बंद करें',
   'Go to fields': 'विवरणों पर जाएँ',
   'parcels': 'खसरे',
@@ -388,7 +390,7 @@ export const useT = () => useContext(LangContext)
 export function LangToggle({ className = '' }) {
   const { lang, setLang } = useT()
   return <button type="button" onClick={() => setLang(lang === 'hi' ? 'en' : 'hi')}
-    className={`rounded-md border px-2 py-1 text-xs font-medium ${className}`}
+    className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border px-2.5 text-xs font-medium transition-colors duration-200 sm:min-h-8 ${className}`}
     title={lang === 'hi' ? 'Switch to English' : 'हिंदी में देखें'}>
     {lang === 'hi' ? 'English' : 'हिंदी'}
   </button>

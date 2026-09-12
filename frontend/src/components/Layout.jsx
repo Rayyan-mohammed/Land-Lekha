@@ -58,7 +58,7 @@ export default function Layout() {
     <aside className={`fixed inset-y-0 left-0 z-40 w-60 transform bg-brand-800 transition lg:static lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'} flex flex-col`}>
       <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
         <Logo light />
-        <button className="lg:hidden text-white" onClick={() => setOpen(false)} aria-label={t('close menu')}><X size={20} /></button>
+        <button className="-mr-2 flex h-11 w-11 items-center justify-center text-white lg:hidden" onClick={() => setOpen(false)} aria-label={t('close menu')}><X size={20} /></button>
       </div>
       {nav}
       <div className="mt-auto border-t border-white/10 p-3">
@@ -75,7 +75,8 @@ export default function Layout() {
     {open && <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={() => setOpen(false)} />}
     <div className="flex-1 min-w-0">
       <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur lg:hidden">
-        <button onClick={() => setOpen(true)} aria-label="open menu"><Menu size={22} /></button>
+        {/* a thumb-sized hit area; the icon itself stays small */}
+        <button className="-ml-2.5 flex h-11 w-11 items-center justify-center" onClick={() => setOpen(true)} aria-label={t('open menu')}><Menu size={22} /></button>
         <Logo />
         <LangToggle className="ml-auto border-slate-300 text-slate-700" />
       </header>

@@ -166,7 +166,8 @@ export default function Records() {
               <div className="text-xs text-slate-500">{r.account.owners[0].father_or_husband}</div>
               {r.account.owners.length > 1 && <div className="text-xs text-brand-700">+ {r.account.owners.slice(1).map((o) => o.name).join(', ')}</div>}
             </div>
-            <button className="shrink-0 text-xs tabular-nums text-slate-500 hover:underline" onClick={() => setParams({ focus: r.record_id })}>#{r.record_id}</button>
+            <button className="-m-2 flex h-11 w-11 shrink-0 items-center justify-end p-2 text-xs tabular-nums text-slate-500 hover:underline"
+              aria-label={`${t('Show on the map')}: ${r.record_id}`} onClick={() => setParams({ focus: r.record_id })}>#{r.record_id}</button>
           </div>
           <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
             <div><dt className="inline text-slate-500">{t('Khata')}: </dt><dd className="inline tabular-nums text-slate-800">{r.account.khata_no}</dd></div>
