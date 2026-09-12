@@ -165,7 +165,7 @@ def _type_scores(hay: str) -> dict[str, float]:
     return scores
 
 
-def classify(text: str, *, words: int | None = None, quality: str | None = None) -> dict:
+def classify(text: str, *, words: int | None = None, quality: str | None = None, blurred: bool = False) -> dict:
     """Decide whether this page is a land record, and what kind.
 
     `text` is the OCR text of the whole document, exactly as read - never a template."""
@@ -174,7 +174,17 @@ def classify(text: str, *, words: int | None = None, quality: str | None = None)
     # read from it is noise, and noise must not be turned into "not a land document".
     if words is None:
         words = len(text.split())
-    if words < MIN_WORDS_TO_JUDGE or quality == "poor":
+    if not blurred and words == 0:
+        # Nothing to read and the image is sharp: a photograph of something that is not a document.
+        # (The quality check calls such a page "poor" too - because it found no text - which is
+        # exactly the point. A *blurred* page with no text is different: it goes back for a retake.)
+        return {"is_land_document": False, "undetermined": False, "confidence": 0.85, "evidence": {},
+                "evidence_kinds": 0, "evidence_against": {}, "government_indicators": [], "scripts": [],
+                "words": 0, "document_type": None, "document_type_confidence": 0.0,
+                "reason": "no readable text on the page"}
+    # "blurred" alone is not disqualifying: the quality check measures edges, so a faded but
+    # perfectly readable page is called blurred too. Once there are words, the words decide.
+    if quality == "poor" or words < MIN_WORDS_TO_JUDGE // 2:
         # nothing legible was read - that is a quality problem, not a verdict on the document
         return {"is_land_document": None, "undetermined": True, "confidence": 0.0, "evidence": {},
                 "evidence_kinds": 0, "evidence_against": {}, "government_indicators": [],
@@ -194,6 +204,12 @@ def classify(text: str, *, words: int | None = None, quality: str | None = None)
     # wrongly passed page only goes to a verifier
     confidence = 1 / (1 + math.exp(-(balance - 1.8)))
 
+    if words < MIN_WORDS_TO_JUDGE and not present:
+        return {"is_land_document": False, "undetermined": False, "confidence": 0.75, "evidence": {},
+                "evidence_kinds": 0, "evidence_against": {k: v[:4] for k, v in against.items()},
+                "government_indicators": government[:6], "scripts": detect_scripts(text), "words": words,
+                "document_type": None, "document_type_confidence": 0.0,
+                "reason": "little text on the page, and none of it about land"}
     enough_kinds = len(present) >= MIN_GROUPS
     is_land = bool(enough_kinds and confidence >= LAND_THRESHOLD)
     if not enough_kinds:

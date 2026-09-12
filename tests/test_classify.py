@@ -65,7 +65,9 @@ def test_a_land_record_of_unknown_type_goes_forward_not_out():
 def test_an_unreadable_page_is_undetermined_not_rejected():
     """A poor photo goes back for a retake; noise read off it must not become 'not a land document'."""
     r = classify("f9 ;: xq  wz", words=3)
-    assert r["is_land_document"] is None and r["undetermined"] is True
+    assert r["is_land_document"] is None and r["undetermined"] is True   # too few words to say anything
+    r = classify("FRESH MANGO JUICE net volume 1 litre best before", words=9, quality="good")
+    assert r["is_land_document"] is False and "none of it about land" in r["reason"]
     r = classify(INVOICE, words=40, quality="poor")
     assert r["is_land_document"] is None and r["undetermined"] is True
 
@@ -73,3 +75,12 @@ def test_an_unreadable_page_is_undetermined_not_rejected():
 def test_scripts_are_detected_not_translated():
     assert detect_scripts("Government of Telangana పహాణి") == ["Latin", "Telugu"] or            detect_scripts("Government of Telangana పహాణి") == ["Telugu", "Latin"]
     assert detect_scripts("1234 / 5") == []
+
+
+def test_a_sharp_picture_with_no_text_is_not_a_land_document():
+    """A photo of a car reads as nothing at all. Sharp and empty is a picture, not a page."""
+    r = classify("", words=0, quality="good", blurred=False)
+    assert r["is_land_document"] is False and r["confidence"] >= 0.8
+    assert "no readable text" in r["reason"]
+    # ...but blurred and empty is a page we could not read, which goes back for a retake
+    assert classify("", words=0, quality="fair", blurred=True)["undetermined"] is True

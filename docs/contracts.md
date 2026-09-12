@@ -103,6 +103,41 @@ These are the only shapes each track can rely on from its neighbour. Change them
   The dataset generator (`data/generator/generate.py`) writes the same `owners`/`parcels`
   shape into ground-truth JSON for the `khatauni_table` template (1-3 owners, 1-4 rows).
 
+## A → C: land-document classification (`backend/classify` → `backend/api/processing.py`)
+
+Runs on the OCR output **before** extraction. A page that is not a land record never reaches
+the extractor, so no field can be invented for it.
+
+```json
+{
+  "is_land_document": true,            // false = rejected; null = undetermined (page unreadable)
+  "confidence": 0.97,                  // the evidence balance squashed to 0..1, not a chosen number
+  "evidence": {"parcel identifier": ["खसरा", "khata"], "extent": ["हेक्टेयर"], "revenue office": ["tehsil"]},
+  "evidence_kinds": 3,                 // a page needs at least LL_CLASSIFY_MIN_GROUPS (2) *kinds*
+  "evidence_against": {},              // invoice / certificate / bank / news / identity / medical words
+  "government_indicators": ["government of", "revenue department"],  // reported, never credited
+  "scripts": ["Devanagari", "Latin"],  // writing systems on the page - script, not language
+  "words": 214,
+  "document_type": "khatauni",         // or "unknown": a land record whose type we cannot name
+  "type_family": "record_of_rights",   // khatauni / jamabandi / khatiyan / pahani are one family
+  "type_candidates": ["khatauni", "record_of_rights"],
+  "document_type_confidence": 0.9,
+  "reason": "3 kinds of land evidence on the page",
+  "undetermined": false
+}
+```
+
+* `is_land_document: false` puts the document in status `not_land`, with **no fields**, and it never
+  enters the verification queue. The UI shows *NOT A LAND DOCUMENT* with the reason.
+* `null` (undetermined) means the quality check called the page `poor`, or fewer than 12 words were
+  read: that is a quality problem, not a verdict, so the page goes on to review with retake advice.
+* `document_type: "unknown"` is **not** a rejection: extraction continues generically and the
+  screen says *manual review recommended*. The list of types is `DOCUMENT_TYPES` in
+  `backend/classify/land.py`, and the family map beside it.
+* Never one keyword: "survey" alone, "area" alone or "Government" alone is not evidence. A
+  government seal on a marksheet does not make it a land record. Authenticity is never claimed.
+* Stored on `documents.classification`; returned as `classification` on `GET /api/documents/{id}`.
+
 ## C → D: REST API
 
 The live, typed list is at `http://localhost:8000/docs` (FastAPI auto-docs). Main groups:

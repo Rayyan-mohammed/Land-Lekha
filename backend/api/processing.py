@@ -150,7 +150,8 @@ def process_document(doc_id: int) -> None:
                             + [pg["text_layer"] for pg in ocr["pages"] if pg.get("text_layer")])
         worst = min((pg.get("quality", {}).get("verdict", "good") for pg in ocr["pages"]),
                     key=lambda v: {"poor": 0, "fair": 1, "good": 2}.get(v, 2), default="good")
-        verdict = classify(text, words=len(text.split()), quality=worst)
+        blurred = any("blurred" in a for pg in ocr["pages"] for a in pg.get("quality", {}).get("advice", []))
+        verdict = classify(text, words=len(text.split()), quality=worst, blurred=blurred)
         doc.classification = verdict
         doc.ocr = ocr
         doc.page_count = len(ocr["pages"])

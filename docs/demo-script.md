@@ -50,7 +50,9 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 ## 5. The unseen document (1 min)
 Upload the document nobody has seen. Whatever happens, explain it: confident fields pass, uncertain ones are flagged, nothing is silently guessed.
 
-If someone hands you a page that is **not** a land record at all — an invoice, a letter, a photo of anything — upload it. The page is read, no fields are invented, nothing reaches the register, and the screen says so in plain language: *"No land-record fields were found on this page."* That behaviour is held in place by `tests/test_api.py::test_a_page_that_is_not_a_land_record_invents_nothing`.
+Every upload now shows its verdict first: **✓ LAND DOCUMENT** with a confidence, the document type (or *unknown — manual review recommended*, which still goes forward), the scripts on the page, and the kinds of evidence it found. Government or revenue wording is reported as an *indicator* — the screen says in as many words that this is not proof of authenticity.
+
+If someone hands you a page that is **not** a land record at all — an invoice, a letter, a photo of anything — upload it. The page is read, classified **before** any field is extracted, and comes back as **✕ NOT A LAND DOCUMENT** with its confidence and the counter-evidence it saw ("reads like invoice"). No fields are invented, nothing reaches the register, and it never enters the verifier's queue. A newspaper page and a school marksheet were both tried live: 99% not a land document. That behaviour is held in place by `tests/test_api.py::test_a_page_that_is_not_a_land_record_invents_nothing`.
 
 ## Numbers to quote
 From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a separate dev split): **88.1% field accuracy, 15.3% of fields flagged for a human, 96.4% precision on unflagged fields, 11 of 13 auto-accepted documents fully correct, median CER 10.9%**, on real LGD village names. Weakest case: phone photos (56.5%).
