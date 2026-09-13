@@ -4,23 +4,28 @@ from __future__ import annotations
 import csv
 import io
 import json
+import secrets
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend.extraction.confidence import default_threshold
+from backend.extraction.extractor import extract
+from backend.ocr.pipeline import run_ocr
 
 from .. import audit
 from ..auth import current_user, hash_password, require
-from ..config import AUTO_ACCEPT_THRESHOLD, ROOT
+from ..config import ALLOWED_EXTENSIONS, AUTO_ACCEPT_THRESHOLD, MAX_UPLOAD_MB, ROOT
 from ..db import get_db
 from ..models import AuditLog, Correction, Document, ExtractedField, LandRecord, User
 from ..processing import get_memory
 from ..schemas import UserCreate, UserOut, UserUpdate
+from .documents import _check_decodable
 from .integration import DISTRICT_HQ
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -282,3 +287,83 @@ def export_stats_csv(db: Session = Depends(get_db), user: User = Depends(require
     buf.seek(0)
     return StreamingResponse(iter([buf.getvalue()]), media_type="text/csv",
                              headers={"Content-Disposition": "attachment; filename=district_progress.csv"})
+
+
+REAL_DIR = ROOT / "data" / "real"
+
+
+def _compare_to_ground_truth(extraction: dict, gt_fields: dict) -> list[dict]:
+    """Per-field extracted-vs-correct, using the exact comparison eval/evaluate.py scores
+    a whole split with (field_correct) - so a single interactive check and the aggregate
+    report never quietly disagree about what "correct" means."""
+    from eval.evaluate import field_correct
+
+    out = []
+    for name, gt_value in gt_fields.items():
+        pred = extraction["fields"].get(name)
+        out.append({"field": name, "ground_truth": gt_value,
+                    "extracted": pred["value"] if pred else None,
+                    "confidence": pred["confidence"] if pred else None,
+                    "correct": field_correct(name, pred, gt_value)})
+    return out
+
+
+@router.post("/real-samples")
+async def add_real_sample(request: Request, file: UploadFile = File(...), ground_truth: str = Form(...),
+                          db: Session = Depends(get_db), user: User = Depends(require("admin"))):
+    """Upload a real land record plus its correct field values, typed by a person reading
+    it, and see the pipeline's accuracy on it immediately. Saved into data/real/ in the
+    exact shape `eval/evaluate.py --split real` expects (data/real/README.md), so every
+    sample added here also counts toward that aggregate report later - this is the same
+    workflow, just interactive instead of a shell script."""
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(415, f"unsupported file type '{ext}'. Allowed: {', '.join(sorted(ALLOWED_EXTENSIONS))}")
+    data = await file.read()
+    if not data:
+        raise HTTPException(400, "empty file")
+    if len(data) > MAX_UPLOAD_MB * 1024 * 1024:
+        raise HTTPException(413, f"file larger than {MAX_UPLOAD_MB} MB")
+    _check_decodable(data, ext)
+    try:
+        gt = json.loads(ground_truth)
+    except json.JSONDecodeError:
+        raise HTTPException(400, "ground_truth is not valid JSON")
+    gt_fields = gt.get("fields") or {}
+    if not gt_fields:
+        raise HTTPException(400, "ground_truth needs at least one field under 'fields'")
+
+    sample_id = f"web-{datetime.now(timezone.utc):%Y%m%d%H%M%S}-{secrets.token_hex(3)}"
+    REAL_DIR.mkdir(parents=True, exist_ok=True)
+    (REAL_DIR / f"{sample_id}{ext}").write_bytes(data)
+    (REAL_DIR / f"{sample_id}.json").write_text(json.dumps({"fields": gt_fields}, ensure_ascii=False, indent=1),
+                                                encoding="utf-8")
+
+    extraction = extract(run_ocr(data, file.filename or ""))
+    comparison = _compare_to_ground_truth(extraction, gt_fields)
+    field_accuracy = round(sum(1 for c in comparison if c["correct"]) / len(comparison), 4) if comparison else None
+
+    audit.log(db, "real_sample.added", user, "real_sample", None,
+              {"sample_id": sample_id, "filename": file.filename, "field_accuracy": field_accuracy}, request)
+    db.commit()
+    return {"sample_id": sample_id, "document_type": extraction["document_type"],
+            "overall_confidence": extraction["overall_confidence"], "route": extraction["route"],
+            "field_accuracy": field_accuracy, "fields": comparison}
+
+
+@router.get("/real-samples")
+def list_real_samples(user: User = Depends(require("admin"))):
+    """Samples measured so far, newest first - visible without a shell, matching what
+    `python eval/evaluate.py --split real` would pick up from data/real/."""
+    if not REAL_DIR.exists():
+        return []
+    out = []
+    for p in sorted(REAL_DIR.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True):
+        try:
+            meta = json.loads(p.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        has_file = any(p.with_suffix(e).exists() for e in ALLOWED_EXTENSIONS)
+        out.append({"sample_id": p.stem, "fields": sorted((meta.get("fields") or {}).keys()), "has_file": has_file,
+                    "added": datetime.fromtimestamp(p.stat().st_mtime, timezone.utc).isoformat()})
+    return out
