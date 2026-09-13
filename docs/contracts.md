@@ -146,11 +146,22 @@ The live, typed list is at `http://localhost:8000/docs` (FastAPI auto-docs). Mai
 | --- | --- |
 | auth | `POST /api/auth/login`, `GET /api/auth/me` |
 | documents | `POST /api/documents`, `GET /api/documents`, `GET /api/documents/{id}`, `GET /api/documents/{id}/pages/{n}` |
-| review | `GET /api/review/queue`, `POST /api/documents/{id}/verify` |
-| admin | `GET /api/admin/stats`, `GET /api/admin/audit`, `GET/POST /api/admin/users` |
+| review | `GET /api/review/queue`, `POST /api/documents/{id}/verify`, `POST /api/documents/{id}/dispute` |
+| admin | `GET /api/admin/stats`, `GET /api/admin/audit`, `GET/POST /api/admin/users`, `GET/POST /api/admin/real-samples` |
 | integration (mock) | `/api/integration/lrms/*`, `/api/integration/dilrmp/*`, `/api/integration/gis/*` |
+| public | `GET /api/public/records/{id}/verify` (no login - the QR code on a printed extract) |
 
-Roles: `operator` (upload, view own), `verifier` (+ review queue, verify), `admin` (everything).
+Roles: `operator` (upload, view own), `verifier` (+ review queue, verify, dispute), `admin` (everything, including real-sample uploads).
+
+`POST /api/documents/{id}/dispute` sends a `verified` document back to `needs_review`: every
+field resets to `pending` for re-confirmation, and the dispute (with its required note) is
+logged to the same hash-chained audit trail as a verify or reject decision.
+
+`POST /api/admin/real-samples` uploads a real document plus typed ground truth (`multipart/form-data`:
+`file` + a `ground_truth` JSON string shaped like `data/real/README.md`), runs the same
+extraction pipeline a live upload gets, and returns per-field accuracy immediately - the file
+and ground truth are also saved into `data/real/`, so `eval/evaluate.py --split real` picks up
+every sample added this way too. `GET /api/admin/real-samples` lists what has been added.
 
 Items from `GET /api/review/queue` and `GET /api/documents` carry `flagged`: how many of that
 document's fields are still pending and below the auto-accept threshold or failing a rule, the
