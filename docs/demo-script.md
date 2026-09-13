@@ -7,6 +7,7 @@ Before judges arrive:
 - [ ] fresh database: `powershell -ExecutionPolicy Bypass -File scripts\start.ps1 -Fresh` (or stop the server, delete `storage/`, start again)
 - [ ] `data/demo/` open in a file window; `data/demo/expected.md` open on the presenter's laptop
 - [ ] one **unseen** document ready: `python data/generator/generate.py --count 1 --split unseen --seed <any new number>`
+- [ ] on the actual laptop/browser you'll present with: open a verified extract's QR page once, press **read aloud** and actually listen, then open `/verify` and scan a printed QR with the real camera. Both are built and pass their automated tests, but neither has been confirmed working with real audio or a real camera before now - find out here, not on stage.
 
 ## 1. The problem (30 s)
 Land records sit in handwritten registers and old scans, and they get retyped by hand. That's slow, and it introduces errors in exactly the fields that matter: owner, khasra, area.
@@ -31,6 +32,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
   - Right: each value, the raw OCR text, and *why* it was flagged.
   - Places are checked against the master database (village ∈ tehsil ∈ district).
 - Correct one flagged value and **Approve**. Say: *"the verifier doesn't retype the document, they check one or two fields"*.
+- Point at the **Flag for re-verification** button on that now-verified document: *"if an officer spots something wrong later, they can send it back with a note - every field reopens for re-confirmation, and the dispute itself lands in the same audit trail as the approval."* No need to actually click it unless there's time.
 - Mention: the correction is stored, and the same misreading is fixed automatically next time (the learning loop). If a judge
   pushes on it, run the test in front of them — it corrects one owner's name, sends in a second document misread the same
   way, and asserts the fix arrived with no person involved:
@@ -39,10 +41,10 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 - Upload and open **`09-multi-owner-khatauni.jpg`**: one khata, three co-owners, three khasra rows. The review screen lists every co-owner with their father's name, and every parcel row. Real Khataunis look like this; a single "owner" field would lose two of the three owners.
 
 ## 4. Governance (1 min) — log in as `admin`
-- **Dashboard**: documents processed, auto-accept rate, pending verification, error statistics, state- and district-wise progress, benchmark CER and field accuracy.
+- **Dashboard**: documents processed, auto-accept rate, pending verification, error statistics, state- and district-wise progress - including a live map, circles sized by volume and coloured by share digitized - benchmark CER and field accuracy, and an estimated time saved (say plainly it is a stated assumption, not a measurement).
 - **Documents**: filter to one status (or search a district) and press **CSV** — the day's list for a progress report, with status, confidence and fields still to check. The status bars on the dashboard open the same filtered list.
 - **Records & GIS**: the verified record in LRMS exchange format with every co-owner and parcel row, **Push** to LRMS (simulated acknowledgement), the parcel on the map, the DILRMP progress report, and a **CSV** download of the list for the tehsil office. Press **Not sent to LRMS**, then **Send all to LRMS**: the day's backlog goes in one click, with one summary message.
-- Open **Extract** on a record: the printed copy is bilingual (English and Hindi) with a QR code. Scan it with a phone: the public check page says whether the paper still matches the record, in both languages.
+- Open **Extract** on a record: the printed copy is bilingual (English and Hindi) with a QR code. Scan it with a phone: the public check page says whether the paper still matches the record, in both languages - press **Read in Hindi** or **Read in English** and it reads the record aloud, for a citizen who reads with difficulty. Then open `/verify` on any device and scan the same QR with its camera directly: a kiosk mode for a tehsil-office terminal, not only a citizen's own phone.
 - **Audit trail**: every upload, decision and correction, with who, when and from which IP. Filter by person or by kind of event, and press **CSV** to keep a copy for the compliance file.
 - If there is time, open the app on a phone: the lists turn into cards, the review screen has a **Go to fields** button above the scan, and the QR check on a printed extract works without signing in.
 - `http://localhost:8000/docs`: the documented REST API other government systems would call.
@@ -59,7 +61,7 @@ From `eval/results/test.md` (40 held-out synthetic documents; calibrated on a se
 
 ## Honest answers to likely questions
 - **"What about blurred phone photos?"** The headline number is 56.5%, and it mixes two different things. Of the 17 phone photos across our three splits, the quality check accepted 12 — those average **84.3% of fields**, the worst 63.6%. It sent the other 5 back for a retake, and those average 10.4%, the best of them 21.4%. The two groups do not overlap: the system knows which photos it cannot read. A page that reads badly is read a second time with lighter denoising, which recovers part of it — two dev photos that gave nothing at all now give some fields. When even the second read is poor the app asks the operator to retake the photo instead of guessing. A recognition model trained on real field photos is on the roadmap.
-- **"Is the data real?"** No. No public labelled dataset of Indian land records exists, so we generate realistic Khatauni, Khasra, Jamabandi and Khatiyan records, with ground truth, in Hindi and English. They include handwriting fonts, Devanagari digits, fading, stains, skew and phone-photo perspective. Real records are the first thing we'd add after selection.
+- **"Is the data real?"** No. No public labelled dataset of Indian land records exists, so we generate realistic Khatauni, Khasra, Jamabandi and Khatiyan records, with ground truth, in Hindi and English. They include handwriting fonts, Devanagari digits, fading, stains, skew and phone-photo perspective. Real records are the first thing we'd add after selection - there's already an admin screen (`/real-samples`) where anyone can upload a real document, type in the correct values, and see the accuracy right there; we just haven't had a real document to put through it yet.
 - **"Is LRMS/DILRMP integration real?"** The APIs are real and documented; the external government systems are simulated because we have no access to them.
 - **"Handwriting?"** Handwriting-style entries work when legible. Truly cursive registers need fine-tuning on real Indic handwriting data (roadmap).
 - **"Why trust the confidence?"** It is a logistic model calibrated on held-out data. Raw OCR confidence is badly calibrated for Devanagari: correct text often scores 0.4–0.6.
