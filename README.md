@@ -153,3 +153,7 @@ cd frontend && npm test                    # frontend unit tests; also fails if 
 | `eval/` | shared | CER / field accuracy evaluation and confidence calibration |
 | `docs/` | shared | [data contracts between tracks](docs/contracts.md), demo script |
 | `tests/` | shared | extraction unit tests |
+
+## License
+
+[MIT](LICENSE) © 2026 Rayyan Mohammed
