@@ -439,6 +439,25 @@ export const HI = {
   'ValueError: PDF has no pages': 'PDF में कोई पन्ना नहीं है',
   'ValueError: unsupported or corrupt image file': 'फ़ाइल असमर्थित या ख़राब है',
   'ValueError: unsupported or corrupt PDF file': 'PDF असमर्थित या ख़राब है',
+  // real-document check
+  'Real document check': 'वास्तविक दस्तावेज़ जाँच',
+  'Upload a real land record and the correct field values you read off it, and see the pipeline’s accuracy on it immediately. Saved into data/real/ so it also counts toward the full benchmark.':
+    'एक वास्तविक भूमि अभिलेख और उसके सही विवरण अपलोड करें, और तुरंत सटीकता देखें। यह data/real/ में सहेजा जाता है और पूरे बेंचमार्क में भी गिना जाता है।',
+  'Document': 'दस्तावेज़',
+  'Fill in only the fields actually on the page - leave the rest blank.': 'केवल वे विवरण भरें जो पन्ने पर वास्तव में हैं - बाकी खाली छोड़ें।',
+  'not on this page': 'इस पन्ने पर नहीं है',
+  'Reading and comparing…': 'पढ़ा और तुलना जा रहा है…',
+  'Check accuracy': 'सटीकता जाँचें',
+  'Result': 'परिणाम',
+  'route': 'मार्ग',
+  'overall confidence': 'समग्र विश्वसनीयता',
+  'correct': 'सही उत्तर',
+  'extracted': 'निकाला गया',
+  'Samples measured so far': 'अब तक मापे गए नमूने',
+  'Loading…': 'लोड हो रहा है…',
+  'None yet.': 'अभी कोई नहीं।',
+  'Measured': 'माप लिया गया',
+  'Field accuracy': 'विवरण शुद्धता',
 }
 
 const KEY = 'landlekha.lang'

@@ -16,6 +16,7 @@ const Documents = lazy(() => import('./pages/Documents'))
 const Extract = lazy(() => import('./pages/Extract'))
 const Help = lazy(() => import('./pages/Help'))
 const Records = lazy(() => import('./pages/Records'))
+const RealSamples = lazy(() => import('./pages/RealSamples'))
 const ReviewQueue = lazy(() => import('./pages/ReviewQueue'))
 const UploadPage = lazy(() => import('./pages/Upload'))
 const UsersPage = lazy(() => import('./pages/Users'))
@@ -73,6 +74,7 @@ export default function App() {
       <Route path="help" element={<Help />} />
       <Route path="audit" element={<Guard roles={[]}><Audit /></Guard>} />
       <Route path="users" element={<Guard roles={[]}><UsersPage /></Guard>} />
+      <Route path="real-samples" element={<Guard roles={[]}><RealSamples /></Guard>} />
       <Route path="*" element={<Navigate to={home} replace />} />
     </Route>
   </Routes>

@@ -74,6 +74,14 @@ export const api = {
   createUser: (body) => request('/api/admin/users', { method: 'POST', body }),
   updateUser: (id, body) => request(`/api/admin/users/${id}`, { method: 'PATCH', body }),
 
+  realSamples: () => request('/api/admin/real-samples'),
+  addRealSample: (file, fields) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('ground_truth', JSON.stringify({ fields }))
+    return request('/api/admin/real-samples', { method: 'POST', form })
+  },
+
   lrmsRecords: (params = {}) => request('/api/integration/lrms/records?' + new URLSearchParams(params)),
   lrmsPush: (id) => request(`/api/integration/lrms/push/${id}`, { method: 'POST' }),
   dilrmp: () => request('/api/integration/dilrmp/progress'),
