@@ -458,6 +458,9 @@ export const HI = {
   'None yet.': 'अभी कोई नहीं।',
   'Measured': 'माप लिया गया',
   'Field accuracy': 'विवरण शुद्धता',
+  'Estimated time saved': 'अनुमानित बचा समय',
+  'vs. an assumed': 'मान लिया गया मैनुअल समय',
+  'min manual entry per record, auto-accepted only': 'मिनट प्रति अभिलेख, केवल स्वतः स्वीकृत',
 }
 
 const KEY = 'landlekha.lang'
