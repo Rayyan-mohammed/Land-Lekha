@@ -12,9 +12,25 @@ number written into a register is worse than no number at all.
 
 ---
 
-## The five USPs, strongest first
+## The six USPs, strongest first
 
-### 1. It knows what it cannot read, and proves it
+### 1. It checks this is a land record before it trusts anything on it
+
+A rule ensemble (`backend/classify/land.py`) decides *is this even a land record?* before a
+single field is extracted - the same "know what not to trust" idea as the confidence system,
+one step earlier. Measured on 115 real OCR readings (105 land pages, 10 deliberately not):
+
+| | called land | called not land |
+| --- | --- | --- |
+| land page | 105 | 0 |
+| not a land page | 0 | 10 |
+
+**100% accuracy, precision and recall** on this set (`eval/results/classification.md`). A bank
+statement or an electricity bill photographed by mistake never gets a fabricated khasra number.
+Honestly: the non-land set is small and synthetic - it shows the mechanism works, not that it is
+finished on the full variety of paper an office actually sees.
+
+### 2. It knows what it cannot read, and proves it
 
 The quality check separates readable pages from unreadable ones before anything is extracted.
 Across all 17 phone photos in the three evaluation splits:
@@ -31,7 +47,7 @@ or English, instead of becoming a case nobody can resolve later.
 Where it shows in the demo: upload `05-phone-photo.jpg`, watch it be read twice and still sent
 back.
 
-### 2. Calibrated confidence, not a raw OCR score
+### 3. Calibrated confidence, not a raw OCR score
 
 Raw OCR confidence is badly calibrated for Devanagari - correct text often scores 0.4-0.6. Each
 field's confidence is a logistic model over OCR, rule, label and source evidence, fitted on a
@@ -48,7 +64,7 @@ not at its lowest edge - because the lowest edge met the target on the tuning sp
 on held-out data (`eval/results/experiments.md`, section 12). That decision cost auto-accept rate
 and bought back the safety margin.
 
-### 3. Two OCR passes that each fix a different, measured failure
+### 4. Two OCR passes that each fix a different, measured failure
 
 Not "we used EasyOCR". Two changes, each A/B tested and each written up with the evidence:
 
@@ -65,7 +81,7 @@ Not "we used EasyOCR". Two changes, each A/B tested and each written up with the
 Rejected experiments are written up too, with their numbers: cell-by-cell table reading, unsharp
 masking, lighter denoising applied to every page, runtime selection between two readings.
 
-### 4. Everything a verifier does is remembered, and everything anyone does is chained
+### 5. Everything a verifier does is remembered, and everything anyone does is chained
 
 - **Corrections are learned.** Correct one owner's name, and the next document misread the same way
   arrives already fixed, marked `learned`, with the original OCR text still on the record. That is
@@ -78,14 +94,22 @@ masking, lighter denoising applied to every page, runtime selection between two 
   step - but a silent rewrite is no longer silent.
 - **A printed extract carries a fingerprint.** Anyone scanning its QR code sees, without logging
   in, whether the paper still matches the record.
+- **A verified document can be reopened, not just overwritten.** An officer who spots something
+  wrong after approval sends it back for a second look with a required note; every field resets
+  for re-confirmation, and the dispute itself lands in the same hash-chained audit trail as
+  everything else - reopening a record is as accountable as approving one.
 
-### 5. Built for the office it would actually run in
+### 6. Built for the office - and the citizen - it would actually run in
 
 - **Hindi and English everywhere**, including error messages, flag reasons, retake advice, dates
   and screen-reader labels - with tests that fail the build if any on-screen string, any title
   handed to a component, or any new retake advice lacks Hindi.
 - **Accessible and phone-shaped**: axe reports 0 violations across 11 screens in both languages,
   lists become cards on a phone, and every control is a thumb-sized target.
+- **A citizen who cannot read well can still use the verification page.** It reads the verified
+  record aloud, in Hindi or English, with the browser's own text-to-speech - no server round-trip.
+- **No smartphone camera shortcut? No app? No problem.** A kiosk-mode scan page reads the same QR
+  code with any camera - a tehsil-office terminal, not just a citizen's own phone.
 - **Honest about a bad connection**: if the server disappears the app says so and keeps you signed
   in; unsaved corrections survive a reload; a half-reviewed document can be skipped and picked up.
 - **Least privilege**: an operator uploads pages and sees their own uploads. They cannot browse the
@@ -98,13 +122,18 @@ masking, lighter denoising applied to every page, runtime selection between two 
 | Everyone will have | We also have |
 | --- | --- |
 | OCR of a scanned record | A quality gate that refuses pages it cannot read, with retake advice |
+| Assumes every upload is a land record | A classifier that rejects non-land pages first, 100% precision/recall on 115 real OCR readings |
 | Fields pulled out of the text | Per-field calibrated confidence, and a measured precision for the fields left unflagged |
 | A review screen | A review screen that says *why* each field was flagged, and remembers the correction |
+| A verified record is final | A dispute flow that reopens it for a second look, logged to the same tamper-evident chain |
 | "Validated against master data" | Real LGD village names: 4,876 villages, 23 tehsils, 10 districts, 4 states, with hierarchy checks |
 | One owner per record | Every co-owner and every parcel row under one khata |
 | An audit log | An audit log whose entries are hash-chained, with an endpoint that checks them |
 | A REST API | REST **and** GraphQL over the same data, with the same access rules |
 | English UI | Every string in Hindi and English, enforced by tests |
+| A QR code you scan with your own phone | A kiosk mode that scans it from any camera, and reads the record aloud in Hindi or English |
+| A progress table of numbers | The same progress plotted on a live map, sized and coloured by what it means |
+| "We'll test on real data eventually" | An in-app tool to upload a real document, type the correct values, and see the accuracy immediately |
 
 ## The honest limits, stated before anyone asks
 
