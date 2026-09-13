@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { CheckCircle2, Volume2, VolumeX, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { Logo } from '../components/Layout'
 import { Spinner } from '../components/ui'
@@ -9,6 +9,43 @@ import { Spinner } from '../components/ui'
 const REASON_HI = {
   'no such record': 'ऐसा कोई अभिलेख नहीं है',
   'the record has changed since this extract was issued, or the extract is not genuine': 'नकल जारी होने के बाद अभिलेख बदल गया है, या यह नकल असली नहीं है',
+}
+
+// A citizen who scans this QR code may not read well - a phone reads it aloud instead.
+// No server round-trip: the browser's own text-to-speech, in the language the record is
+// already shown in on this page.
+function speakText(res, lang) {
+  const owners = res.owners.join(lang === 'hi' ? ' और ' : ' and ')
+  const khasra = res.khasra_numbers.join(', ')
+  return lang === 'hi'
+    ? `यह एक असली और वर्तमान अभिलेख है। ग्राम ${res.location.village}, तहसील ${res.location.tehsil}, ज़िला ${res.location.district}, राज्य ${res.location.state}। खाता संख्या ${res.khata_number}। खसरा संख्या ${khasra}। खातेदार: ${owners}।`
+    : `This is a genuine and up to date record. Village ${res.location.village}, tehsil ${res.location.tehsil}, district ${res.location.district}, state ${res.location.state}. Khata number ${res.khata_number}. Khasra number ${khasra}. Owner: ${owners}.`
+}
+
+function ReadAloud({ res }) {
+  const [speaking, setSpeaking] = useState(null) // 'en' | 'hi' | null
+  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
+  useEffect(() => () => window.speechSynthesis?.cancel(), [])
+  if (!supported) return null
+
+  const speak = (lang) => {
+    window.speechSynthesis.cancel()
+    if (speaking === lang) { setSpeaking(null); return }
+    const u = new SpeechSynthesisUtterance(speakText(res, lang))
+    u.lang = lang === 'hi' ? 'hi-IN' : 'en-IN'
+    u.onend = () => setSpeaking(null)
+    u.onerror = () => setSpeaking(null)
+    setSpeaking(lang)
+    window.speechSynthesis.speak(u)
+  }
+  return <div className="mt-4 flex gap-2">
+    <button type="button" className="btn-outline flex-1" onClick={() => speak('hi')}>
+      {speaking === 'hi' ? <VolumeX size={15} /> : <Volume2 size={15} />} हिंदी में सुनें
+    </button>
+    <button type="button" className="btn-outline flex-1" onClick={() => speak('en')}>
+      {speaking === 'en' ? <VolumeX size={15} /> : <Volume2 size={15} />} Read in English
+    </button>
+  </div>
 }
 
 // Public page opened by the QR code on a printed extract. No login needed.
@@ -45,6 +82,7 @@ export default function Verify() {
             <dt className="text-slate-500">Owner(s)<div className="text-xs">खातेदार</div></dt><dd className="col-span-2">{res.owners.join(', ')}</dd>
             <dt className="text-slate-500">Fingerprint<div className="text-xs">फ़िंगरप्रिंट</div></dt><dd className="col-span-2 font-mono">{res.fingerprint_short}</dd>
           </dl>
+          <ReadAloud res={res} />
         </>}
         {res && !res.valid && <div className="mt-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-red-900">
           <XCircle size={22} /> <div><div className="font-semibold">Does not match · मेल नहीं खाता</div>
