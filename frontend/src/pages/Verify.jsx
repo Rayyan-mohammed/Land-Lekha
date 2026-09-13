@@ -1,9 +1,80 @@
-import { useEffect, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
-import { CheckCircle2, Volume2, VolumeX, XCircle } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { CheckCircle2, QrCode, Volume2, VolumeX, XCircle } from 'lucide-react'
 import { api } from '../api'
 import { Logo } from '../components/Layout'
 import { Spinner } from '../components/ui'
+
+// Kiosk mode: a tehsil-office terminal (or anyone without their own smartphone camera
+// shortcut) can scan a printed extract's QR right here, no app or QR-scanner app needed.
+// Uses the browser-native BarcodeDetector (Chrome/Edge/Android) - no library, no server
+// round-trip for the scan itself. Where it is not available (notably Safari/iOS), a citizen's
+// own phone camera app already opens the same QR directly, so this is a bonus, not the only path.
+export function VerifyScan() {
+  const nav = useNavigate()
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const [scanning, setScanning] = useState(false)
+  const [error, setError] = useState(null)
+  const supported = typeof window !== 'undefined' && 'BarcodeDetector' in window
+
+  useEffect(() => { document.title = 'Scan an extract · नकल स्कैन करें · LandLekha' }, [])
+  useEffect(() => () => streamRef.current?.getTracks().forEach((t) => t.stop()), [])
+
+  const start = async () => {
+    setError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      streamRef.current = stream
+      videoRef.current.srcObject = stream
+      await videoRef.current.play()
+      setScanning(true)
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] })
+      const loop = async () => {
+        if (!streamRef.current) return
+        try {
+          const codes = await detector.detect(videoRef.current)
+          if (codes.length) {
+            const url = new URL(codes[0].rawValue, window.location.href)
+            if (url.origin === window.location.origin && /^\/verify\/[^/]+/.test(url.pathname)) {
+              streamRef.current.getTracks().forEach((t) => t.stop())
+              streamRef.current = null
+              nav(url.pathname + url.search)
+              return
+            }
+          }
+        } catch { /* a frame that fails to decode just tries again */ }
+        requestAnimationFrame(loop)
+      }
+      requestAnimationFrame(loop)
+    } catch {
+      setError('camera')
+    }
+  }
+
+  return <main className="min-h-full bg-slate-50 p-6">
+    <div className="mx-auto max-w-lg">
+      <div className="mb-6"><Logo /></div>
+      <div className="card p-6 text-center">
+        <h1 className="text-lg font-semibold text-slate-900">Scan an extract · नकल स्कैन करें</h1>
+        <p className="mt-1 text-sm text-slate-600">Point the camera at the QR code printed on a LandLekha extract.
+          <span className="block">LandLekha नकल पर छपे QR कोड की ओर कैमरा दिखाएँ।</span></p>
+        {!supported && <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+          This browser cannot scan a code on this page. Open the extract's QR with your phone's own camera app instead.
+          <span className="block">यह ब्राउज़र यहाँ कोड स्कैन नहीं कर सकता। अपने फ़ोन के कैमरा ऐप से QR कोड खोलें।</span></p>}
+        {error === 'camera' && <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-bad">
+          Could not access the camera. Check camera permission for this site and try again.
+          <span className="block">कैमरा तक पहुँच नहीं मिली। इस साइट के लिए कैमरा अनुमति जाँचें और फिर कोशिश करें।</span></p>}
+        <div className={`mt-4 overflow-hidden rounded-xl bg-slate-900 ${scanning ? '' : 'hidden'}`}>
+          <video ref={videoRef} className="w-full" muted playsInline />
+        </div>
+        {supported && !scanning && <button type="button" className="btn-primary mt-4 w-full" onClick={start}>
+          <QrCode size={16} /> Scan QR code · QR कोड स्कैन करें
+        </button>}
+      </div>
+    </div>
+  </main>
+}
 
 // the two reasons backend/api/routes/public.py gives for a failed check
 const REASON_HI = {

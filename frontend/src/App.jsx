@@ -5,7 +5,7 @@ import Layout from './components/Layout'
 import { ServerDown } from './components/Resilience'
 import { Spinner } from './components/ui'
 import Login from './pages/Login'
-import Verify from './pages/Verify'
+import Verify, { VerifyScan } from './pages/Verify'
 
 // Each screen is its own chunk: the charts (dashboard), the map (records) and the QR code
 // (extract) download only when someone opens that screen, so sign-in stays fast on slow links.
@@ -55,8 +55,10 @@ export default function App() {
   const { user, ready, offline, retry } = useAuth()
   const location = useLocation()
   usePrefetch(user?.role)
-  // the QR code on a printed extract opens this page: it must work without logging in
-  if (location.pathname.startsWith('/verify/')) return <Routes><Route path="/verify/:id" element={<Verify />} /></Routes>
+  // the QR code on a printed extract opens this page, and the kiosk scan page that reads
+  // that same QR: both must work without logging in
+  if (location.pathname === '/verify' || location.pathname.startsWith('/verify/'))
+    return <Routes><Route path="/verify" element={<VerifyScan />} /><Route path="/verify/:id" element={<Verify />} /></Routes>
   if (!ready) return <div className="flex h-full items-center justify-center"><Spinner /></div>
   if (offline && !user) return <ServerDown onRetry={retry} />
   if (!user) return <Login />
