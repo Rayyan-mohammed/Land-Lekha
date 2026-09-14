@@ -126,7 +126,7 @@ masking, lighter denoising applied to every page, runtime selection between two 
 | Fields pulled out of the text | Per-field calibrated confidence, and a measured precision for the fields left unflagged |
 | A review screen | A review screen that says *why* each field was flagged, and remembers the correction |
 | A verified record is final | A dispute flow that reopens it for a second look, logged to the same tamper-evident chain |
-| "Validated against master data" | Real LGD village names: 4,876 villages, 23 tehsils, 10 districts, 4 states, with hierarchy checks |
+| "Validated against master data" | Real LGD village names: 33,942 villages, 1,331 tehsils, 71 districts, 6 states, with hierarchy checks (Telangana complete, Andhra Pradesh partial - see README's honest limits) |
 | One owner per record | Every co-owner and every parcel row under one khata |
 | An audit log | An audit log whose entries are hash-chained, with an endpoint that checks them |
 | A REST API | REST **and** GraphQL over the same data, with the same access rules |
