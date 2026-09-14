@@ -1,159 +1,345 @@
-# LandLekha
+<h1 align="center">LandLekha</h1>
+<p align="center"><b>AI-powered land record digitization and validation</b> — Smart India Hackathon 2026 · Problem Statement 26018 · Department of Land Resources, Ministry of Rural Development</p>
 
-**AI-powered land record digitization and validation.** SIH 2026 · PS 26018 · Department of Land Resources, Ministry of Rural Development.
+<p align="center">
+  <a href="https://github.com/Rayyan-mohammed/Land-Lekha/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Rayyan-mohammed/Land-Lekha/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-yellow.svg"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/python-3.11%2B-blue">
+  <img alt="Node 18+" src="https://img.shields.io/badge/node-18%2B-green">
+  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115%2B-009688">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB">
+</p>
 
-LandLekha takes a scanned or photographed land record (printed or handwritten, Hindi or English) and turns it into structured, validated data: owner, khata, khasra, survey number, area, land class, village, tehsil, district, mutation and registration details. Every field gets a calibrated confidence score. Confident records are accepted automatically; uncertain fields go to a verifier, who sees the scan and the machine's answer side by side and only checks what is flagged.
+---
+
+## What it does
+
+LandLekha takes a scanned or photographed Indian land record — printed or handwritten, Hindi or English — and turns it into structured, validated data: owner, khata, khasra, survey number, area, land class, village, tehsil, district, mutation and registration details, plus every co-owner and parcel row under a khata. Every field gets a confidence score calibrated on held-out data, not a raw OCR score. Confident records are accepted with no human involved; uncertain fields go to a verifier who sees the scan and the machine's answer side by side and checks only what's flagged. **Of the fields the system chooses not to flag, 96.4% are correct** — measured on 40 documents the confidence model never saw during calibration.
+
+> **Status**: working prototype, built over 3 days (2026-09-11 to 2026-09-13) by a 6-person team on one shared `main` branch. The full pipeline — upload, OCR, extraction, validation, calibrated routing, human review, tamper-evident audit trail, REST + GraphQL APIs — is implemented and exercised by 82 backend tests and 34 frontend tests, both suites green in CI as of the latest push. Measured on 110 synthetic documents across three splits, built from the real Ministry of Panchayati Raj village directory. **Not yet measured on a single real land record** — `data/real/` and an in-app upload tool exist for exactly this, but as of this writing nothing has been added to it.
+
+---
+
+## Architecture
 
 ```mermaid
 flowchart LR
-  U[Upload<br/>image / PDF / phone photo] --> P[Preprocess<br/>OpenCV: page crop, illumination,<br/>deskew, denoise, CLAHE]
-  P --> O[OCR<br/>EasyOCR hi+en]
-  O --> X[Extract<br/>fuzzy label spotting<br/>same line / beside / table cell]
-  X --> V[Validate<br/>format rules, master gazetteer,<br/>hierarchy, duplicates]
-  V --> C[Calibrated confidence<br/>per field]
-  C -->|all fields above threshold| A[Auto-accept]
-  C -->|anything uncertain| R[Verifier review]
-  R -->|corrections| L[(Learning memory)]
-  L --> X
-  A --> DB[(Land records<br/>+ audit trail)]
-  R --> DB
-  DB --> API[REST APIs<br/>LRMS · DILRMP · GIS]
-  DB --> D[Dashboards / MIS]
+  U[Upload<br/>image / PDF / phone photo]
+
+  subgraph TRACKA["Track A — Vision / OCR"]
+    direction LR
+    P[Preprocess<br/>crop · deskew · denoise · CLAHE]
+    O[OCR<br/>EasyOCR, Hindi + English]
+    P --> O
+  end
+
+  subgraph TRACKB["Track B — Extraction / Validation"]
+    direction LR
+    CLS[Classify<br/>is this a land record?]
+    X[Extract<br/>fuzzy label spotting]
+    V[Validate<br/>rules · gazetteer · duplicates]
+    C[Calibrate<br/>per-field confidence]
+    CLS --> X --> V --> C
+  end
+
+  subgraph TRACKC["Track C — Backend"]
+    direction TB
+    DB[(Documents · records<br/>audit trail)]
+    API[REST + GraphQL]
+    DB --> API
+  end
+
+  subgraph TRACKD["Track D — Frontend"]
+    direction TB
+    RVW[Verifier review]
+    MIS[Dashboards]
+  end
+
+  U --> P
+  O --> CLS
+  C -->|every field above threshold| AA[Auto-accept]
+  C -->|anything uncertain| RVW
+  RVW -->|corrections| MEM[(Learning memory)]
+  MEM -.feeds back into.-> X
+  AA --> DB
+  RVW --> DB
+  DB --> MIS
+
+  style TRACKA fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+  style TRACKB fill:#fef3c7,stroke:#d97706,color:#78350f
+  style TRACKC fill:#dcfce7,stroke:#16a34a,color:#14532d
+  style TRACKD fill:#fce7f3,stroke:#db2777,color:#831843
 ```
 
-## Results
+The loop is the point: an auto-accepted record and a verifier-approved one land in the same database indistinguishably, but every correction a verifier makes feeds back into Track B's extraction step through the learning memory — so the field that was misread today is read correctly the next time the same mistake would have happened, with no retraining and no person in the loop for it.
 
-Measured on 40 **held-out** synthetic documents (`test` split) whose places come from the official LGD village directory. The confidence model and threshold (95% target precision) were fitted on a separate `dev` split; the threshold sits in the middle of the range that meets that target, not at its lowest edge, because the lowest edge met it on dev and missed it on test. Reproduce with `python eval/evaluate.py --split test`; the full table is in [eval/results/test.md](eval/results/test.md).
+---
 
-| Metric | Held-out test | Dev (tuning split) |
-| --- | --- | --- |
-| Field accuracy (all 15 fields) | **88.1%** | 87.6% |
-| Required-field accuracy | 87.5% | 87.5% |
-| Character error rate, median / mean | 10.9% / 14.2% | 12.1% / 15.2% |
-| Fields flagged for a human | **15.3%** | 21.3% |
-| Precision of fields *not* flagged | **96.4%** | 96.4% |
-| Auto-accepted documents with every required field correct | **11 of 13** | 10 of 10 |
-| Documents needing a human look | 67.5% | 75.0% |
+## The problem
 
-By document type (test): English Record of Rights 96.2%, clean pages 98.2%, old faded paper 95.3%, scanner-quality pages 89.5%, Khatauni tables 84.5%, handwritten entries 77.4%, **phone photos 56.5%** (still the weakest case). A page that reads badly is read a second time with lighter denoising, and numbers that read unsurely are read once more by a recogniser that knows English digits only — between them, most of the recent gain on photos, faded paper and the numbers a record is looked up by. When even the second read is poor, the quality check tells the operator to retake rather than guess — and that check is the reason the photo number is worth reading twice. Across all 17 phone photos in the three splits, the 12 it accepted average **84.3%** field accuracy (worst 63.6%) and the 5 it sent back average 10.4% (best 21.4%). There is no overlap between the two groups: the system knows which photos it cannot read, and says so at the counter instead of writing a guess into a land record.
+Land records — Khatauni, Khasra Panchsala, Jamabandi, Khatiyan, depending on the state — exist as handwritten or printed registers, and digitizing them today means retyping them by hand: slow, and error-prone in exactly the fields that determine legal ownership, where a mistyped khasra number or an extra zero in a khata number misattributes a parcel. Running OCR alone doesn't fix this: for Devanagari text, **correct OCR output routinely carries a raw model confidence of only 0.4–0.6** (`eval/results/experiments.md`), indistinguishable at a glance from wrong output — so a system that just displays OCR text still needs a human to check every field, which is no faster than typing it in the first place. The problem worth solving isn't reading the page; it's knowing which of the words it read are safe to trust without a second pair of eyes.
 
-Two things to read from this. First, the verifier checks about 1 field in 7 rather than retyping the page, and the fields left unflagged are right about 96% of the time. A third of documents now pass with no human at all. Second, the test split is the honest number: the label rules were tuned by looking at dev errors, and test was run once for this report (it came out slightly easier than dev, with fewer multi-owner Khataunis). OCR changes are A/B-tested before adoption; the ones that didn't help are written up in [eval/results/experiments.md](eval/results/experiments.md).
+---
 
-**Multi-owner Khataunis** (separate 30-document split on official LGD villages, with 1–3 co-owners and 1–4 parcel rows per khata; [eval/results/multi.md](eval/results/multi.md)): field accuracy 85.2%; every co-owner found on 3 of 6 multi-owner documents (6 of 9 on the test split), 16 of 23 parcel rows in multi-row tables recovered. This is the hardest split and the one where unflagged fields are least reliable (94.3%), so it carries the highest share of documents needing a human (86.7%). Reading numbers again lifted it by half a point and recovered more parcel rows, but one document lost its exact co-owner match — that measure is all-or-nothing over six documents. OCR often reads the connector एवं ("and") as `एव` or `एच`; the splitter accepts both, while a real name initial like `एच.` is left alone.
+## How it works
 
-The documents are deliberately hard: about 60% are degraded (faded/stained paper, scanner noise and skew, phone photos with perspective and uneven light), and some have handwritten entries or Devanagari digits. CER counts every character on the page, including stamps and footers, so it's a pessimistic number.
-
-## Screens
-
-Every screen works in Hindi and English (one click in the sidebar): labels, review reasons, photo advice, the audit trail and dates. The printed extract and the public QR check are always bilingual.
-
-| | |
+| Layer | What it does |
 | --- | --- |
-| ![Sign-in with one-click demo accounts](docs/screenshots/1-sign-in.jpg) | ![Review: the scan with a box on every field, next to the extracted values](docs/screenshots/2-review.jpg) |
-| **Sign-in**: how it works in three steps, one-click demo accounts, Hindi / English switch | **Review**: boxes coloured by confidence on the cleaned scan; confirm, correct or reject with the keyboard |
-| ![Dashboard](docs/screenshots/3-dashboard.jpg) | ![Records and GIS](docs/screenshots/4-records-gis.jpg) |
-| **Dashboard**: what waits for a person, accuracy, state/district progress | **Records & GIS**: LRMS format, co-owners, parcel map, DILRMP report, CSV download |
-| ![Verified extract with QR code](docs/screenshots/5-verified-extract.jpg) | ![Public check on a phone](docs/screenshots/6-public-check-phone.jpg) |
-| **Verified extract**: printable and bilingual, with a tamper-evident fingerprint and QR code | **Public check**: anyone scanning the QR sees, in English and Hindi, whether the paper still matches the record |
+| Upload | Accepts PNG / JPG / TIFF / PDF up to 20 MB and 60 megapixels; a born-digital PDF is read straight from its embedded text layer in about 0.5 s, no OCR at all |
+| Preprocess | OpenCV: page crop, illumination flattening, deskew, denoise, CLAHE contrast; a page photographed sideways or upside down is turned upright automatically |
+| Classify | A rule ensemble decides whether the page is a land record at all, from several kinds of evidence, **before** a single field is extracted |
+| OCR | EasyOCR reads Hindi and English in one pass; a page that reads badly is read again with lighter denoising, and numbers the model is unsure of are re-read by an English-only recognizer that can't confuse Devanagari digits with Latin ones |
+| Extract | Fuzzy label-spotting finds 15 fields — same line, beside the label, or inside a table cell — plus every co-owner and every parcel row under one khata |
+| Validate | Per-field format rules, a master gazetteer (state → district → tehsil → village) with hierarchy checks, and duplicate detection on parcel/account and exact file hash |
+| Confidence | A logistic model, fitted on a held-out split, scores each field from OCR / rule / label / source evidence; routing splits at a threshold tuned to a stated precision target, not to maximize auto-accept rate |
+| Review | A verifier sees the cleaned scan with a confidence-coloured box on every field, next to the extracted value and *why* it was flagged; confirm, correct or reject; unsaved corrections survive a reload |
+| Learn | A correction is remembered and re-applied the next time the same misreading would happen; fields that get corrected often have their threshold raised automatically |
+| Audit | Every action - upload, decision, correction, dispute - is logged and hash-chained to the entry before it, so an edit or deletion afterward is detectable |
+| Serve | REST and GraphQL over the same access rules; mock LRMS exchange format, DILRMP progress report, GeoJSON parcels for a map |
 
-**हिंदी में (in Hindi)**: the same review screen after one click on the language switch.
-
-![Review screen in Hindi](docs/screenshots/7-review-hindi.jpg)
+---
 
 ## What maps to the problem statement
 
 | PS 26018 asks for | In LandLekha |
 | --- | --- |
-| Is it a land document at all? | Decided **before** any field is extracted, from several *kinds* of evidence on the page (parcel identifier, extent, tenure, revenue office, land use, boundaries, transaction) - never one keyword - with invoice / certificate / bank / news / identity wording counting against. Measured on 110 real OCR readings and a 14-page non-land set: **105 of 105 readable land pages kept, 10 of 10 readable non-land pages refused, 0 mistakes** ([eval/results/classification.md](eval/results/classification.md)). A page that is not a land record ends as *NOT A LAND DOCUMENT* with its reason and **no fields**; a land record of unknown type goes forward for review; government wording is reported as an *indicator*, never as proof of authenticity |
-| Multilingual recognition | Hindi (Devanagari) + English, in one model; Devanagari digits; bilingual labels; the scripts on each page (Devanagari, Telugu, Tamil, Latin...) are detected and reported, never translated |
-| Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs are read from their text layer (0.5 s, exact). Pages photographed sideways or upside down are turned automatically (18/18 test pages recovered). Each page gets a quality verdict with retake advice, and a page that reads badly is read again with lighter denoising (+2.2 points of field accuracy on dev) |
-| Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables; every co-owner and parcel row under a khata (`owners` / `parcels` lists) |
+| Is it a land document at all? | Decided **before** any field is extracted, from several *kinds* of evidence on the page (parcel identifier, extent, tenure, revenue office, land use, boundaries, transaction) - never one keyword. Measured on 115 real OCR readings: **105 of 105 readable land pages kept, 10 of 10 readable non-land pages refused, 0 mistakes**. A non-land page ends as *NOT A LAND DOCUMENT* with no fields; government wording is reported as an *indicator*, never proof of authenticity |
+| Multilingual recognition | Hindi (Devanagari) + English, in one model; Devanagari digits; the scripts on each page are detected and reported, never translated |
+| Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs read from their text layer (0.5 s, exact). Sideways/upside-down photos turned upright automatically. Every page gets a quality verdict with retake advice |
+| Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables; every co-owner and parcel row under a khata |
 | Validation: business rules, cross-database, duplicates | Format rules per field, master gazetteer (state → district → tehsil → village) with hierarchy checks, duplicate detection on parcel/account + exact-file hash |
 | Confidence scoring, uncertain fields flagged | Logistic calibration over OCR, rule, label and source evidence; per-field threshold |
-| Human-assisted verification | Side-by-side review screen, confirm / correct / reject per field; the queue shows how many fields each document needs checked and can be ordered lowest-confidence or fewest-fields first; unsaved corrections survive a reload. A verifier or admin can also reopen an already-verified document for a second look (`POST /api/documents/{id}/dispute`) - every field resets for re-confirmation, logged to the same audit trail as a verify decision |
-| Learning that improves over time | Verifier corrections are remembered and re-applied; fields that are corrected often get stricter thresholds. Proven end to end by `tests/test_api.py::test_a_correction_is_carried_over_to_the_next_document`, which corrects a name on one document and finds it fixed on the next |
-| LRMS / DILRMP / GIS / cadastral integration | Documented REST + GraphQL (`/api/graphql`) endpoints: LRMS exchange format + push, DILRMP progress report, GeoJSON parcels on a Leaflet map (external systems simulated) |
-| Secure repository, metadata, audit trail | Stored originals + SHA-256, per-document metadata, audit log of every action, filterable by person or kind of event and downloadable as a spreadsheet for the compliance file; each entry is hashed together with the one before it, so an entry edited or deleted later stops matching and `GET /api/admin/audit/verify` says where (tamper-evidence, not tamper-proofing — signing the chain is the next step); login rate-limiting against brute force |
-| Dashboards | Processed count, auto-accept rate, accuracy, validation status, pending cases, error statistics, state/district progress plotted on a live map (circle size = volume, colour = share digitized) and an estimated time saved (an assumed manual-entry baseline against auto-accepted documents only, stated as an estimate, not a measurement); each status opens the documents behind it, and any filtered list downloads as a spreadsheet; CSV export (`/api/admin/export/*.csv`) for external BI tools |
-| Notifications | Pluggable service (email/webhook) notifies an operator when their document is reviewed or flagged; console-only until a real provider is configured |
+| Human-assisted verification | Side-by-side review screen, confirm/correct/reject per field; a verified document can be reopened for a second look (dispute flow), logged to the same audit trail as an approval |
+| Learning that improves over time | Verifier corrections are remembered and re-applied; proven end to end by `tests/test_api.py::test_a_correction_is_carried_over_to_the_next_document` |
+| LRMS / DILRMP / GIS / cadastral integration | Documented REST + GraphQL endpoints: LRMS exchange format + push, DILRMP progress report, GeoJSON parcels on a Leaflet map, a live digitization progress map (external systems simulated) |
+| Secure repository, metadata, audit trail | Stored originals + SHA-256, hash-chained audit log with a verify endpoint, login rate-limiting |
+| Dashboards | Processed count, auto-accept rate, accuracy, state/district progress on a live map, estimated time saved, CSV export for BI tools |
+| Notifications | Pluggable service (email/webhook); console-only until a real provider is configured |
 | APIs | FastAPI with OpenAPI docs at `/docs`, plus GraphQL at `/api/graphql` |
-| Role-based access | JWT; operator / verifier / admin enforced on every endpoint; failed logins are rate-limited per IP+username |
-| Usability and accessibility | Every screen in Hindi and English, with a test that fails if any on-screen string lacks Hindi; axe audit with 0 violations on 11 screens; phone layouts (cards instead of wide tables) with thumb-sized controls. The public verify page reads the record aloud in Hindi or English (browser text-to-speech, no server round-trip) for a citizen who reads with difficulty, and a kiosk-mode camera scan (`/verify`) reads the same QR code from any device - not only a citizen's own smartphone |
+| Role-based access | JWT; operator/verifier/admin enforced on every endpoint |
+| Usability and accessibility | Hindi and English everywhere, enforced by a test that fails the build otherwise; axe audit, 0 violations, 11 screens; read-aloud and kiosk QR scan for citizens on the public verify page |
 
-## Run it
+---
 
-Requires Python 3.11+ and Node 18+.
+## Screens
+
+Every screen works in Hindi and English with one click. The printed extract and the public QR check are always bilingual.
+
+| | |
+| --- | --- |
+| ![Sign-in](docs/screenshots/1-sign-in.jpg) | ![Review](docs/screenshots/2-review.jpg) |
+| **Sign-in**: one-click demo accounts, Hindi/English switch | **Review**: confidence-coloured boxes on the scan, next to the extracted values |
+| ![Dashboard](docs/screenshots/3-dashboard.jpg) | ![Records and GIS](docs/screenshots/4-records-gis.jpg) |
+| **Dashboard**: what waits for a person, accuracy, state/district progress | **Records & GIS**: LRMS format, co-owners, parcel map, DILRMP report |
+| ![Verified extract with QR code](docs/screenshots/5-verified-extract.jpg) | ![Public check on a phone](docs/screenshots/6-public-check-phone.jpg) |
+| **Verified extract**: bilingual, tamper-evident fingerprint and QR code | **Public check**: anyone scanning the QR sees whether the paper still matches the record |
+
+**हिंदी में (in Hindi)** — the same review screen after one click on the language switch:
+
+![Review screen in Hindi](docs/screenshots/7-review-hindi.jpg)
+
+---
+
+## Results
+
+### 1. Field extraction accuracy on held-out data
+
+Measured on 40 documents (`test` split) the confidence model never saw during fitting; reproduce with `python eval/evaluate.py --split test` ([full table](eval/results/test.md)).
+
+| Metric | Held-out test | Dev (tuning split) |
+| --- | --- | --- |
+| Field accuracy (15 fields) | **88.1%** | 87.6% |
+| Required-field accuracy | 87.5% | 87.5% |
+| Character error rate (median) | 10.9% | 12.1% |
+| Fields flagged for a human | **15.3%** | 21.3% |
+| Precision of fields *not* flagged | **96.4%** | 96.4% |
+| Documents needing a human look | 67.5% | 75.0% |
+
+![Review screen: the scan with a box on every field, next to the extracted values](docs/screenshots/2-review.jpg)
+
+> **Honest scope**: the threshold sits in the *middle* of the range that meets a 95% precision target on dev, not at its lowest edge — the lowest edge met the target on dev and missed it on test. Both splits are synthetic, generated from real LGD village names but not real handwriting or real paper. Full methodology and the experiments that didn't work: [docs/usps.md](docs/usps.md), [eval/results/experiments.md](eval/results/experiments.md).
+
+### 2. The land-document classifier
+
+A rule ensemble decides whether a page is a land record before any field is extracted, measured on 115 real OCR readings (105 land pages, 10 deliberately not) — [eval/results/classification.md](eval/results/classification.md).
+
+| | called land | called not land |
+| --- | --- | --- |
+| land page | 105 | 0 |
+| not a land page | 0 | 10 |
+
+**100% accuracy, precision and recall** on this set. A bank statement or an electricity bill photographed by mistake never reaches the register with a fabricated khasra number.
+
+> **Honest scope**: the non-land set is 14 pages, small and synthetic. This shows the mechanism works, not that it holds up against the full variety of paper a real office would see it.
+
+### 3. Phone-photo quality gate
+
+Across all 17 phone photos in the three evaluation splits, a pre-OCR check separates readable pages from unreadable ones before anything is extracted.
+
+| Phone photos | Documents | Mean field accuracy | Range |
+| --- | --- | --- | --- |
+| accepted by the quality check | 12 | **84.3%** | 63.6% – 100% |
+| sent back for a retake | 5 | 10.4% | 0% – 21.4% |
+
+The two groups do not overlap — the worst page it kept (63.6%) still beat the best page it rejected (21.4%).
+
+> **Honest scope**: phone photos remain the weakest input overall (56.5% field accuracy including the rejected ones). The underlying recognition problem needs fine-tuning on real field photos; the quality gate is a speed/UX fix, not an accuracy fix. See the "Honest limitations" section below.
+
+### 4. Multi-owner, multi-parcel Khatauni support
+
+A separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khata, on real LGD villages — [eval/results/multi.md](eval/results/multi.md).
+
+| Metric | Value |
+| --- | --- |
+| Field accuracy | 85.2% |
+| Every co-owner found (multi-owner documents) | 3 of 6 |
+| Parcel rows recovered in multi-row tables | 16 of 23 |
+| Documents needing a human look | 86.7% |
+
+> **Honest scope**: this is the hardest split and the one where unflagged fields are least reliable (94.3% vs. 96.4% overall). The co-owner match is all-or-nothing per document over only 6 multi-owner documents, so one wrong split (OCR reading the connector "एवं" as "एव" or "एच") moves the number by double digits.
+
+---
+
+## Honest limitations
+
+- **The data is entirely synthetic.** No public labelled dataset of Indian land records exists, so every number above comes from a generator (`data/generator/`), not a real register. An in-app tool (`/real-samples`, admin-only) exists to change this, but nothing has been uploaded through it yet.
+- **Phone photos are the weakest input** (56.5% field accuracy), and the reason is a recognition-model limitation, not something more preprocessing fixes — real-photo fine-tuning is the actual lever.
+- **About half the remaining field errors are a confidently-wrong reading** (`1805/1` read as `1305/1` at 0.95 confidence), which no amount of re-reading corrects.
+- **Master data covers 4 states and 10 districts.** Village English names and codes are real (Ministry of Panchayati Raj LGD); village **Hindi spellings are algorithmically transliterated and not verified** by a native speaker.
+- **LRMS / DILRMP / GIS integration is real, documented APIs against simulated government systems** — there is no real endpoint to test against.
+- **The estimated "time saved" figure on the dashboard is a stated assumption** (8 minutes of manual entry per record), not a measurement, and is counted only against fully auto-accepted documents specifically so it understates rather than overclaims.
+- **Read-aloud (browser text-to-speech) and the kiosk QR camera scan are untested with real audio and a real camera.** Both pass their automated checks; neither has been confirmed by a person actually listening or scanning, because the environment they were built in had no capable browser.
+- **Speed** is 30–60 s per scanned page on a CPU laptop (1–2 s on a GPU, 0.5 s for born-digital PDFs) — above a 10 s target on the hardware this was built on.
+- **Scaling** is single-worker per process; the queue is now database-backed so multiple API replicas can share one Postgres database (`docker-compose.yml`), but this hasn't been load-tested beyond the concurrency unit tests.
+- **Cursive handwriting** is out of scope; only legible handwritten form entries are supported.
+
+---
+
+## Repository structure
+
+```
+backend/
+  ocr/            # Track A: OpenCV preprocessing, EasyOCR wrapper, the run_ocr() pipeline
+  extraction/     # Track B: label-spotting, parsers/validators, gazetteer, confidence, learning
+  classify/       # is-this-a-land-record rule ensemble, runs before extraction
+  api/            # Track C: FastAPI app, SQLAlchemy models, auth/RBAC, audit, worker queue, routes
+frontend/         # Track D: React 19 + Tailwind, upload/review/dashboard/records/audit/users screens
+data/
+  generator/      # synthetic Khatauni/Khasra/Jamabandi/Khatiyan document generator (Playwright)
+  demo/           # 9 committed sample files + expected answers, for a live demo with no generator run
+  real/           # real, redacted documents go here (currently empty - see Honest limitations)
+eval/             # CER/field-accuracy evaluation, confidence calibration, A/B experiment harness
+docs/             # data contracts between tracks, USPs, demo script, team plan
+tests/            # backend unit + integration tests (pytest)
+scripts/          # one-command start/setup scripts, the accessibility audit runner
+datasets/non_land/ # small synthetic non-land page set used to measure the classifier
+```
+
+---
+
+## Quick start
+
+The fastest path to a real result, no OCR model download and no server needed - the extraction and validation logic against synthetic OCR output, in seconds:
 
 ```bash
 pip install -r backend/requirements.txt
-python -m uvicorn backend.api.main:app --port 8000        # API + docs at http://localhost:8000/docs
-
-cd frontend && npm install && npm run dev                  # UI at http://localhost:5173
+python -m pytest tests -q          # ~82 tests, no OCR model, a few seconds
 ```
 
-The first start downloads the EasyOCR models (about 100 MB). For a single-port demo, run `npm run build` in `frontend/`; the API then serves the UI at http://localhost:8000.
+To see the whole pipeline end to end:
 
-Or start everything with one command: `scripts\start.ps1` on Windows (`powershell -ExecutionPolicy Bypass -File scripts\start.ps1`), or `scripts/start.sh` elsewhere. Add `-Fresh` / `--fresh` for an empty database before a demo, and `-Built` / `--built` to serve the built UI from port 8000.
+```bash
+pip install -r backend/requirements.txt
+python -m uvicorn backend.api.main:app --port 8000   # API + docs at :8000/docs
 
-Keep the project **outside** a OneDrive/Dropbox-synced folder if you can. Sync clients re-upload every generated image and OCR cache file and can make processing several times slower.
+cd frontend && npm install && npm run dev              # UI at :5173
+```
 
-Demo accounts (created on first start; disable with `LL_SEED_DEMO_USERS=0`):
+The first start downloads the EasyOCR models (~100 MB) - the only external dependency, and it's a one-time download, not a cloud account. Demo accounts are seeded on first start (disable with `LL_SEED_DEMO_USERS=0`):
 
 | User | Password | Can |
 | --- | --- | --- |
 | `operator` | `upload@123` | upload, see own documents |
-| `verifier` | `verify@123` | + review queue, verify, push to LRMS, dashboard |
-| `admin` | `admin@123` | + users, full audit trail, re-run processing |
+| `verifier` | `verify@123` | + review queue, verify, dispute, push to LRMS, dashboard |
+| `admin` | `admin@123` | + users, full audit trail, re-run processing, real-sample uploads |
 
-Configuration is through environment variables or `.env`; see [.env.example](.env.example). SQLite is the default; set `LL_DATABASE_URL` for PostgreSQL.
+Sign in as `operator` and drop in a file from `data/demo/` — 9 committed sample files with expected answers in `data/demo/expected.md`, so there's something to try with no dataset generation needed.
 
-## Dataset
+---
 
-There is no public labelled dataset of Indian land records, so `data/generator/` builds one. It renders Khatauni (UP), Khasra Panchsala (MP), Jamabandi (Rajasthan) and Khatiyan (Bihar) style records in a real browser engine, so Devanagari shaping is correct. It uses three layouts: a table, a bilingual filled form and an English Record of Rights. Some records get a handwriting font in blue ink and Devanagari digits. Pages are then degraded to look like scans, old paper and phone photos. Every document comes with exact ground truth: field values, field boxes and full text.
+## Reproduce everything else
 
 ```bash
+# --- local dev, single command ---
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1 -Fresh   # Windows; scripts/start.sh elsewhere
+# -Fresh wipes storage/ first for an empty database; -Built serves the built UI from :8000
+
+# --- generate the synthetic dataset and reproduce the measured numbers ---
 python data/generator/generate.py --count 40 --split dev  --seed 1
 python data/generator/generate.py --count 40 --split test --seed 2
-python data/generator/generate.py --count 30 --split multi --seed 5   # multi-owner Khatauni results
-python eval/evaluate.py --split dev        # runs OCR once, caches it, measures
-python eval/calibrate.py --split dev       # fits confidence model + threshold
-python eval/evaluate.py --split test       # report on held-out data
-python -m pytest tests -q                  # fast extraction tests (no OCR)
-python scripts/a11y_check.py               # axe accessibility audit of every screen, both languages (app running)
-cd frontend && npm test                    # frontend unit tests; also fails if any on-screen string lacks Hindi
+python data/generator/generate.py --count 30 --split multi --seed 5
+python eval/evaluate.py --split dev         # runs OCR once, caches it, measures
+python eval/calibrate.py --split dev        # fits the confidence model + threshold
+python eval/evaluate.py --split test        # the held-out report
+
+# --- frontend checks ---
+cd frontend && npm test                     # unit tests; fails the build if any UI string lacks Hindi
+python scripts/a11y_check.py                # axe accessibility audit, every screen, both languages (app running)
+
+# --- production / cloud, Postgres + built UI in one container ---
+echo "LL_JWT_SECRET=$(openssl rand -hex 32)" > .env
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> .env
+docker compose up --build -d
+# scale horizontally once on Postgres (not the SQLite default): docker compose up --scale api=3
 ```
 
-`data/demo/` has six small committed files for the live demo, with expected answers in `data/demo/expected.md`. The script is [docs/demo-script.md](docs/demo-script.md).
+---
 
-## Honest scope
+## Operational safety
 
-- **Data is synthetic.** The pipeline has not yet been measured on real registers. Getting a few hundred real, redacted records is step one after selection - `data/real/` has the format and an admin screen (`/real-samples`) now lets anyone upload one and see per-field accuracy immediately, but as of this writing no real document has actually been added.
-- **The estimated time saved on the dashboard is a stated assumption, not a measurement**: 8 minutes of manual entry per record, counted only against fully auto-accepted documents (never against ones a verifier still had to touch), specifically so the number understates rather than overclaims. Nobody has timed an actual tehsil clerk doing this by hand.
-- **Read-aloud and the kiosk QR scan are untested with real audio and a real camera.** Both are built (browser text-to-speech; `BarcodeDetector` for the camera scan, with a graceful fallback where it is unsupported, e.g. Safari/iOS) and pass their automated checks, but neither has been confirmed by a person actually listening to the speech or pointing a camera at a printed QR code - the development environment this was built in has no browser capable of either. Try both before relying on them in a demo.
-- **Handwriting** means legible handwritten entries in forms. Cursive registers need fine-tuning on real Indic handwriting (e.g. with TrOCR or Indic OCR models).
-- **External systems are simulated.** The LRMS/DILRMP/GIS APIs are real and documented (REST and now [GraphQL](backend/api/graphql_api.py)), but pushes return a mock acknowledgement and parcel geometry is synthetic (placed near the district HQ and sized by area). Wiring in a real government endpoint is a matter of pointing `lrms_push` at it — no real endpoint exists to test against yet.
-- **Master data** covers 4 states and 10 districts. Village English names and LGD codes are real, from the Ministry of Panchayati Raj's Local Government Directory. Village **Hindi spellings are algorithmically transliterated and not verified** against official local-script spelling — a native-speaker review is step one before trusting them in production (see `backend/extraction/master/gazetteer.json`'s `_note` and `backend/extraction/transliterate.py`). Expanding this to more states requires downloading real LGD data per state — synthesizing plausible-looking village codes would silently corrupt real land records, so this hasn't been faked.
-- **The name lexicon** (`backend/extraction/master/name_tokens.json`) restores diacritics the OCR drops (सिह → सिंह). It overlaps with the generator's name lists, so name accuracy on synthetic data is somewhat optimistic.
-- **Speed:** scanned pages take ~12 s on this machine's CPU (16 logical cores), above the 10 s target but down from 18.7 s after torch was told to use every core instead of its default half (`backend/ocr/engine.py`) - identical output, ~35% faster, measured on the `multi` eval split. Most of the remaining time is the neural OCR. Born-digital PDFs take 0.5 s. A CUDA GPU brings scanned pages to about 1–2 s. A smaller detection canvas was tested and rejected: it lost accuracy with no real speed-up. Machines with fewer cores will see a smaller gain from the threading fix and stay further from the 10 s target.
-- **Phone photos:** a pre-OCR check now rejects catastrophically blurred/low-res photos in milliseconds instead of after a full OCR pass, and glare/reflection is now detected and flagged (`backend/ocr/quality.py`). The underlying accuracy problem on phone photos (71.9% word-level, per `eval/results/experiments.md`) is a recognition-model limitation that needs fine-tuning on real field photos - a UX/speed fix, not an accuracy fix.
-- **A photograph with no text on it** (a car, a person) comes back as *could not tell - retake*, not as *NOT A LAND DOCUMENT*: the quality check measures edges, so a textless image looks blurred to it, and we chose never to call a blurred page "not a land record". Telling the two apart needs a visual model we do not have yet.
-- **The land-document classifier is a rule ensemble, measured on 14 synthetic non-land pages** (`datasets/non_land/`). It shows the mechanism works - and it is the gate that keeps a bill from coming back wearing a khasra number - but a larger non-land set from public, licensed sources is the next step.
-- **Scaling:** each process runs one worker thread, but the queue is now database-backed (`backend/api/processing.py`), so multiple API replicas can share one Postgres database and safely split the load — see the scaling note in `docker-compose.yml`. The default SQLite mode stays single-process.
-- **Notifications, GraphQL, BI export, login throttling:** a pluggable notification service (`backend/api/notifications.py`, console-only until `LL_SMTP_HOST`/`LL_NOTIFY_WEBHOOK_URL` is set), a GraphQL endpoint at `/api/graphql` alongside REST, CSV exports at `/api/admin/export/*.csv` for BI tools (Power BI/Superset/Grafana all read CSV/HTTP), and login rate-limiting (`backend/api/ratelimit.py`) have been added. These close real gaps but the ones needing external accounts (an actual SMS/email provider, a live LRMS endpoint, a hosted BI dashboard) are scaffolded, not connected — there is nothing real to connect to yet.
+**Resetting to a clean state before a demo**: `scripts\start.ps1 -Fresh` (or `start.sh -Fresh`) deletes `storage/` — the SQLite database, uploaded originals, and OCR cache — before starting, so a demo never runs against yesterday's documents or a locked-out rate-limit state. There's no soft-delete or undo for this; it's meant to be run against a disposable local database, not the one behind a real deployment.
 
-## Repository layout
+**Resource-exhaustion guards on upload**: a file is rejected above 20 MB (`LL_MAX_UPLOAD_MB`) or, after decoding, above 60 megapixels (`LL_MAX_IMAGE_PIXELS`) — a small, heavily-compressed image can otherwise decode into billions of pixels and take down the single OCR worker thread trying to allocate that array. Both limits are environment variables, not constants, so a deployment can tune them without a code change.
 
-| Path | Track | What |
-| --- | --- | --- |
-| `backend/ocr/` | A — Vision/OCR | preprocessing (OpenCV), OCR engine wrapper, pipeline |
-| `backend/extraction/` | B — NLP/Validation | label spotting, parsers/validators, gazetteer, confidence, duplicates, learning |
-| `backend/api/` | C — Backend | FastAPI app, models, auth/RBAC, audit, worker queue, integration APIs |
-| `frontend/` | D — Frontend | React + Tailwind: upload, review, dashboard, records/GIS, audit, users |
-| `data/generator/`, `data/demo/` | shared | synthetic dataset generator, demo set |
-| `eval/` | shared | CER / field accuracy evaluation and confidence calibration |
-| `docs/` | shared | [data contracts between tracks](docs/contracts.md), demo script |
-| `tests/` | shared | extraction unit tests |
+**Login throttling**: repeated failed logins for one username lock out that username (including the correct password) for a cooldown window, backed by a database table rather than in-process memory — so the throttle holds even behind multiple API replicas sharing one Postgres database.
 
-## License
+---
 
-[MIT](LICENSE) © 2026 Rayyan Mohammed
+## Roadmap
+
+Built by a 6-person team across 3 days on one shared `main` branch (241 commits total, 2026-09-11 to 2026-09-13). Checkmarks are for what's actually merged and tested, not planned.
+
+| Phase | Vision / OCR | Extraction / Validation | Backend | Frontend |
+| --- | --- | --- | --- | --- |
+| **Day 1** — foundation (2026-09-11, 81 commits) | ✅ Preprocessing pipeline, EasyOCR wrapper | ✅ Field schema, label-spotting, first parsers | ✅ FastAPI skeleton, auth, models, worker queue | ✅ Upload, review, dashboard screens |
+| **Day 2** — hardening (2026-09-12, 151 commits) | ✅ Second-read retry, English-only number re-read, sideways/upside-down detection | ✅ Multi-owner/parcel support, LGD master data, land-document classifier, confidence calibration | ✅ Audit hash-chain, rate limiting, GraphQL, CSV export, CI | ✅ Hindi/English toggle, accessibility pass, GIS map |
+| **Day 3** — citizen-facing (2026-09-13, 9 commits) | ⬜ GPU path (needs hardware nobody has) | ⬜ Real documents in `data/real/` (tooling done, data not) | ✅ Dispute/re-verification flow, real-sample upload endpoint | ✅ Digitization map, read-aloud, kiosk QR scan, time-saved stat |
+| **Next** | Fine-tune on real field photos | Populate `data/real/`, expand the non-land test set | WhatsApp/SMS notification provider | Verify read-aloud and kiosk scan with real hardware |
+
+---
+
+## Authors
+
+Six people, one shared `main` branch, no feature branches (see `GIT_RULES.md` for why — a hackathon judging requirement that only human contributors appear in the repository's history).
+
+- **Rayyan Mohammed** ([@Rayyan-mohammed](https://github.com/Rayyan-mohammed)) — repository owner; backend/API track, deployment (`Dockerfile`, `docker-compose.yml`), documentation
+- **Ashi Sharma** ([@Ashi-run](https://github.com/Ashi-run)) — frontend, with backend and dataset contributions
+- **Kuchuru Sai Krishna Reddy** ([@krishna-2-005](https://github.com/krishna-2-005)) — broad contributor across frontend, backend, evaluation, and the synthetic dataset generator
+- **Makkena Lahari** ([@lahari-66](https://github.com/lahari-66)) — frontend, with backend and evaluation contributions
+- **Mounika Reddy** ([@Mounika-Reddy-0802](https://github.com/Mounika-Reddy-0802)) — frontend, with backend and evaluation contributions
+- **Vikram** ([@Vikram5002](https://github.com/Vikram5002)) — frontend and evaluation, with documentation contributions
+
+> A precise, verified per-person breakdown of which specific feature each person built does not exist beyond `docs/team-plan.md`'s **track**-level assignment (by laptop, not by name) - the areas above are derived from which directories each person's commits actually touched, not a claimed specialization.
+
+---
+
+## Documentation index
+
+- [docs/usps.md](docs/usps.md) — what's actually different here, with the measured number behind each claim
+- [docs/contracts.md](docs/contracts.md) — the data contract each track hands to the next (OCR → extraction → API → UI)
+- [docs/demo-script.md](docs/demo-script.md) — the timed live-demo walkthrough, including honest answers to likely judge questions
+- [docs/team-plan.md](docs/team-plan.md) — the original 3-laptop parallel-work plan and task board
+- [eval/results/experiments.md](eval/results/experiments.md) — 13 OCR experiments, each adopted or rejected with its number
+- [eval/results/](eval/results/) — the raw measured output behind every number in this file
+- [data/real/README.md](data/real/README.md) — the format for adding a real, redacted document
+- [GIT_RULES.md](GIT_RULES.md) — why there's no AI attribution in this repository's history, and who the six allowed identities are
