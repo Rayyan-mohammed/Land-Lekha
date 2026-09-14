@@ -16,7 +16,7 @@
 
 🔗 **[http://65.2.234.77:8000](http://65.2.234.77:8000)** — AWS EC2 (t3.medium, ap-south-1), Docker Compose, encrypted root volume, Elastic IP (survives reboots). Demo accounts: `operator`/`upload@123`, `verifier`/`verify@123`, `admin`/`admin@123` (see "Run it" below — change these outside a demo). API docs at [/docs](http://65.2.234.77:8000/docs); GraphQL at `/api/graphql`.
 
-Some networks (e.g. certain institutional/campus proxies) block raw `*.amazonaws.com` hostnames but allow IPs — if the link above doesn't load, try `http://ec2-65-2-234-77.ap-south-1.compute.amazonaws.com:8000` instead, or a different network.
+Alternate hostname (same server): `http://ec2-65-2-234-77.ap-south-1.compute.amazonaws.com:8000`. Some networks (e.g. certain institutional/campus proxies) block raw `*.amazonaws.com` hostnames but allow plain IPs — if that alternate link doesn't load, use the IP link above instead, or try a different network.
 
 ---
 
