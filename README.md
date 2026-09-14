@@ -12,6 +12,14 @@
 
 ---
 
+### Live Demo
+
+🔗 **[http://65.2.234.77:8000](http://65.2.234.77:8000)** — AWS EC2 (t3.medium, ap-south-1), Docker Compose, encrypted root volume, Elastic IP (survives reboots). Demo accounts: `operator`/`upload@123`, `verifier`/`verify@123`, `admin`/`admin@123` (see "Run it" below — change these outside a demo). API docs at [/docs](http://65.2.234.77:8000/docs); GraphQL at `/api/graphql`.
+
+Some networks (e.g. certain institutional/campus proxies) block raw `*.amazonaws.com` hostnames but allow IPs — if the link above doesn't load, try `http://ec2-65-2-234-77.ap-south-1.compute.amazonaws.com:8000` instead, or a different network.
+
+---
+
 ## What it does
 
 LandLekha takes a scanned or photographed Indian land record — printed or handwritten, Hindi or English — and turns it into structured, validated data: owner, khata, khasra, survey number, area, land class, village, tehsil, district, mutation and registration details, plus every co-owner and parcel row under a khata. Every field gets a confidence score calibrated on held-out data, not a raw OCR score. Confident records are accepted with no human involved; uncertain fields go to a verifier who sees the scan and the machine's answer side by side and checks only what's flagged. **Of the fields the system chooses not to flag, 96.4% are correct** — measured on 40 documents the confidence model never saw during calibration.
@@ -293,6 +301,10 @@ docker compose up --build -d
 # scale horizontally once on Postgres (not the SQLite default): docker compose up --scale api=3
 ```
 
+Full cloud provisioning steps (EC2 setup, security group, Elastic IP, encryption-at-rest,
+redeploy/restart commands) are in [DEPLOYMENT.md](DEPLOYMENT.md) — that's what actually
+produced the [live demo](#live-demo) above.
+
 ---
 
 ## Operational safety
@@ -339,6 +351,7 @@ Six people, one shared `main` branch, no feature branches (see `GIT_RULES.md` fo
 - [docs/contracts.md](docs/contracts.md) — the data contract each track hands to the next (OCR → extraction → API → UI)
 - [docs/demo-script.md](docs/demo-script.md) — the timed live-demo walkthrough, including honest answers to likely judge questions
 - [docs/team-plan.md](docs/team-plan.md) — the original 3-laptop parallel-work plan and task board
+- [DEPLOYMENT.md](DEPLOYMENT.md) — how the live demo is actually hosted: EC2 setup, security group, Elastic IP, encryption at rest, redeploy commands
 - [eval/results/experiments.md](eval/results/experiments.md) — 13 OCR experiments, each adopted or rejected with its number
 - [eval/results/](eval/results/) — the raw measured output behind every number in this file
 - [data/real/README.md](data/real/README.md) — the format for adding a real, redacted document
