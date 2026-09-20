@@ -5,6 +5,16 @@ import { FIELD_MAP } from './constants'
 const field = (name, lang) => (FIELD_MAP[name] ? (lang === 'hi' ? FIELD_MAP[name].hi : FIELD_MAP[name].en) : name)
 
 const CHECKS = {
+  // rule ids from backend/extraction/rules.py; the old names are kept so documents checked
+  // before the ids existed still read properly
+  'LOC-1': ['district does not belong to this state', 'जिला इस राज्य का नहीं है'],
+  'LOC-2': ['tehsil does not belong to this district', 'तहसील इस जिले की नहीं है'],
+  'LOC-3': ['village does not belong to this tehsil', 'ग्राम इस तहसील का नहीं है'],
+  'AREA-1': ['area is larger than any plot in this record set', 'क्षेत्रफल इस समूह के किसी भी भूखंड से बड़ा है'],
+  'AREA-2': ['the khasra rows do not add up to the total area', 'खसरों का क्षेत्रफल कुल से मेल नहीं खाता'],
+  'DATE-1': ['mutation is dated before the registration', 'नामांतरण की तारीख पंजीकरण से पहले की है'],
+  'DATE-2': ['the date is in the future', 'तारीख भविष्य की है'],
+  'ID-1': ['the same khasra number appears on two khatas', 'एक ही खसरा संख्या दो खातों पर है'],
   district_in_state: ['district does not belong to this state', 'जिला इस राज्य का नहीं है'],
   tehsil_in_district: ['tehsil does not belong to this district', 'तहसील इस जिले की नहीं है'],
   village_in_tehsil: ['village does not belong to this tehsil', 'ग्राम इस तहसील का नहीं है'],

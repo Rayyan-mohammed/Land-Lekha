@@ -5,6 +5,7 @@ from . import gazetteer
 from .confidence import default_threshold, field_confidence, overall_confidence, route
 from .learning import CorrectionMemory
 from .parser import Candidate, build_lines, detect_document_type, generate_candidates, split_owners
+from .rules import check_areas, check_dates
 from .schema import FIELD_NAMES, REQUIRED_FIELDS
 from .validate import PARSERS, Parsed, find_unit, parse_area
 
@@ -254,6 +255,7 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
 
         dups = find_duplicates(flat, existing_records)
     field_thresholds = memory.field_thresholds(threshold) if memory else None
+    consistency = consistency + check_dates(fields) + check_areas(fields, parcels_list)
     decision, reasons = route(fields, consistency, dups, threshold, field_thresholds)
 
     ordered = {n: fields[n] for n in FIELD_NAMES if n in fields}

@@ -115,7 +115,7 @@ def test_gazetteer_matches_both_scripts_and_checks_hierarchy():
     assert out["village"][0].en == "Abbas Nagar"
     assert all(c["ok"] for c in checks)
     _, bad = gazetteer.resolve({"district": "Lucknow", "tehsil": "Pindra"})
-    assert not next(c for c in bad if c["check"] == "tehsil_in_district")["ok"]
+    assert not next(c for c in bad if c["check"] == "LOC-2")["ok"]   # tehsil not in that district
 
 
 def test_hi_verified_flags_unverified_village_spelling():
@@ -175,7 +175,7 @@ def test_route_sends_missing_and_inconsistent_to_review():
     """Some fields missing: each one is named, so the verifier knows what to look for."""
     fields = {n: {"value": "x", "valid": True, "confidence": 0.99, "issues": []}
               for n in list(REQUIRED_FIELDS)[:-2]}
-    decision, reasons = route(fields, [{"check": "tehsil_in_district", "ok": False, "detail": "x"}],
+    decision, reasons = route(fields, [{"check": "LOC-2", "ok": False, "detail": "x"}],
                               threshold=0.8)
     assert decision == "review"
     assert any("missing required field" in r for r in reasons)

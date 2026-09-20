@@ -96,9 +96,9 @@ def resolve(raw: dict[str, str]) -> tuple[dict[str, tuple[Place | None, float]],
 
     s, d, t, v = ok("state"), ok("district"), ok("tehsil"), ok("village")
     if d and s:
-        checks.append({"check": "district_in_state", "ok": d.state == s.en, "detail": f"{d.en} / {s.en}"})
+        checks.append({"check": "LOC-1", "ok": d.state == s.en, "detail": f"{d.en} / {s.en}"})
     if t and d:
-        checks.append({"check": "tehsil_in_district", "ok": t.district == d.en, "detail": f"{t.en} / {d.en}"})
+        checks.append({"check": "LOC-2", "ok": t.district == d.en, "detail": f"{t.en} / {d.en}"})
     if v and t:
-        checks.append({"check": "village_in_tehsil", "ok": v.tehsil == t.en, "detail": f"{v.en} / {t.en}"})
+        checks.append({"check": "LOC-3", "ok": v.tehsil == t.en, "detail": f"{v.en} / {t.en}"})
     return out, checks
