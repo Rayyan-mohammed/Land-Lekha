@@ -17,12 +17,27 @@ def _rank(c: Candidate, p: Parsed) -> float:
     return validity * SOURCE_WEIGHT.get(c.source, 0.9) * (0.6 + 0.4 * c.ocr_confidence) * (0.7 + 0.3 * c.label_score)
 
 
+# A remembered correction may stand on its own for a name, a place or a land class: if a
+# verifier has fixed "निगोह" to "Nigoha" once, the same misreading means the same thing next
+# time. It may not stand on its own for a number or a date. Those identify the parcel - a
+# khasra, a khata, an area, a registration date - they differ from one record to the next, and
+# a memory keyed on a misreading could quietly write last week's khasra number onto this
+# week's plot. For those the learned value is offered as a suggestion and the field stays
+# flagged, so a person confirms the number that decides who owns what.
+LEARNING_DECIDES = {"owner_name", "father_name", "village", "tehsil", "district", "state",
+                    "land_classification"}
+SUGGESTION_RULE_SCORE = 0.5   # below any sensible threshold, so the field goes to review
+
+
 def _pick(field: str, cands: list[Candidate], parse, memory: CorrectionMemory | None):
     best = None
     for c in cands:
         learned = memory.lookup(field, c.text) if memory else None
-        if learned:
+        if learned and field in LEARNING_DECIDES:
             p = Parsed(learned, 1.0, ["learned correction applied"])
+        elif learned:
+            p = Parsed(learned, SUGGESTION_RULE_SCORE,
+                       ["learned correction suggested - confirm this value"])
         else:
             p = parse(c)
         r = _rank(c, p) + (0.05 if learned else 0)
