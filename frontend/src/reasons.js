@@ -48,6 +48,11 @@ export function explainDuplicateReason(r, lang = 'en') {
   if (lang !== 'hi') return r
   let m
   if ((m = r.match(/^same village \+ khasra \((.+)\)$/))) return `वही गाँव और खसरा (${m[1]})`
+  // the same parcel read two different ways: the number differs by a character OCR confuses
+  if ((m = r.match(/^same village \+ khasra (.+) \(one character apart\)$/)))
+    return `वही गाँव, खसरा ${m[1]} — एक अक्षर का अंतर (पढ़ने की भूल लगती है)`
+  if ((m = r.match(/^same village \+ khasra (.+) \(same once separators are ignored\)$/)))
+    return `वही गाँव, खसरा ${m[1]} — केवल विभाजक चिह्न का अंतर`
   if (r === 'same khata') return 'वही खाता संख्या'
   if ((m = r.match(/^owner name (\d+)% similar$/))) return `खातेदार का नाम ${m[1]}% मिलता है`
   return r

@@ -135,3 +135,20 @@ describe('explainDuplicateReason', () => {
     expect(explainDuplicateReason('some new reason', 'hi')).toBe('some new reason')
   })
 })
+
+describe('near-match duplicate reasons', () => {
+  it('explains a parcel matched through a misread digit', () => {
+    expect(explainDuplicateReason('same village + khasra 1305/1 (one character apart)', 'hi'))
+      .toContain('एक अक्षर का अंतर')
+  })
+
+  it('explains a parcel matched once separators are ignored', () => {
+    expect(explainDuplicateReason('same village + khasra 12639क (same once separators are ignored)', 'hi'))
+      .toContain('विभाजक')
+  })
+
+  it('leaves English alone', () => {
+    const r = 'same village + khasra 1305/1 (one character apart)'
+    expect(explainDuplicateReason(r, 'en')).toBe(r)
+  })
+})
