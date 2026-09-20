@@ -29,14 +29,6 @@ ALIAS_INDEX: list[tuple[str, str, str]] = sorted(
     key=lambda t: -len(t[2]),
 )
 
-DOC_TYPES: list[tuple[str, list[str]]] = [
-    ("khatauni", ["खतौनी", "khatauni"]),
-    ("khasra_panchsala", ["खसरा पांचसाला", "khasra panchsala"]),
-    ("jamabandi", ["जमाबंदी", "jamabandi"]),
-    ("khatiyan", ["खतियान", "khatiyan"]),
-    ("record_of_rights", ["record of rights", "अधिकार अभिलेख"]),
-    ("particulars_form", ["विवरण प्रपत्र", "particulars form"]),
-]
 
 AREA_UNIT_WORDS: dict[str, list[str]] = {
     "hectare": ["हेक्टेयर", "हेक्टर", "hectare", "hectares", "ha"],

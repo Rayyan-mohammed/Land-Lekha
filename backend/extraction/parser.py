@@ -277,11 +277,10 @@ def build_lines(ocr: dict) -> list[Line]:
     return lines
 
 
-def detect_document_type(lines: list[Line]) -> str:
-    from .labels import DOC_TYPES
+def detect_document_type(lines: list[Line]) -> dict:
+    """Name the document. One implementation, in doctype.py - the six-entry list that used to
+    live here and the parallel list in the removed land/non-land classifier were two."""
+    from .doctype import identify
 
-    head = " ".join(label_key(l.text) for l in lines[:8])
-    for doc_type, words in DOC_TYPES:
-        if any(fuzz.partial_ratio(label_key(w), head) >= 90 for w in words):
-            return doc_type
-    return "unknown"
+    return identify(chr(10).join(l.text for l in lines))
+

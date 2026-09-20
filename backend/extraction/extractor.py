@@ -242,8 +242,12 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
     decision, reasons = route(fields, consistency, dups, threshold, field_thresholds)
 
     ordered = {n: fields[n] for n in FIELD_NAMES if n in fields}
+    doc_type = detect_document_type(lines)
     return {
-        "document_type": detect_document_type(lines),
+        "document_type": doc_type["type"],
+        "document_type_family": doc_type["family"],
+        "document_type_confidence": doc_type["confidence"],
+        "document_type_also_seen": doc_type["also_seen"],
         "fields": ordered,
         "missing": [n for n in FIELD_NAMES if n not in fields],
         "missing_required": [n for n in REQUIRED_FIELDS if n not in fields],
