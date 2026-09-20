@@ -205,7 +205,7 @@ A separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khat
 - **Read-aloud (browser text-to-speech) and the kiosk QR camera scan are untested with real audio and a real camera.** Both pass their automated checks; neither has been confirmed by a person actually listening or scanning, because the environment they were built in had no capable browser.
 - **Speed** is 30–60 s per scanned page on a CPU laptop (1–2 s on a GPU, 0.5 s for born-digital PDFs) — above a 10 s target on the hardware this was built on.
 - **Scaling** is single-worker per process; the queue is now database-backed so multiple API replicas can share one Postgres database (`docker-compose.yml`), but this hasn't been load-tested beyond the concurrency unit tests.
-- **Cursive handwriting** is out of scope; only legible handwritten form entries are supported.
+- **Handwriting has been measured on handwriting *fonts*, not ink.** The generator renders entries in a Devanagari handwriting typeface and degrades the page; those score **77.8% field accuracy against 90.1% for printed** across 110 documents, and the damage falls on the identifiers - mutation, khata and survey numbers - while names and places hold up, because those have a lexicon and the LGD gazetteer behind them and a khata number has nothing ([eval/results/handwriting.md](eval/results/handwriting.md)). No pen-written record has been through the system; treat these as an upper bound. **Cursive** is out of scope entirely.
 
 ---
 
