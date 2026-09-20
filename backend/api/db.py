@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from collections.abc import Iterator
 
@@ -105,6 +106,25 @@ def ensure_unique_audit_chain(bind: Engine | None = None) -> bool:
     except Exception as exc:  # noqa: BLE001 - an older database already holds a fork
         log.warning("could not enforce a single audit chain: %s", exc)
         return False
+
+
+def retire_not_land_status(bind: Engine | None = None) -> int:
+    """Move documents parked on the removed "not_land" status back into the queue.
+
+    The land/non-land gate is gone. Databases that ran the old code still hold documents it
+    stopped, and a status no screen knows about renders as a blank badge. They become ordinary
+    review items carrying the reason the routing rules would have given them, so a person can
+    look and reject in one click. Returns how many were moved."""
+    bind = bind or engine
+    reason = "no land-record fields found (was stopped by the removed land/non-land check)"
+    with bind.begin() as conn:
+        if not inspect(bind).has_table("documents"):
+            return 0
+        n = conn.execute(text("SELECT count(*) FROM documents WHERE status = 'not_land'")).scalar() or 0
+        if n:
+            conn.execute(text("UPDATE documents SET status = 'needs_review', route_reasons = :r "
+                              "WHERE status = 'not_land'"), {"r": json.dumps([reason])})
+    return n
 
 
 def get_db() -> Iterator[Session]:

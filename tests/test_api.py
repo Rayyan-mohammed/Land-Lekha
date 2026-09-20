@@ -334,3 +334,26 @@ def test_disputing_a_verified_document_sends_it_back_for_review(client):
 
     # re-verifying clears it
     assert client.post(f"/api/documents/{doc['id']}/verify", headers=ver, json={"decision": "approve"}).status_code == 200
+
+
+def test_documents_stopped_by_the_removed_gate_come_back_into_review():
+    """A database that ran the old code still holds documents parked on "not_land", a status
+    no screen knows any more. They become ordinary review items with the reason that the
+    routing rules would have given them."""
+    from sqlalchemy import create_engine, text as _text
+
+    from backend.api.db import retire_not_land_status
+
+    engine = create_engine("sqlite://")
+    with engine.begin() as conn:
+        conn.execute(_text("CREATE TABLE documents (id INTEGER PRIMARY KEY, status TEXT, route_reasons TEXT)"))
+        conn.execute(_text("INSERT INTO documents (id, status, route_reasons) VALUES "
+                           "(1, 'not_land', '[\"not a land document: reads like invoice\"]'), "
+                           "(2, 'needs_review', '[]'), (3, 'auto_accepted', '[]')"))
+    assert retire_not_land_status(engine) == 1
+    with engine.begin() as conn:
+        rows = dict(conn.execute(_text("SELECT id, status FROM documents")).all())
+        reasons = conn.execute(_text("SELECT route_reasons FROM documents WHERE id = 1")).scalar()
+    assert rows == {1: "needs_review", 2: "needs_review", 3: "auto_accepted"}
+    assert "no land-record fields found" in reasons
+    assert retire_not_land_status(engine) == 0   # nothing left to move

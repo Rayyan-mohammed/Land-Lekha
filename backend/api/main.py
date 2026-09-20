@@ -43,6 +43,9 @@ def _init_db() -> None:
     if added:
         log.warning("database upgraded, added columns: %s", ", ".join(added))
     ensure_unique_active_document()
+    moved = retire_not_land_status()
+    if moved:
+        log.warning("moved %d document(s) off the removed 'not_land' status into review", moved)
     ensure_unique_audit_chain()
     with SessionLocal() as db:
         if SEED_DEMO_USERS and db.scalar(select(User).limit(1)) is None:
