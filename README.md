@@ -111,7 +111,7 @@ Land records — Khatauni, Khasra Panchsala, Jamabandi, Khatiyan, depending on t
 
 | PS 26018 asks for | In LandLekha |
 | --- | --- |
-| Multilingual recognition | Hindi (Devanagari) + English, in one model; Devanagari digits; the scripts on each page are detected and reported, never translated |
+| Multilingual recognition | **Hindi, Telugu and English**, with the reader chosen per page by measurement: a sample of the boxes already detected is re-read with each candidate and the most confident wins (te+en 0.66 against hi+en 0.23 on a Telugu page). A Telugu Pahani produced nothing before; it now gives 7 fields, with every place name resolved to its LGD English form - 6/6 readers chosen correctly, 63.3% of typed fields recovered on six pages with ground truth ([eval/results/telugu.md](eval/results/telugu.md)). Devanagari digits; the page's own text is never translated |
 | Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs read from their text layer (0.5 s, exact). Sideways/upside-down photos turned upright automatically. Every page gets a quality verdict with retake advice |
 | Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables; every co-owner and parcel row under a khata |
 | Validation: business rules, cross-database, duplicates | Format rules per field, master gazetteer (state → district → tehsil → village) with hierarchy checks, duplicate detection on parcel/account + exact-file hash |
