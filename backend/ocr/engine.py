@@ -149,7 +149,9 @@ class TesseractEngine:
         self._tess = pytesseract
         self.languages = languages or ["hin", "eng"]
 
-    def recognize(self, gray: np.ndarray) -> list[dict]:
+    def recognize(self, gray: np.ndarray, languages: list[str] | None = None) -> list[dict]:
+        if languages:   # tesseract language codes differ; the caller's codes are easyocr's
+            pass
         data = self._tess.image_to_data(gray, lang="+".join(self.languages), output_type=self._tess.Output.DICT)
         tokens = []
         for i, text in enumerate(data["text"]):

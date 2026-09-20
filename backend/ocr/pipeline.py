@@ -12,11 +12,16 @@ from .engine import get_engine, group_lines
 from .numbers import NUMBER_PASS, refine_numbers
 from .preprocess import preprocess
 from .quality import assess, precheck
+from .scripts import choose_reader, detect_scripts
 from .tables import TABLE_CELLS, read_table_cells
 
 # A page that reads badly is read a second time with lighter denoising (see run_ocr).
 RETRY_SOFT = os.getenv("LL_OCR_RETRY_SOFT", "1") != "0"
 RETRY_DENOISE_H = int(os.getenv("LL_OCR_RETRY_DENOISE_H", "5"))
+
+# Pick the recogniser to match the script on the page (backend/ocr/scripts.py).
+SCRIPT_ROUTING = os.getenv("LL_OCR_SCRIPT_ROUTING", "1") != "0"
+DEFAULT_LANGUAGES = ("hi", "en")
 
 PDF_DPI = 200
 MAX_PAGES = 10
@@ -111,10 +116,25 @@ def fix_upside_down(gray: np.ndarray, tokens: list[dict], eng) -> tuple[np.ndarr
     return flipped, eng.recognize(flipped), True
 
 
-def _read_page(img, eng, do_binarize: bool, denoise_h: int | None):
-    """Preprocess and recognise one page; returns (image, tokens, PreprocessResult)."""
+def _read_page(img, eng, do_binarize: bool, denoise_h: int | None, languages: list[str] | None = None):
+    """Preprocess and recognise one page; returns (image, tokens, PreprocessResult).
+
+    With SCRIPT_ROUTING on, the first read is followed by a check of which reader suits the
+    page: a sample of the boxes already found is re-read with each candidate, and if another
+    script wins clearly the whole page is read again with it. A Hindi page pays one extra
+    sample of twelve boxes for that; a Telugu page pays a second full read and becomes
+    readable at all, which it was not before."""
     pre = preprocess(img, do_binarize=do_binarize, denoise_h=denoise_h)
-    tokens = eng.recognize(pre.image)
+    tokens = eng.recognize(pre.image) if languages is None else eng.recognize(pre.image, languages=languages)
+    # an engine that cannot swap readers (Tesseract, or a stub in a test) simply reads once
+    can_route = SCRIPT_ROUTING and languages is None and tokens and hasattr(eng, "sample_confidence")
+    if can_route:
+        chosen, scores = choose_reader(pre.image, [t["bbox"] for t in tokens], eng)
+        if chosen != list(DEFAULT_LANGUAGES):
+            tokens = eng.recognize(pre.image, languages=chosen)
+            pre.steps.append("reader:" + "+".join(chosen))
+        pre.reader = chosen
+        pre.reader_scores = scores
     pre.image, tokens, flipped = fix_upside_down(pre.image, tokens, eng)
     if flipped:
         pre.steps.append("rotate180")
@@ -184,7 +204,8 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
                     if n_numbers:
                         pre.steps.append(f"numbers:{n_numbers}")
                 used = eng.name
-            preprocess_info = {"deskew_angle": pre.deskew_angle, "steps": pre.steps, "scale": pre.scale}
+            preprocess_info = {"deskew_angle": pre.deskew_angle, "steps": pre.steps, "scale": pre.scale,
+                               "reader": pre.reader, "reader_scores": pre.reader_scores}
         if used not in engines_used:
             engines_used.append(used)
         image_path = None

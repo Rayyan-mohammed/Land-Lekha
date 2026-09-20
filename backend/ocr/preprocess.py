@@ -24,6 +24,8 @@ class PreprocessResult:
     deskew_angle: float = 0.0
     steps: list[str] = field(default_factory=list)
     scale: float = 1.0
+    reader: list[str] | None = None          # languages the page was finally read with
+    reader_scores: dict | None = None        # what each candidate scored, so the choice is showable
 
 
 def to_gray(img: np.ndarray) -> np.ndarray:
