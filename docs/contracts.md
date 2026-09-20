@@ -157,7 +157,7 @@ The live, typed list is at `http://localhost:8000/docs` (FastAPI auto-docs). Mai
 | documents | `POST /api/documents`, `GET /api/documents`, `GET /api/documents/{id}`, `GET /api/documents/{id}/pages/{n}` |
 | review | `GET /api/review/queue`, `POST /api/documents/{id}/verify`, `POST /api/documents/{id}/dispute` |
 | admin | `GET /api/admin/stats`, `GET /api/admin/audit`, `GET/POST /api/admin/users`, `GET/POST /api/admin/real-samples` |
-| integration (mock) | `/api/integration/lrms/*`, `/api/integration/dilrmp/*`, `/api/integration/gis/*` |
+| integration (mock) | `/api/integration/lrms/*`, `/api/integration/dilrmp/*`, `/api/integration/gis/*`, `/api/integration/register/check/{doc_id}` |
 | public | `GET /api/public/records/{id}/verify` (no login - the QR code on a printed extract) |
 
 Roles: `operator` (upload, view own), `verifier` (+ review queue, verify, dispute), `admin` (everything, including real-sample uploads).
