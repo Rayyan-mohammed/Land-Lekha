@@ -43,6 +43,10 @@ These are the only shapes each track can rely on from its neighbour. Change them
   with a Devanagari letter in it (`1124/6क`). Poor pages are skipped entirely - there the
   english reader answers confidently with digits that are not on the page. `LL_OCR_NUMBER_PASS=0`
   turns it off.
+* `preprocess.reader` is the language set the page was finally read with, and
+  `preprocess.reader_scores` what each candidate scored on the same sample of boxes - so the
+  choice can be shown rather than asserted. `steps` carries `reader:te+en` when it was not the
+  Hindi + English default. Turn the routing off with `LL_OCR_SCRIPT_ROUTING=0`.
 * `quality.verdict` is `good` / `fair` / `poor` (thresholds from the dev set: median token confidence < 0.2 gave no correct fields, 0.2–0.4 was unreliable). `advice` holds plain-language retake tips. **Surface `poor` pages to the operator right after upload (L3), and route them to review with the advice as the reason (L2).**
 
 ## B → C: extraction output (`backend/extraction` → `backend/api`)
