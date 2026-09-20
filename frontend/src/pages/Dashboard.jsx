@@ -14,12 +14,6 @@ import { explainIssue } from '../reasons'
 const pct = (v, d = 1) => (v == null ? '—' : `${(v * 100).toFixed(d)}%`)
 // A conservative, stated estimate (not measured): typical manual entry + filing time for one
 // land record at a tehsil office. Counted only for auto-accepted documents - the ones that
-// needed zero human touch at all - so this understates the real saving rather than overclaims it.
-const MANUAL_MINUTES_PER_DOC = 8
-function timeSaved(autoAccepted) {
-  const hours = (autoAccepted * MANUAL_MINUTES_PER_DOC) / 60
-  return hours < 1 ? `${Math.round(hours * 60)} min` : `${hours < 100 ? hours.toFixed(1) : Math.round(hours)} h`
-}
 const STATUS_COLORS = { auto_accepted: '#15803d', verified: '#1f6f69', needs_review: '#d97706', rejected: '#b91c1c', failed: '#7f1d1d', processing: '#0284c7', queued: '#94a3b8' }
 
 function Section({ title, subtitle, children, className = '' }) {
@@ -91,8 +85,10 @@ export default function Dashboard() {
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Stat icon={FileStack} label={tr('Documents processed')} value={t.processed} sub={`${t.documents} ${tr('received')} · ${t.land_records} ${tr('records created')}`} />
       <Stat icon={CheckCircle2} tone="ok" label={tr('Auto-accepted')} value={pct(t.auto_accept_rate, 0)} sub={tr('no human needed')} />
-      <Stat icon={Timer} tone="ok" label={tr('Estimated time saved')} value={timeSaved(t.by_status.auto_accepted || 0)}
-        sub={`${tr('vs. an assumed')} ${MANUAL_MINUTES_PER_DOC} ${tr('min manual entry per record, auto-accepted only')}`} />
+      {/* counted, not assumed: how often the machine was wrong where somebody checked */}
+      <Stat icon={Timer} tone={s.accuracy.reviewed_fields ? 'warn' : undefined} label={tr('Corrections per 100 fields checked')}
+        value={s.accuracy.reviewed_fields ? Math.round(100 * s.accuracy.corrected / s.accuracy.reviewed_fields) : '—'}
+        sub={`${s.accuracy.corrected} ${tr('corrected of')} ${s.accuracy.reviewed_fields} ${tr('checked')}`} />
       <Stat icon={Hourglass} tone="warn" label={tr('Pending verification')} value={t.pending_verification} sub={`${t.failed} ${tr('failed')}`} />
       <Stat icon={Clock} tone="slate" label={tr('Avg. processing')} value={s.processing.avg_seconds ? `${s.processing.avg_seconds} s` : '—'} sub={tr('upload → structured record')} />
       <Stat icon={Target} tone="ok" label={tr('Field accuracy (checked by a person)')} value={pct(s.accuracy.field_accuracy)}
