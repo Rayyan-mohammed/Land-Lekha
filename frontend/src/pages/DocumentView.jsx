@@ -5,6 +5,7 @@ import { api } from '../api'
 import { useAuth } from '../auth'
 import { ConfidenceBar, confColor, ErrorNote, fmtDate, QualityBadge, Spinner, StatusBadge, useAuthImage, worstQuality } from '../components/ui'
 import { docTypeLabel, FIELDS, LAND_CLASSES } from '../constants'
+import RegisterCheck from '../components/RegisterCheck'
 import { useT } from '../i18n'
 import { explainAdvice, explainDuplicateReason, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
@@ -332,6 +333,8 @@ export default function DocumentView() {
     {doc.status === 'failed' && <ErrorNote error={doc.error || 'processing failed'} />}
 
     {/* first of all: is it a land record? decided before any field was read, shown whatever happened next */}
+    {!processing && doc.status !== 'failed' && can('verifier') && doc.fields?.length > 0 &&
+      <RegisterCheck docId={doc.id} />}
     {!processing && doc.status !== 'failed' && <>
       {quality && quality.verdict !== 'good' &&
         <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>

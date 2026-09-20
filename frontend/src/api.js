@@ -70,6 +70,7 @@ export const api = {
 
   stats: () => request('/api/admin/stats'),
   audit: (params = {}) => request('/api/admin/audit?' + new URLSearchParams(Object.entries(params).filter(([, v]) => v !== '' && v != null))),
+  registerCheck: (docId) => request(`/api/integration/register/check/${docId}`),
   users: () => request('/api/admin/users'),
   createUser: (body) => request('/api/admin/users', { method: 'POST', body }),
   updateUser: (id, body) => request(`/api/admin/users/${id}`, { method: 'PATCH', body }),
