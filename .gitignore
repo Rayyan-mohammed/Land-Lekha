@@ -30,6 +30,7 @@ storage/
 *.sqlite3
 *.db
 data/generated/
+data/register.json    # simulated state register, rebuilt by scripts/seed_register.py
 data/fonts/
 
 # editor / os

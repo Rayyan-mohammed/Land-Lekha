@@ -93,6 +93,29 @@ def lrms_push(record_id: int, request: Request, db: Session = Depends(get_db), u
             "pushed_at": r.lrms_pushed_at.isoformat() if r.lrms_pushed_at else None, "payload": _lrms_record(r)}
 
 
+@router.get("/register/check/{doc_id}")
+def register_check(doc_id: int, db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
+    """Compare what we read off this document with what the state register holds.
+
+    Simulated: there is no state API to call, so the register is a local table (see
+    backend/integration/register.py). A match here is **not** evidence that a document is
+    genuine - it means the two records say the same thing. Every response carries
+    `"simulated": true` and the UI says so."""
+    from backend.integration.register import Register, compare
+
+    doc = db.get(Document, doc_id)
+    if doc is None:
+        raise HTTPException(404, "document not found")
+    if user.role == "operator" and doc.uploaded_by != user.id:
+        raise HTTPException(403, "operators can only see their own uploads")
+    mine = {f.name: f.value for f in doc.fields if f.value and f.status != "rejected"}
+    register = Register.load()
+    result = compare(mine, register.find(mine))
+    result["document_id"] = doc.id
+    result["register_size"] = len(register.entries)
+    return result
+
+
 @router.get("/dilrmp/progress")
 def dilrmp_progress(db: Session = Depends(get_db), user: User = Depends(require("verifier"))):
     """DILRMP-style MIS progress report: digitization status by state and district."""
