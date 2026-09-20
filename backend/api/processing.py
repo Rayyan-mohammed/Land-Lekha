@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from backend.extraction.extractor import extract
 from backend.extraction.learning import CorrectionMemory
-from backend.classify import classify
+from backend.ocr.scripts import detect_scripts
 from backend.ocr.pipeline import run_ocr
 
 from . import audit
@@ -144,31 +144,14 @@ def process_document(doc_id: int) -> None:
         path = Path(doc.stored_path)
         ocr = run_ocr(path.read_bytes(), doc.filename, out_dir=path.parent, engine=OCR_ENGINE)
 
-        # Is this a land record at all? Decided from what was read, before anything is
-        # extracted, so a bill or a marksheet never comes back wearing a khasra number.
+        # What is on the page, and in what scripts. Neither decides whether the document is
+        # processed: a page with no land fields reaches a verifier through the routing rules,
+        # which is where that judgement has always belonged.
         text = chr(10).join([l["text"] for pg in ocr["pages"] for l in pg.get("lines", [])]
                             + [pg["text_layer"] for pg in ocr["pages"] if pg.get("text_layer")])
-        worst = min((pg.get("quality", {}).get("verdict", "good") for pg in ocr["pages"]),
-                    key=lambda v: {"poor": 0, "fair": 1, "good": 2}.get(v, 2), default="good")
-        blurred = any("blurred" in a for pg in ocr["pages"] for a in pg.get("quality", {}).get("advice", []))
-        verdict = classify(text, words=len(text.split()), quality=worst, blurred=blurred)
-        doc.classification = verdict
+        doc.scripts = detect_scripts(text)
         doc.ocr = ocr
         doc.page_count = len(ocr["pages"])
-        if verdict["is_land_document"] is False:  # None means "could not tell": that page goes on to review
-            doc.status = "not_land"
-            doc.document_type = None
-            doc.extraction = None
-            doc.overall_confidence = None
-            doc.route_reasons = [f"not a land document: {verdict['reason']}"]
-            doc.fields.clear()
-            doc.processing_ms = int((time.perf_counter() - t0) * 1000)
-            doc.processed_at = utcnow()
-            doc.error = None
-            audit.log(db, "document.not_land", None, "document", doc.id,
-                      {"confidence": verdict["confidence"], "reason": verdict["reason"], "ms": doc.processing_ms})
-            db.commit()
-            return
 
         # first pass without duplicates to learn the location, then check duplicates in that village
         memory = get_memory(db)
@@ -180,9 +163,7 @@ def process_document(doc_id: int) -> None:
             ext = extract(ocr, memory=memory, existing_records=others, threshold=AUTO_ACCEPT_THRESHOLD)
 
         doc.extraction = ext
-        # the classifier names deed types the extractor does not know; keep its answer when it has one
-        doc.document_type = (verdict["document_type"] if verdict["document_type"] not in (None, "unknown")
-                             else ext["document_type"])
+        doc.document_type = ext["document_type"]
         doc.overall_confidence = ext["overall_confidence"]
         doc.route_reasons = ext["route_reasons"]
         doc.owners = ext.get("owners")

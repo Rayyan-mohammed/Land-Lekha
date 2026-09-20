@@ -85,8 +85,15 @@ def route(fields: dict[str, dict], consistency: list[dict], duplicates: list[dic
           field_thresholds: dict[str, float] | None = None) -> tuple[str, list[str]]:
     threshold = default_threshold() if threshold is None else threshold
     reasons = []
-    for name in REQUIRED_FIELDS:
-        if name not in fields:
+    missing = [name for name in REQUIRED_FIELDS if name not in fields]
+    if len(missing) == len(REQUIRED_FIELDS):
+        # Nothing a land record must have was found anywhere on the page. This is what used to
+        # be answered by a land/non-land gate before extraction; the routing rules already knew
+        # it, they just said it seven times. Said once, the queue can sort these to the bottom.
+        reasons.append(f"no land-record fields found ({len(missing)} of {len(REQUIRED_FIELDS)} "
+                       "required fields missing)")
+    else:
+        for name in missing:
             reasons.append(f"missing required field: {name}")
     for name, f in fields.items():
         t = (field_thresholds or {}).get(name, threshold)

@@ -3,7 +3,7 @@
     python -m pytest tests -q
 """
 from backend.extraction import gazetteer
-from backend.extraction.confidence import route
+from backend.extraction.confidence import REQUIRED_FIELDS, route
 from backend.extraction.duplicates import find_duplicates
 from backend.extraction.extractor import extract
 from backend.extraction.learning import CorrectionMemory
@@ -172,10 +172,24 @@ def test_tehsildar_signature_is_not_a_tehsil_label():
 
 
 def test_route_sends_missing_and_inconsistent_to_review():
-    decision, reasons = route({}, [{"check": "tehsil_in_district", "ok": False, "detail": "x"}], threshold=0.8)
+    """Some fields missing: each one is named, so the verifier knows what to look for."""
+    fields = {n: {"value": "x", "valid": True, "confidence": 0.99, "issues": []}
+              for n in list(REQUIRED_FIELDS)[:-2]}
+    decision, reasons = route(fields, [{"check": "tehsil_in_district", "ok": False, "detail": "x"}],
+                              threshold=0.8)
     assert decision == "review"
     assert any("missing required field" in r for r in reasons)
     assert any("consistency failed" in r for r in reasons)
+
+
+def test_a_page_with_nothing_on_it_says_so_once():
+    """Every required field missing means this is not a land record page at all. Seven
+    "missing required field" lines said that badly; one line says it, and the queue can sort
+    these to the bottom. This is what replaced the land/non-land gate."""
+    decision, reasons = route({}, [], threshold=0.8)
+    assert decision == "review"
+    assert len([r for r in reasons if "missing required field" in r]) == 0
+    assert any(r.startswith("no land-record fields found") for r in reasons), reasons
 
 
 def test_duplicates_same_parcel():

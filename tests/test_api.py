@@ -179,13 +179,14 @@ def test_a_correction_is_carried_over_to_the_next_document(client):
     assert owner["raw_value"] == "Ram Prasad Sharrna"  # what the page actually said is still on the record
 
 
-def test_a_page_that_is_not_a_land_record_invents_nothing(client):
-    """Somebody will upload the wrong page. It must come back empty and honest: no fields
-    guessed, no record created, and a human asked to look.
+def test_a_page_with_no_land_fields_is_never_auto_accepted(client):
+    """The protection that used to come from a land/non-land gate, without the gate.
 
-    This one goes through real OCR (an invoice has no land-record words, so the PDF text
-    layer is refused), which is what a photographed wrong page would do. That costs about
-    30 seconds of model load on a cold run - the only test here that does.
+    Somebody will upload the wrong page. Nothing a land record must have is found on it, so
+    the routing rules send it to a person with one reason saying exactly that - and it can
+    never reach the register on its own. This goes through real OCR (an invoice has no
+    land-record words, so the PDF text-layer shortcut is correctly refused), which costs
+    about 30 seconds of model load on a cold run.
     """
     op = _login(client, "operator", "upload@123")
     invoice = ["INVOICE", "Acme Traders Pvt Ltd", "GSTIN: 07AABCU9603R1ZM",
@@ -194,15 +195,11 @@ def test_a_page_that_is_not_a_land_record_invents_nothing(client):
     doc = _wait(client, client.post("/api/documents", headers=op,
                                     files={"file": ("invoice.pdf", _pdf(invoice), "application/pdf")}).json()["id"],
                 op, timeout=180)
-    assert doc["status"] == "not_land", doc["status"]
-    assert doc["fields"] == []          # nothing was recognised, so nothing is offered as fact
-    assert doc["record_id"] is None     # and nothing reached the register
-    assert doc["overall_confidence"] in (None, 0.0)
-    verdict = doc["classification"]
-    assert verdict["is_land_document"] is False and verdict["confidence"] >= 0.8
-    assert verdict["document_type"] is None
-    assert "invoice" in verdict["evidence_against"]   # it can say *why*
-
+    assert doc["status"] == "needs_review"      # a person decides, not a classifier
+    assert doc["record_id"] is None             # and nothing reached the register
+    assert any("no land-record fields found" in r for r in doc["route_reasons"]), doc["route_reasons"]
+    # nothing was invented: no field carries a value
+    assert all(f["value"] in (None, "") for f in doc["fields"]), [f for f in doc["fields"] if f["value"]]
 
 def test_an_operator_cannot_read_the_register_or_other_peoples_trails(client):
     """Least privilege. An operator uploads pages and sees their own uploads; they do not get

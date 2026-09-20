@@ -39,11 +39,14 @@ class Document(Base):
     sha256: Mapped[str] = mapped_column(String(64), index=True)
     size_bytes: Mapped[int] = mapped_column(Integer)
     uploaded_by: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    # queued | processing | auto_accepted | needs_review | verified | rejected | failed | not_land
+    # queued | processing | auto_accepted | needs_review | verified | rejected | failed
     status: Mapped[str] = mapped_column(String(16), default="queued", index=True)
     document_type: Mapped[str | None] = mapped_column(String(32))
     # what the land-document classifier decided, before any field was extracted (backend/classify)
+    # left in place so existing databases keep their column; nothing writes it since the
+    # land/non-land gate was removed
     classification: Mapped[dict | None] = mapped_column(JSON)
+    scripts: Mapped[list | None] = mapped_column(JSON)   # writing systems seen on the page
     page_count: Mapped[int] = mapped_column(Integer, default=0)
     ocr: Mapped[dict | None] = mapped_column(JSON)
     extraction: Mapped[dict | None] = mapped_column(JSON)

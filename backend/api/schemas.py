@@ -77,7 +77,7 @@ class DocumentDetail(DocumentSummary):
     reviewed_at: datetime | None
     consistency: list = []
     duplicates: list = []
-    classification: dict | None = None
+    scripts: list | None = None
     pages: list[dict] = []
     uploader_name: str | None = None
     record_id: int | None = None
