@@ -60,3 +60,31 @@ def test_rounding_slack_does_not_trip_the_area_rule():
 def test_a_single_row_is_not_compared_with_itself():
     fields = {"plot_area": {"normalized": {"hectares": 1.0}}}
     assert check_areas(fields, [{"plot_area_normalized": {"hectares": 1.0}}]) == []
+
+
+def test_an_unsure_khasra_row_is_named_with_its_weakest_cell():
+    """Only the first row reached the flat fields, so a wrong value in the second row had
+    nothing to flag it. Each row now carries its weakest cell's confidence."""
+    from backend.extraction.rules import check_rows
+
+    rows = [{"khasra_number": "704/4", "confidence": 0.95,
+             "cell_confidence": {"khasra_number": 0.95, "plot_area": 0.96}},
+            {"khasra_number": "129", "confidence": 0.05,
+             "cell_confidence": {"khasra_number": 0.05, "plot_area": 0.75}}]
+    out = check_rows(rows, threshold=0.9)
+    assert len(out) == 1
+    assert out[0]["check"] == "ROW-1" and out[0]["ok"] is False
+    assert "row 2" in out[0]["detail"] and "khasra_number" in out[0]["detail"]
+
+
+def test_confident_rows_raise_nothing():
+    from backend.extraction.rules import check_rows
+
+    assert check_rows([{"confidence": 0.97, "cell_confidence": {"khasra_number": 0.97}}], 0.9) == []
+
+
+def test_a_row_without_confidence_is_not_invented():
+    from backend.extraction.rules import check_rows
+
+    assert check_rows([{"khasra_number": "1/1"}], 0.9) == []
+    assert check_rows(None, 0.9) == []

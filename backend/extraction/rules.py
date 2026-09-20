@@ -37,6 +37,8 @@ RULES: dict[str, Rule] = {
                    "तारीख भविष्य की है"),
     "ID-1": Rule("ID-1", "the same khasra number appears on two different khatas",
                  "एक ही खसरा संख्या दो अलग खातों पर है"),
+    "ROW-1": Rule("ROW-1", "a khasra row was read unsurely and needs checking",
+                  "एक खसरा पंक्ति ठीक से नहीं पढ़ी गई, उसे जाँचें"),
 }
 
 # the old check names, so anything already stored keeps its meaning
@@ -97,4 +99,22 @@ def check_areas(fields: dict, parcels: list[dict] | None) -> list[dict]:
         # a tenth of a hectare of slack: areas are printed to three decimals and rounded
         out.append({"check": "AREA-2", "ok": abs(summed - total) <= max(0.1, 0.05 * total),
                     "detail": f"{summed:.3f} ha in {len(rows)} rows / {total:.3f} ha on the record"})
+    return out
+
+
+def check_rows(parcels: list[dict] | None, threshold: float) -> list[dict]:
+    """Khasra rows below the trust threshold.
+
+    Only the first row used to reach the flat fields, so a wrong value in the second row had
+    nothing to flag it. Each row now carries the confidence of its weakest cell; anything
+    below the threshold is named here with the row number, so a verifier knows which line of
+    the table to look at."""
+    out = []
+    for i, row in enumerate(parcels or []):
+        conf = row.get("confidence")
+        if conf is None or conf >= threshold:
+            continue
+        weakest = min((row.get("cell_confidence") or {"": conf}).items(), key=lambda kv: kv[1])
+        out.append({"check": "ROW-1", "ok": False,
+                    "detail": f"row {i + 1}: {weakest[0] or 'row'} at {conf:.2f}"})
     return out

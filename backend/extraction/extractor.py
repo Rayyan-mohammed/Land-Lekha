@@ -5,7 +5,7 @@ from . import gazetteer
 from .confidence import default_threshold, field_confidence, overall_confidence, route
 from .learning import CorrectionMemory
 from .parser import Candidate, build_lines, detect_document_type, generate_candidates, split_owners
-from .rules import check_areas, check_dates
+from .rules import check_areas, check_dates, check_rows
 from .schema import FIELD_NAMES, REQUIRED_FIELDS
 from .validate import PARSERS, Parsed, find_unit, parse_area
 
@@ -218,17 +218,30 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
         row_ys = anchors or [c.bbox[1] for c in (area_rows or class_rows) if c.bbox]
         for y in row_ys:
             row: dict = {}
+            # Every cell carries the confidence of the cell it came from, and the row carries
+            # the weakest of them. Without this a wrong value in the second row could not be
+            # flagged at all - only the first row was mirrored into the flat fields, so rows
+            # below it were shown to a verifier with nothing to say how sure we were.
+            cell_confidence: dict[str, float] = {}
             k = _nearest("khasra_number", y)
             if k:
-                row["khasra_number"] = PARSERS["khasra_number"](k.text).value
+                kp = PARSERS["khasra_number"](k.text)
+                row["khasra_number"] = kp.value
+                cell_confidence["khasra_number"] = _field("khasra_number", k, kp)["confidence"]
             a = _nearest("plot_area", y)
             if a:
                 ap = parse_area(a.text, find_unit(a.context), bigha, default_unit)
                 row["plot_area"] = ap.value
                 row["plot_area_normalized"] = ap.normalized
+                cell_confidence["plot_area"] = _field("plot_area", a, ap)["confidence"]
             cl = _nearest("land_classification", y)
             if cl:
-                row["land_classification"] = PARSERS["land_classification"](cl.text).value
+                cp = PARSERS["land_classification"](cl.text)
+                row["land_classification"] = cp.value
+                cell_confidence["land_classification"] = _field("land_classification", cl, cp)["confidence"]
+            if cell_confidence:
+                row["confidence"] = round(min(cell_confidence.values()), 4)
+                row["cell_confidence"] = {k2: round(v, 4) for k2, v in cell_confidence.items()}
             parcels_list.append(row)
         if khasra_rows:
             fields["khasra_number"] = _field("khasra_number", khasra_rows[0], PARSERS["khasra_number"](khasra_rows[0].text))
@@ -255,7 +268,8 @@ def extract(ocr: dict, memory: CorrectionMemory | None = None, existing_records:
 
         dups = find_duplicates(flat, existing_records)
     field_thresholds = memory.field_thresholds(threshold) if memory else None
-    consistency = consistency + check_dates(fields) + check_areas(fields, parcels_list)
+    consistency = (consistency + check_dates(fields) + check_areas(fields, parcels_list)
+                   + check_rows(parcels_list, threshold if threshold is not None else default_threshold()))
     decision, reasons = route(fields, consistency, dups, threshold, field_thresholds)
 
     ordered = {n: fields[n] for n in FIELD_NAMES if n in fields}
