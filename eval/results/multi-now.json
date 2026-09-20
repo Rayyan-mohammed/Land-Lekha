@@ -113,7 +113,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 60855,
-   "extract_ms": 642.7,
+   "extract_ms": 608.2,
    "wrong": [],
    "reasons": []
   },
@@ -127,7 +127,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 41781,
-   "extract_ms": 596.4,
+   "extract_ms": 560.7,
    "wrong": [
     "plot_area"
    ],
@@ -146,7 +146,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 25510,
-   "extract_ms": 593.4,
+   "extract_ms": 565.3,
    "wrong": [
     "plot_area"
    ],
@@ -167,7 +167,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 32078,
-   "extract_ms": 1132.6,
+   "extract_ms": 1127.1,
    "wrong": [
     "khata_number",
     "plot_area",
@@ -193,7 +193,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 51549,
-   "extract_ms": 580.7,
+   "extract_ms": 566.8,
    "wrong": [
     "khasra_number",
     "plot_area"
@@ -213,7 +213,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 22126,
-   "extract_ms": 587.1,
+   "extract_ms": 583.1,
    "wrong": [
     "plot_area",
     "mutation_date"
@@ -234,13 +234,12 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 8819,
-   "extract_ms": 591.1,
+   "extract_ms": 581.3,
    "wrong": [],
    "reasons": [
     "low confidence: survey_number (0.88)",
     "low confidence: mutation_number (0.90)",
-    "consistency failed: AREA-2 (11.088 ha in 4 rows / 2.813 ha on the record)",
-    "consistency failed: ROW-1 (row 4: khasra_number at 0.87)"
+    "consistency failed: AREA-2 (11.088 ha in 4 rows / 2.813 ha on the record)"
    ]
   },
   {
@@ -253,7 +252,7 @@
    "route": "auto_accept",
    "required_all_correct": true,
    "ocr_ms": 9278,
-   "extract_ms": 1947.6,
+   "extract_ms": 1955.9,
    "wrong": [],
    "reasons": []
   },
@@ -267,7 +266,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 15379,
-   "extract_ms": 1191.8,
+   "extract_ms": 1194.6,
    "wrong": [
     "plot_area",
     "mutation_number"
@@ -289,7 +288,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 37243,
-   "extract_ms": 1161.5,
+   "extract_ms": 1152.6,
    "wrong": [
     "owner_name",
     "plot_area",
@@ -313,7 +312,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 33735,
-   "extract_ms": 588.5,
+   "extract_ms": 583.6,
    "wrong": [
     "village"
    ],
@@ -334,7 +333,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 33119,
-   "extract_ms": 1137.6,
+   "extract_ms": 1136.3,
    "wrong": [],
    "reasons": [
     "low confidence: father_name (0.89)"
@@ -350,7 +349,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 29484,
-   "extract_ms": 587.0,
+   "extract_ms": 629.4,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.81)",
@@ -368,7 +367,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 136584,
-   "extract_ms": 4.4,
+   "extract_ms": 4.3,
    "wrong": [
     "owner_name",
     "father_name",
@@ -398,7 +397,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 8236,
-   "extract_ms": 583.1,
+   "extract_ms": 580.8,
    "wrong": [
     "khata_number",
     "mutation_number",
@@ -421,7 +420,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 8866,
-   "extract_ms": 1128.0,
+   "extract_ms": 1128.8,
    "wrong": [],
    "reasons": [
     "low confidence: plot_area (0.69)"
@@ -437,7 +436,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 7111,
-   "extract_ms": 1132.6,
+   "extract_ms": 1199.9,
    "wrong": [],
    "reasons": [
     "low confidence: plot_area (0.76)"
@@ -453,7 +452,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 15565,
-   "extract_ms": 586.5,
+   "extract_ms": 612.2,
    "wrong": [
     "father_name",
     "plot_area"
@@ -473,7 +472,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 50352,
-   "extract_ms": 585.0,
+   "extract_ms": 583.8,
    "wrong": [
     "land_classification",
     "mutation_date",
@@ -496,7 +495,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 9501,
-   "extract_ms": 3116.8,
+   "extract_ms": 3116.3,
    "wrong": [],
    "reasons": [
     "low confidence: plot_area (0.66)"
@@ -512,7 +511,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 10368,
-   "extract_ms": 610.2,
+   "extract_ms": 666.1,
    "wrong": [
     "khasra_number"
    ],
@@ -530,7 +529,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 11205,
-   "extract_ms": 590.7,
+   "extract_ms": 598.3,
    "wrong": [],
    "reasons": [
     "low confidence: owner_name (0.81)",
@@ -548,7 +547,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 11125,
-   "extract_ms": 1953.6,
+   "extract_ms": 1989.0,
    "wrong": [
     "owner_name",
     "village",
@@ -572,7 +571,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 33507,
-   "extract_ms": 581.7,
+   "extract_ms": 566.8,
    "wrong": [
     "owner_name",
     "father_name",
@@ -594,7 +593,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 10743,
-   "extract_ms": 20.3,
+   "extract_ms": 19.2,
    "wrong": [
     "khasra_number",
     "plot_area",
@@ -617,7 +616,7 @@
    "route": "review",
    "required_all_correct": true,
    "ocr_ms": 16847,
-   "extract_ms": 1965.4,
+   "extract_ms": 1992.9,
    "wrong": [],
    "reasons": [
     "low confidence: khata_number (0.89)",
@@ -635,7 +634,7 @@
    "route": "auto_accept",
    "required_all_correct": false,
    "ocr_ms": 10603,
-   "extract_ms": 589.0,
+   "extract_ms": 596.1,
    "wrong": [
     "plot_area"
    ],
@@ -651,7 +650,7 @@
    "route": "auto_accept",
    "required_all_correct": false,
    "ocr_ms": 9085,
-   "extract_ms": 571.4,
+   "extract_ms": 592.2,
    "wrong": [
     "plot_area"
    ],
@@ -667,7 +666,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 11975,
-   "extract_ms": 600.8,
+   "extract_ms": 612.9,
    "wrong": [
     "owner_name"
    ],
@@ -685,7 +684,7 @@
    "route": "review",
    "required_all_correct": false,
    "ocr_ms": 131954,
-   "extract_ms": 568.5,
+   "extract_ms": 624.4,
    "wrong": [
     "khasra_number",
     "registration_date"
