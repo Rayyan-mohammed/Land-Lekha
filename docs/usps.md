@@ -49,6 +49,10 @@ back.
 
 ### 3. Calibrated confidence, not a raw OCR score
 
+Measured, not claimed: expected calibration error **0.0245** on 516 held-out fields, and at the shipped
+threshold of 0.90 we accept 85.7% of fields with 3.6% of those wrong - moving to 0.95 halves the risk and
+hands a third of the fields back to a person ([eval/results/reliability.md](../eval/results/reliability.md)).
+
 Raw OCR confidence is badly calibrated for Devanagari - correct text often scores 0.4-0.6. Each
 field's confidence is a logistic model over OCR, rule, label and source evidence, fitted on a
 separate `dev` split. On 40 **held-out** documents:
