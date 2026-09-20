@@ -78,6 +78,11 @@ These are the only shapes each track can rely on from its neighbour. Change them
 ```
 
 * Field names are exactly the ones in `backend/extraction/schema.py`.
+* `consistency[].check` is a rule id from `backend/extraction/rules.py` - `LOC-1` to `LOC-3`
+  for the place hierarchy, `DATE-1` and `DATE-2` for dates, `AREA-2` for khasra rows that do
+  not add up to the recorded area. Each has a sentence in English and Hindi
+  (`rules.explain(id, lang)`), and `detail` carries the two values that disagree. The names
+  used before ids existed (`tehsil_in_district` and friends) still resolve.
 * `route` is `auto_accept` or `review`. See `backend/extraction/confidence.py` for the rule.
 * A place field (`village`/`tehsil`/`district`/`state`) matched against the master gazetteer
   carries `normalized.hi_verified`: `true` for state/district/tehsil (hand-checked real Hindi),
