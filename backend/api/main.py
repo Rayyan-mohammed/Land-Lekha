@@ -19,7 +19,8 @@ from sqlalchemy import or_, select
 
 from .auth import hash_password
 from .config import CORS_ORIGINS, JWT_SECRET_SET, ROOT, SEED_DEMO_USERS, STALE_PROCESSING_MINUTES
-from .db import SessionLocal, ensure_unique_active_document, ensure_unique_audit_chain, upgrade_schema
+from .db import (SessionLocal, ensure_unique_active_document, ensure_unique_audit_chain,
+                 retire_not_land_status, upgrade_schema)
 from .graphql_api import graphql_router
 from .models import Document, User
 from .routes import admin, auth, documents, integration, public, review
