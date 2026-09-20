@@ -1,5 +1,5 @@
 """Choosing the reader by reading a little of the page with each candidate."""
-from backend.ocr.scripts import MIN_GAIN, choose_reader
+from backend.ocr.scripts import MIN_ABSOLUTE, MIN_GAIN, choose_reader
 
 
 class FakeEngine:
@@ -59,3 +59,27 @@ def test_a_page_with_no_boxes_keeps_the_default():
     eng = FakeEngine({"hi+en": 0.9})
     langs, scores = choose_reader(None, [], eng)
     assert langs == ["hi", "en"] and scores == {} and eng.asked == []
+
+
+def test_a_page_nobody_can_read_keeps_the_default():
+    """Two real deeds, badly photographed: every reader scored between 0.07 and 0.34, and the
+    loudest guess was Kannada - on an Andhra document. A relative lead over a field of
+    failures is not evidence of a script."""
+    eng = FakeEngine({"hi+en": 0.071, "te+en": 0.136, "kn+en": 0.223, "bn+en": 0.093})
+    langs, scores = choose_reader(None, BOXES, eng,
+                                  candidates=[["hi", "en"], ["te", "en"], ["kn", "en"], ["bn", "en"]])
+    assert langs == ["hi", "en"], "a winner below the floor must not take the page"
+    assert list(scores)[0] == "kn+en"      # still reported, so the near-miss is visible
+
+
+def test_a_clear_winner_above_the_floor_still_takes_the_page():
+    eng = FakeEngine({"hi+en": 0.164, "te+en": 0.645, "kn+en": 0.398})
+    langs, _ = choose_reader(None, BOXES, eng, candidates=[["hi", "en"], ["te", "en"], ["kn", "en"]])
+    assert langs == ["te", "en"]
+
+
+def test_the_floor_is_absolute_not_relative():
+    """A big lead over a hopeless default is still a hopeless reading."""
+    eng = FakeEngine({"hi+en": 0.02, "te+en": MIN_ABSOLUTE - 0.01})
+    langs, _ = choose_reader(None, BOXES, eng, candidates=[["hi", "en"], ["te", "en"]])
+    assert langs == ["hi", "en"]

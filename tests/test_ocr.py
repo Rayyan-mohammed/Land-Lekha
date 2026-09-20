@@ -226,24 +226,42 @@ def test_precheck_rejection_is_rechecked_on_lighter_denoise(monkeypatch):
     assert out["pages"][0]["tokens"], "OCR should have actually run"
 
 
-def test_precheck_rejection_stands_when_still_hopeless_on_retry(monkeypatch):
-    """If the lighter-denoise recheck is still hopeless, OCR is genuinely skipped - the retry
-    is a second chance, not a way to always force a read."""
+def test_a_hopeless_page_is_still_read_so_a_person_can_judge(monkeypatch):
+    """Legacy paper is the input this system exists for. A faded register page nobody will
+    ever re-scan is worth reading badly rather than not at all, so the quality check advises
+    and the read happens anyway - marked, with the retake advice kept, and never trusted."""
     from backend.ocr import pipeline
 
     hopeless = {"verdict": "poor", "median_confidence": 0.0, "sharpness": 10.0, "text_height_px": 0.0,
                 "tokens": 0, "advice": ["image is too blurred to read - hold the camera steady, tap to focus and retake"],
                 "skipped_ocr": True}
     monkeypatch.setattr(pipeline, "precheck", lambda gray, shape: hopeless)
+    png = cv2.imencode(".png", _text_page())[1].tobytes()
+    out = pipeline.run_ocr(png, "page.png")
+    page = out["pages"][0]
+
+    assert "best_effort" in page["preprocess"]["steps"]
+    assert "skipped_ocr:poor_quality" not in page["preprocess"]["steps"]
+    assert page["quality"]["best_effort"] is True
+    assert any("blurred" in a for a in page["quality"]["advice"]), "the retake advice must survive"
+
+
+def test_best_effort_can_be_switched_off(monkeypatch):
+    """An office that would rather not spend 8-12 seconds on a page it will reject anyway."""
+    from backend.ocr import pipeline
+
+    hopeless = {"verdict": "poor", "median_confidence": 0.0, "sharpness": 10.0, "text_height_px": 0.0,
+                "tokens": 0, "advice": ["image is too blurred to read - retake"], "skipped_ocr": True}
+    monkeypatch.setattr(pipeline, "precheck", lambda gray, shape: hopeless)
+    monkeypatch.setattr(pipeline, "BEST_EFFORT", False)
     engine_called = []
     monkeypatch.setattr(pipeline, "get_engine", lambda name: engine_called.append(1))
     png = cv2.imencode(".png", _text_page())[1].tobytes()
     out = pipeline.run_ocr(png, "page.png")
 
-    assert not engine_called, "still-hopeless pages must not run the neural OCR pass"
+    assert not engine_called, "with best effort off, the neural pass must not run"
     assert "skipped_ocr:poor_quality" in out["pages"][0]["preprocess"]["steps"]
     assert out["pages"][0]["quality"]["verdict"] == "poor"
-
 
 def test_well_read_page_is_read_once(monkeypatch):
     from backend.ocr import pipeline

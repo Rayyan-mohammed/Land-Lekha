@@ -9,6 +9,8 @@ The page's own text is never translated or rewritten. This only reports what was
 """
 from __future__ import annotations
 
+import os
+
 # Unicode blocks, in the order we test them. Latin is handled separately because it is the
 # one that shares a page with everything else.
 BLOCKS: list[tuple[str, int, int]] = [
@@ -99,6 +101,19 @@ CANDIDATES: list[list[str]] = [["hi", "en"], ["te", "en"], ["ta", "en"], ["kn", 
 # rather than reloading a model for a difference that is noise.
 MIN_GAIN = 0.05
 
+# ...and the winner must actually be able to read the page. Measured on three pages:
+#
+#   clean Telugu Pahani     te+en 0.645  kn+en 0.398  bn+en 0.259  hi+en 0.164
+#   real AP sale deed       kn+en 0.223  te+en 0.136  bn+en 0.093  hi+en 0.071
+#   real WB deed            bn+en 0.337  te+en 0.275  kn+en 0.252  hi+en 0.239
+#
+# On the clean page the winner stands well clear of the pack. On the two real, badly
+# photographed deeds every reader is guessing and the "winner" is whichever guessed loudest -
+# which routed an Andhra document to the Kannada model. A relative lead over a field of
+# failures is not evidence of a script, so below this floor the default stands and the page
+# goes to a person, as it was going to anyway.
+MIN_ABSOLUTE = float(os.getenv("LL_OCR_READER_FLOOR", "0.45"))
+
 
 def choose_reader(gray, boxes, eng, candidates: list[list[str]] | None = None,
                   default: list[str] | None = None, sample: int = 12) -> tuple[list[str], dict]:
@@ -124,5 +139,6 @@ def choose_reader(gray, boxes, eng, candidates: list[list[str]] | None = None,
         return default, {}
     best = max(scores, key=scores.get)
     base = scores.get("+".join(default), 0.0)
-    chosen = best.split("+") if scores[best] - base >= MIN_GAIN else default
+    clear_winner = scores[best] - base >= MIN_GAIN and scores[best] >= MIN_ABSOLUTE
+    chosen = best.split("+") if clear_winner else default
     return chosen, {k: round(v, 4) for k, v in sorted(scores.items(), key=lambda kv: -kv[1])}

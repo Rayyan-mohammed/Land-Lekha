@@ -21,6 +21,8 @@ RETRY_DENOISE_H = int(os.getenv("LL_OCR_RETRY_DENOISE_H", "5"))
 
 # Pick the recogniser to match the script on the page (backend/ocr/scripts.py).
 SCRIPT_ROUTING = os.getenv("LL_OCR_SCRIPT_ROUTING", "1") != "0"
+# Read a page the quality check calls hopeless anyway, and let a person judge the result.
+BEST_EFFORT = os.getenv("LL_OCR_BEST_EFFORT", "1") != "0"
 DEFAULT_LANGUAGES = ("hi", "en")
 
 PDF_DPI = 200
@@ -172,20 +174,34 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
                 light = preprocess(img, do_binarize=do_binarize, denoise_h=RETRY_DENOISE_H)
                 if precheck(light.image, img.shape) is None:
                     early_quality, pre, retried_precheck = None, light, True
-            if early_quality is not None:
-                # unusable image (too blurred/low-res even after preprocessing): skip the
-                # 8-12s neural OCR pass and return the retake advice immediately
+            if early_quality is not None and not BEST_EFFORT:
+                # unusable image, and best-effort reading is switched off: skip the 8-12s
+                # neural OCR pass and return the retake advice immediately
                 tokens = []
                 pre.steps.append("skipped_ocr:poor_quality")
                 page_img = pre.image
                 quality = early_quality
                 used = "none"
             else:
+                # The quality check advises, it does not refuse. Legacy paper - faded,
+                # stained, photographed badly - is the input this system exists for, and a
+                # page nobody will ever re-scan is worth reading badly rather than not at
+                # all. Whatever comes back is reported with the quality verdict beside it
+                # and cannot be auto-accepted, so a poor reading reaches a person, not the
+                # register. Set LL_OCR_BEST_EFFORT=0 to refuse these pages instead.
+                best_effort = early_quality is not None
                 eng = eng or get_engine(engine)
                 page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H if retried_precheck else None)
                 quality = assess(page_img, tokens, img.shape)
+                # every _read_page below hands back a fresh result, so markers are collected
+                # here and written onto whichever one is finally kept
+                extra_steps = []
+                if best_effort:
+                    extra_steps.append("best_effort")
+                    quality = {**quality, "best_effort": True,
+                               "advice": list(dict.fromkeys(early_quality["advice"] + quality["advice"]))}
                 if retried_precheck:
-                    pre.steps.append("precheck retry")
+                    extra_steps.append("precheck retry")
                 # Second chance: strong denoising erases strokes on blurred or faded pages. When a page
                 # reads badly, read it again with lighter denoising and keep that reading. Measured on
                 # the dev set: +13 of 81 fields on fair/poor pages, and never worse on any of them
@@ -195,7 +211,11 @@ def run_ocr(data: bytes, filename: str = "", out_dir: Path | None = None, engine
                 if RETRY_SOFT and quality["verdict"] != "good" and not retried_precheck:
                     page_img, tokens, pre = _read_page(img, eng, do_binarize, RETRY_DENOISE_H)
                     quality = assess(page_img, tokens, img.shape)
+                    if best_effort:
+                        quality = {**quality, "best_effort": True,
+                                   "advice": list(dict.fromkeys(early_quality["advice"] + quality["advice"]))}
                     pre.steps.append("second read")
+                pre.steps[:0] = extra_steps
                 # Numbers last, on the reading we keep. Not on a poor page: there the english
                 # recogniser answers confidently with digits that are not on the page at all,
                 # and a confident wrong khasra number is worse than an obviously unsure one.
