@@ -68,10 +68,14 @@ def precheck(gray: np.ndarray, original_shape: tuple[int, ...]) -> dict | None:
     advice = []
     if sharpness < HOPELESS_SHARPNESS:
         advice.append("image is too blurred to read - hold the camera steady, tap to focus and retake")
-    if long_side < MIN_LONG_SIDE:
-        advice.append(f"low resolution ({long_side}px) - use at least {MIN_LONG_SIDE}px / 150 dpi")
     if not advice:
         return None
+    # Low resolution on its own no longer skips the read. Preprocessing upscales a small page to
+    # 1200px, and a 507px photograph of a real deed went from nothing at all to 110 words read
+    # that way - enough to tell that it *is* a land document, which refusing to read never is.
+    # `assess` still reports the low resolution afterwards, with the retake advice.
+    if long_side < MIN_LONG_SIDE:
+        advice.append(f"low resolution ({long_side}px) - use at least {MIN_LONG_SIDE}px / 150 dpi")
     return {"verdict": "poor", "median_confidence": 0.0, "sharpness": round(sharpness, 1),
            "text_height_px": 0.0, "tokens": 0, "advice": advice, "skipped_ocr": True}
 
