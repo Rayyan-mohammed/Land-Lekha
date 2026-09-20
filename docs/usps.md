@@ -14,23 +14,7 @@ number written into a register is worse than no number at all.
 
 ## The six USPs, strongest first
 
-### 1. It checks this is a land record before it trusts anything on it
-
-A rule ensemble (`backend/classify/land.py`) decides *is this even a land record?* before a
-single field is extracted - the same "know what not to trust" idea as the confidence system,
-one step earlier. Measured on 115 real OCR readings (105 land pages, 10 deliberately not):
-
-| | called land | called not land |
-| --- | --- | --- |
-| land page | 105 | 0 |
-| not a land page | 0 | 10 |
-
-**100% accuracy, precision and recall** on this set (`eval/results/classification.md`). A bank
-statement or an electricity bill photographed by mistake never gets a fabricated khasra number.
-Honestly: the non-land set is small and synthetic - it shows the mechanism works, not that it is
-finished on the full variety of paper an office actually sees.
-
-### 2. It knows what it cannot read, and proves it
+### 1. It knows what it cannot read, and proves it
 
 The quality check separates readable pages from unreadable ones before anything is extracted.
 Across all 17 phone photos in the three evaluation splits:
@@ -47,7 +31,7 @@ or English, instead of becoming a case nobody can resolve later.
 Where it shows in the demo: upload `05-phone-photo.jpg`, watch it be read twice and still sent
 back.
 
-### 3. Calibrated confidence, not a raw OCR score
+### 2. Calibrated confidence, not a raw OCR score
 
 Measured, not claimed: expected calibration error **0.0245** on 516 held-out fields, and at the shipped
 threshold of 0.90 we accept 85.7% of fields with 3.6% of those wrong - moving to 0.95 halves the risk and
@@ -68,7 +52,7 @@ not at its lowest edge - because the lowest edge met the target on the tuning sp
 on held-out data (`eval/results/experiments.md`, section 12). That decision cost auto-accept rate
 and bought back the safety margin.
 
-### 4. Two OCR passes that each fix a different, measured failure
+### 3. Two OCR passes that each fix a different, measured failure
 
 Not "we used EasyOCR". Two changes, each A/B tested and each written up with the evidence:
 
@@ -85,7 +69,7 @@ Not "we used EasyOCR". Two changes, each A/B tested and each written up with the
 Rejected experiments are written up too, with their numbers: cell-by-cell table reading, unsharp
 masking, lighter denoising applied to every page, runtime selection between two readings.
 
-### 5. Everything a verifier does is remembered, and everything anyone does is chained
+### 4. Everything a verifier does is remembered, and everything anyone does is chained
 
 - **Corrections are learned.** Correct one owner's name, and the next document misread the same way
   arrives already fixed, marked `learned`, with the original OCR text still on the record. That is
@@ -103,7 +87,7 @@ masking, lighter denoising applied to every page, runtime selection between two 
   for re-confirmation, and the dispute itself lands in the same hash-chained audit trail as
   everything else - reopening a record is as accountable as approving one.
 
-### 6. Built for the office - and the citizen - it would actually run in
+### 5. Built for the office - and the citizen - it would actually run in
 
 - **Hindi and English everywhere**, including error messages, flag reasons, retake advice, dates
   and screen-reader labels - with tests that fail the build if any on-screen string, any title
@@ -126,7 +110,7 @@ masking, lighter denoising applied to every page, runtime selection between two 
 | Everyone will have | We also have |
 | --- | --- |
 | OCR of a scanned record | A quality gate that refuses pages it cannot read, with retake advice |
-| Assumes every upload is a land record | A classifier that rejects non-land pages first, 100% precision/recall on 115 real OCR readings |
+| Assumes every upload is a land record | A page with none of the required fields cannot be auto-accepted: it reaches a verifier with one reason saying so and no invented values |
 | Fields pulled out of the text | Per-field calibrated confidence, and a measured precision for the fields left unflagged |
 | A review screen | A review screen that says *why* each field was flagged, and remembers the correction |
 | A verified record is final | A dispute flow that reopens it for a second look, logged to the same tamper-evident chain |

@@ -56,7 +56,7 @@ Land records sit in handwritten registers and old scans, and they get retyped by
 ## 5. The unseen document (1 min)
 Upload the document nobody has seen. Whatever happens, explain it: confident fields pass, uncertain ones are flagged, nothing is silently guessed.
 
-Every upload now shows its verdict first: **✓ LAND DOCUMENT** with a confidence, the document type (or *unknown — manual review recommended*, which still goes forward), the scripts on the page, and the kinds of evidence it found. Government or revenue wording is reported as an *indicator* — the screen says in as many words that this is not proof of authenticity.
+Every upload shows what was read: the document type (or *unknown*, which still goes forward for extraction), the scripts on the page, and the reader that was chosen for it. There is no land-versus-not verdict - a page with none of the required fields simply cannot be auto-accepted, and reaches a verifier with one reason saying exactly that.
 
 If someone hands you a page that is **not** a land record at all — an invoice, a letter, the wrong page entirely — upload it. It is read like any other page, nothing a land record must have is found on it, and it arrives in the verifier's queue with one reason: *no land-record fields found (7 of 7 required fields missing)*. No values are invented and nothing reaches the register. Say plainly that the system does not claim to recognise a land document by sight — it refuses to fill in fields it cannot read, which is the property that matters. Held in place by `tests/test_api.py::test_a_page_with_no_land_fields_is_never_auto_accepted`.
 
