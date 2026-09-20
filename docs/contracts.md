@@ -128,7 +128,7 @@ the extractor, so no field can be invented for it.
 ```
 
 * `is_land_document: false` puts the document in status `not_land`, with **no fields**, and it never
-  enters the verification queue. The UI shows *NOT A LAND DOCUMENT* with the reason.
+  enters the verification queue with the reason *no land-record fields found*.
 * `null` (undetermined) means the quality check called the page `poor`, or fewer than 12 words were
   read: that is a quality problem, not a verdict, so the page goes on to review with retake advice.
 * `document_type: "unknown"` is **not** a rejection: extraction continues generically and the

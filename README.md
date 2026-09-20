@@ -111,7 +111,6 @@ Land records — Khatauni, Khasra Panchsala, Jamabandi, Khatiyan, depending on t
 
 | PS 26018 asks for | In LandLekha |
 | --- | --- |
-| Is it a land document at all? | Decided **before** any field is extracted, from several *kinds* of evidence on the page (parcel identifier, extent, tenure, revenue office, land use, boundaries, transaction) - never one keyword. Measured on 115 real OCR readings: **105 of 105 readable land pages kept, 10 of 10 readable non-land pages refused, 0 mistakes**. A non-land page ends as *NOT A LAND DOCUMENT* with no fields; government wording is reported as an *indicator*, never proof of authenticity |
 | Multilingual recognition | Hindi (Devanagari) + English, in one model; Devanagari digits; the scripts on each page are detected and reported, never translated |
 | Extraction from scans, PDFs, images | PNG/JPG/TIFF/PDF upload, phone camera capture, multi-page PDFs. Born-digital PDFs read from their text layer (0.5 s, exact). Sideways/upside-down photos turned upright automatically. Every page gets a quality verdict with retake advice |
 | Classification into predefined fields | 15 fields (`backend/extraction/schema.py`), found in key:value forms, filled forms and Khatauni tables; every co-owner and parcel row under a khata |
@@ -167,20 +166,7 @@ Measured on 40 documents (`test` split) the confidence model never saw during fi
 
 > **Honest scope**: the threshold sits in the *middle* of the range that meets a 95% precision target on dev, not at its lowest edge — the lowest edge met the target on dev and missed it on test. Both splits are synthetic, generated from real LGD village names but not real handwriting or real paper. Full methodology and the experiments that didn't work: [docs/usps.md](docs/usps.md), [eval/results/experiments.md](eval/results/experiments.md).
 
-### 2. The land-document classifier
-
-A rule ensemble decides whether a page is a land record before any field is extracted, measured on 115 real OCR readings (105 land pages, 10 deliberately not) — [eval/results/classification.md](eval/results/classification.md).
-
-| | called land | called not land |
-| --- | --- | --- |
-| land page | 105 | 0 |
-| not a land page | 0 | 10 |
-
-**100% accuracy, precision and recall** on this set. A bank statement or an electricity bill photographed by mistake never reaches the register with a fabricated khasra number.
-
-> **Honest scope**: the non-land set is 14 pages, small and synthetic. This shows the mechanism works, not that it holds up against the full variety of paper a real office would see it.
-
-### 3. Phone-photo quality gate
+### 2. Phone-photo quality gate
 
 Across all 17 phone photos in the three evaluation splits, a pre-OCR check separates readable pages from unreadable ones before anything is extracted.
 
@@ -193,7 +179,7 @@ The two groups do not overlap — the worst page it kept (63.6%) still beat the 
 
 > **Honest scope**: phone photos remain the weakest input overall (56.5% field accuracy including the rejected ones). The underlying recognition problem needs fine-tuning on real field photos; the quality gate is a speed/UX fix, not an accuracy fix. See the "Honest limitations" section below.
 
-### 4. Multi-owner, multi-parcel Khatauni support
+### 3. Multi-owner, multi-parcel Khatauni support
 
 A separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khata, on real LGD villages — [eval/results/multi.md](eval/results/multi.md).
 
@@ -308,6 +294,7 @@ produced the [live demo](#live-demo) above.
 ---
 
 ## Operational safety
+- **A page with none of the required fields** - a bill, a certificate, the wrong page entirely - cannot be auto-accepted. It reaches a verifier with one reason saying so and no invented values. That is the routing rule doing its job, not a separate classifier: the system does not claim to know a land document by sight.
 
 **Resetting to a clean state before a demo**: `scripts\start.ps1 -Fresh` (or `start.sh -Fresh`) deletes `storage/` — the SQLite database, uploaded originals, and OCR cache — before starting, so a demo never runs against yesterday's documents or a locked-out rate-limit state. There's no soft-delete or undo for this; it's meant to be run against a disposable local database, not the one behind a real deployment.
 
