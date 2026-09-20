@@ -8,7 +8,6 @@ import { docTypeLabel, FIELDS, LAND_CLASSES } from '../constants'
 import { useT } from '../i18n'
 import { explainAdvice, explainDuplicateReason, explainIssue, explainReason } from '../reasons'
 import { useToast } from '../components/toast'
-import { ClassificationCard } from '../components/Classification'
 import { getQueueOrder, sortQueue } from '../queue'
 
 // preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
@@ -320,8 +319,7 @@ export default function DocumentView() {
     {doc.status === 'failed' && <ErrorNote error={doc.error || 'processing failed'} />}
 
     {/* first of all: is it a land record? decided before any field was read, shown whatever happened next */}
-    {!processing && <ClassificationCard verdict={doc.classification} layoutType={doc.extraction?.document_type} />}
-    {!processing && doc.status !== 'failed' && doc.status !== 'not_land' && <>
+    {!processing && doc.status !== 'failed' && <>
       {quality && quality.verdict !== 'good' &&
         <div className={`mb-4 rounded-xl border p-3 text-sm ${quality.verdict === 'poor' ? 'border-red-200 bg-red-50 text-red-900' : 'border-amber-200 bg-amber-50 text-amber-900'}`}>
           <div className="flex items-center gap-2 font-medium"><Camera size={16} />

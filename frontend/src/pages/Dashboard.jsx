@@ -102,20 +102,14 @@ export default function Dashboard() {
       <Stat icon={Brain} tone="slate" label={tr('Learned from verifiers')} value={s.learning.corrections} sub={`${s.learning.learned_patterns} ${tr('correction patterns active')}`} />
     </div>
 
-    {s.classification && <div className="mb-4 grid gap-4 lg:grid-cols-3">
-      <Section title="Document classification" subtitle="Decided before any field is read">
-        <div className="grid grid-cols-3 gap-2 text-center">
-          {[['Land documents', s.classification.land, 'text-ok'], ['Not land', s.classification.not_land, 'text-bad'], ['Could not tell', s.classification.undetermined, 'text-slate-600']]
-            .map(([k, n, cls]) => <div key={k} className="rounded-lg bg-slate-50 p-2"><div className={`text-xl font-semibold tabular-nums ${cls}`}>{n}</div><div className="text-[11px] text-slate-600">{tr(k)}</div></div>)}
-        </div>
-      </Section>
+    {s.repository && <div className="mb-4 grid gap-4 lg:grid-cols-2">
       <Section title="Document types" subtitle="As named on the page">
-        {Object.keys(s.classification.document_types).length === 0 ? <div className="text-sm text-slate-500">{tr('None')}</div>
-          : Object.entries(s.classification.document_types).map(([k, n]) => <div key={k} className="flex min-w-0 justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="min-w-0 truncate">{docTypeLabel(k, lang)}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
+        {Object.keys(s.repository.document_types).length === 0 ? <div className="text-sm text-slate-500">{tr('None')}</div>
+          : Object.entries(s.repository.document_types).map(([k, n]) => <div key={k} className="flex min-w-0 justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span className="min-w-0 truncate">{docTypeLabel(k, lang)}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
       </Section>
       <Section title="Scripts on the pages" subtitle="Detected, never translated">
-        {Object.keys(s.classification.scripts).length === 0 ? <div className="text-sm text-slate-500">{tr('None')}</div>
-          : Object.entries(s.classification.scripts).map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span>{k}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
+        {Object.keys(s.repository.scripts).length === 0 ? <div className="text-sm text-slate-500">{tr('None')}</div>
+          : Object.entries(s.repository.scripts).map(([k, n]) => <div key={k} className="flex justify-between gap-2 border-b border-slate-100 py-1 text-sm"><span>{k}</span><span className="tabular-nums text-slate-500">{n}</span></div>)}
       </Section>
     </div>}
     <div className="grid gap-4 lg:grid-cols-3">

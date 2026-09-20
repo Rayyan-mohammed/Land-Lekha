@@ -9,7 +9,7 @@ import { explainAdvice } from '../reasons'
 import { useToast } from '../components/toast'
 
 const ACCEPT = '.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.pdf'
-const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed', 'not_land']
+const DONE = ['auto_accepted', 'needs_review', 'verified', 'rejected', 'failed']
 
 // Checked before sending, so the operator gets a clear message at once instead of a server
 // error; the server still enforces both (backend/api/config.py MAX_UPLOAD_MB, ALLOWED_EXTENSIONS).
@@ -127,7 +127,6 @@ export default function UploadPage() {
     retake: finished.filter((x) => x.doc && worstQuality(x.doc.pages)?.verdict === 'poor').length,
     dup: finished.filter((x) => x.dupId).length,
     failed: finished.filter((x) => (x.error && !x.dupId) || x.doc?.status === 'failed').length,
-    notLand: finished.filter((x) => x.doc?.status === 'not_land').length,
   }
   const showSummary = finished.length >= 2
 
@@ -194,8 +193,7 @@ export default function UploadPage() {
                 : !d ? t('Uploading…')
                   : !done ? t('usually 10–30 seconds per page; a blurred page is read twice and takes longer; digital PDFs about a second')
                     : d.status === 'failed' ? t('Could not process this file')
-                      : d.status === 'not_land' ? <span className="font-medium text-bad">✕ {t('NOT A LAND DOCUMENT')} · {Math.round((d.classification?.confidence || 0) * 100)}% — {t('no fields were extracted')}</span>
-                      : `${d.classification?.is_land_document ? '✓ ' + t('LAND DOCUMENT') + ' · ' : ''}${d.district || t('Unknown district')} · ${t('processed in')} ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
+                      : `${d.district || t('Unknown district')} · ${t('processed in')} ${((d.processing_ms || 0) / 1000).toFixed(1)} s`}
             </div>
             {done && worstQuality(d.pages)?.verdict === 'poor' &&
               <div className="mt-1 flex items-start gap-1.5 text-xs font-medium text-bad">

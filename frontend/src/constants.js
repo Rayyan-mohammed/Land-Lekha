@@ -36,7 +36,6 @@ export const STATUS = {
   verified: { label: 'Verified', cls: 'bg-green-100 text-green-800' },
   rejected: { label: 'Rejected', cls: 'bg-red-100 text-red-800' },
   failed: { label: 'Failed', cls: 'bg-red-100 text-red-800' },
-  not_land: { label: 'Not a land document', cls: 'bg-slate-200 text-slate-800' },
 }
 
 export const ROLE_LABEL = { operator: 'Operator', verifier: 'Verifier', admin: 'Administrator' }
