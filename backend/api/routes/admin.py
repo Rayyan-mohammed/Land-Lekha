@@ -124,9 +124,13 @@ def stats(db: Session = Depends(get_db), user: User = Depends(require("verifier"
             "pushed_to_lrms": db.scalar(select(func.count(LandRecord.id)).where(LandRecord.lrms_ref.is_not(None))),
         },
         "accuracy": {
+            # Only fields a verifier actually decided. Fields that rode along with an approval
+            # are counted separately: calling them correct would measure our own confidence.
             "reviewed_fields": n_rev,
             "field_accuracy": round(reviewed.get("confirmed", 0) / n_rev, 4) if n_rev else None,
             "corrected": reviewed.get("corrected", 0), "rejected": reviewed.get("rejected", 0),
+            "accepted_unreviewed": db.scalar(select(func.count(ExtractedField.id))
+                                             .where(ExtractedField.status == "accepted")) or 0,
             "per_field": per_field_acc,
             "benchmark": eval_summary,
         },

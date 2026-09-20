@@ -357,3 +357,28 @@ def test_documents_stopped_by_the_removed_gate_come_back_into_review():
     assert rows == {1: "needs_review", 2: "needs_review", 3: "auto_accepted"}
     assert "no land-record fields found" in reasons
     assert retire_not_land_status(engine) == 0   # nothing left to move
+
+
+def test_approving_a_document_does_not_claim_every_field_was_checked(client):
+    """A verifier who approves after looking at one field has checked one field. Counting the
+    rest as confirmed would measure our own confidence and call it accuracy."""
+    op = _login(client, "operator", "upload@123")
+    ver = _login(client, "verifier", "verify@123")
+    admin = _login(client, "admin", "admin@123")
+
+    lines = [l.replace("00245", "00733").replace("123/2", "77/3") for l in RECORD]
+    doc = _wait(client, client.post("/api/documents", headers=op,
+                                    files={"file": ("ride-along.pdf", _pdf(lines), "application/pdf")}).json()["id"], op)
+    before = client.get("/api/admin/stats", headers=admin).json()["accuracy"]
+    r = client.post(f"/api/documents/{doc['id']}/verify", headers=ver,
+                    json={"decision": "approve",
+                          "fields": {"owner_name": {"action": "confirm"}}})
+    assert r.status_code == 200, r.text
+
+    fields = {f["name"]: f["status"] for f in client.get(f"/api/documents/{doc['id']}", headers=ver).json()["fields"]}
+    assert fields["owner_name"] == "confirmed"          # the one that was actually looked at
+    assert "accepted" in fields.values()                # the rest rode along
+    after = client.get("/api/admin/stats", headers=admin).json()["accuracy"]
+    assert after["accepted_unreviewed"] > before.get("accepted_unreviewed", 0)
+    # the accuracy figure only counts fields somebody judged
+    assert after["reviewed_fields"] - before["reviewed_fields"] < len(fields)

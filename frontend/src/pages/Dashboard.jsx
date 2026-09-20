@@ -95,7 +95,8 @@ export default function Dashboard() {
         sub={`${tr('vs. an assumed')} ${MANUAL_MINUTES_PER_DOC} ${tr('min manual entry per record, auto-accepted only')}`} />
       <Stat icon={Hourglass} tone="warn" label={tr('Pending verification')} value={t.pending_verification} sub={`${t.failed} ${tr('failed')}`} />
       <Stat icon={Clock} tone="slate" label={tr('Avg. processing')} value={s.processing.avg_seconds ? `${s.processing.avg_seconds} s` : '—'} sub={tr('upload → structured record')} />
-      <Stat icon={Target} tone="ok" label={tr('Field accuracy (reviewed)')} value={pct(s.accuracy.field_accuracy)} sub={`${s.accuracy.reviewed_fields} ${tr('fields checked by verifiers')}`} />
+      <Stat icon={Target} tone="ok" label={tr('Field accuracy (checked by a person)')} value={pct(s.accuracy.field_accuracy)}
+        sub={`${s.accuracy.reviewed_fields} ${tr('fields checked')} · ${s.accuracy.accepted_unreviewed ?? 0} ${tr('approved without being checked')}`} />
       <Stat icon={ScanText} label={tr('Benchmark CER')} value={bench ? pct(bench.cer_median) : '—'} sub={bench ? `${tr('median')}, ${bench.documents} ${tr('held-out test docs')}` : 'run eval/evaluate.py'} />
       <Stat icon={Gauge} label={tr('Benchmark field accuracy')} value={bench ? pct(bench.field_accuracy) : '—'}
         sub={bench?.straight_through_accuracy != null ? `${pct(bench.straight_through_accuracy)} ${tr('correct when auto-accepted')}` : ''} />

@@ -115,9 +115,12 @@ def verify(doc_id: int, body: VerifyIn, request: Request, db: Session = Depends(
             if f is None:
                 continue
             f.status = "confirmed"
+    # Approving a document is not the same as checking every field on it. Fields the verifier
+    # actually decided are "confirmed"; the rest ride along with the approval and are marked
+    # "accepted" - kept out of the accuracy figure, because nobody read them.
     for f in doc.fields:
         if f.status in ("pending", "auto"):
-            f.status = "confirmed"
+            f.status = "accepted"
 
     if body.decision == "approve":
         present = {f.name for f in doc.fields if f.status != "rejected" and f.value}
