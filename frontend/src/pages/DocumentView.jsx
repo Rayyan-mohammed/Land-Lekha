@@ -13,12 +13,21 @@ import { getQueueOrder, sortQueue } from '../queue'
 // preprocessing steps (backend/ocr/preprocess.py) as shown to a Hindi reader; English shows the step names
 const STEP_HI = { grayscale: 'धूसर', resize: 'आकार बदला', page_crop: 'पन्ना काटा', illumination: 'रोशनी समतल', rotate90: '90° घुमाया',
   rotate180: 'उल्टा सीधा किया', deskew: 'तिरछापन ठीक', denoise: 'शोर हटाया', sharpen: 'धार बढ़ाई', clahe: 'कंट्रास्ट बढ़ाया',
-  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने', 'second read': 'दूसरी बार पढ़ा', numbers: 'अंक फिर पढ़े' }
+  binarize: 'श्वेत-श्याम', table_cells: 'तालिका के खाने', 'second read': 'दूसरी बार पढ़ा', numbers: 'अंक फिर पढ़े', reader: 'पाठक' }
 const stepLabel = (s, lang) => {
   if (lang !== 'hi') return s
   if (STEP_HI[s]) return STEP_HI[s]            // whole step name (e.g. "second read")
   const [k, n] = s.split(/[: ]/)
   return STEP_HI[k] ? `${STEP_HI[k]}${n ? ` ${n}` : ''}` : s
+}
+
+// Which recogniser read this page, when it was not the Hindi + English default. The names
+// are the scripts, not the language codes: "Telugu + English" says more than "te+en".
+const READER_NAME = { hi: 'Hindi', te: 'Telugu', ta: 'Tamil', kn: 'Kannada', bn: 'Bengali', en: 'English' }
+const readerFor = (page) => {
+  const reader = page.preprocess?.reader
+  if (!reader || (reader[0] === 'hi' && reader[1] === 'en')) return null
+  return reader.map((c) => READER_NAME[c] || c).join(' + ')
 }
 
 // "numbers:3" in the steps: how many number tokens were read a second time
@@ -42,6 +51,10 @@ function PageImage({ doc, page, fields, selected, onSelect, threshold }) {
         {page.preprocess?.steps?.includes('second read') &&
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"
             title={t('This page read badly, so it was read again with lighter denoising')}>{t('read twice')}</span>}
+        {/* the page was not Hindi, so another recogniser read it */}
+        {readerFor(page) && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-800"
+          title={t('The reader was chosen by reading a sample of this page with each one and keeping the most confident')}>
+          {t('read with')} {readerFor(page)}</span>}
         {/* numbers that read unsurely were read again by an english-only recogniser */}
         {numbersReread(page) > 0 &&
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600"

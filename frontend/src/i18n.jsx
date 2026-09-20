@@ -185,6 +185,8 @@ export const HI = {
   'number read again': 'एक अंक फिर पढ़ा',
   'numbers read again': 'अंक फिर पढ़े',
   'Numbers that read unsurely were read again in English alone, where digits are not confused with Devanagari': 'जो अंक ठीक से नहीं पढ़े गए, उन्हें केवल अंग्रेज़ी में फिर पढ़ा गया, जहाँ अंक देवनागरी से नहीं उलझते',
+  'read with': 'इससे पढ़ा',
+  'The reader was chosen by reading a sample of this page with each one and keeping the most confident': 'इस पन्ने का एक हिस्सा हर पाठक से पढ़वाकर, जो सबसे अधिक आश्वस्त था वही चुना गया',
   'read twice': 'दो बार पढ़ा',
   'This page read badly, so it was read again with lighter denoising':
     'यह पन्ना पहली बार ठीक से नहीं पढ़ा गया, इसलिए हल्की सफ़ाई के साथ दोबारा पढ़ा गया',
