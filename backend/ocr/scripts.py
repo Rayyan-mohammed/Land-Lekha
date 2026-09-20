@@ -88,3 +88,41 @@ def readers_for(scripts: list[str]) -> list[str]:
     if "en" not in codes:
         codes.append("en")
     return codes, missing
+
+
+# Candidate reader sets, in the order they are tried. EasyOCR refuses to pair two Indic
+# scripts in one reader, so each Indic script travels with English - which is what a real
+# bilingual land record looks like anyway.
+CANDIDATES: list[list[str]] = [["hi", "en"], ["te", "en"], ["ta", "en"], ["kn", "en"], ["bn", "en"]]
+
+# Below this the winner is not meaningfully better than the default and we keep the default,
+# rather than reloading a model for a difference that is noise.
+MIN_GAIN = 0.05
+
+
+def choose_reader(gray, boxes, eng, candidates: list[list[str]] | None = None,
+                  default: list[str] | None = None, sample: int = 12) -> tuple[list[str], dict]:
+    """Which reader reads this page best, decided by reading a sample of it with each.
+
+    Detection is script-agnostic, so the boxes are found once and only recognition is
+    repeated. The same trick as the upside-down check: read a little with each candidate and
+    keep the one the recogniser is most confident about. Returns the languages and the scores,
+    so the decision can be shown rather than asserted.
+    """
+    default = default or ["hi", "en"]
+    if not boxes:
+        return default, {}
+    step = max(1, len(boxes) // sample)
+    probe = boxes[::step][:sample]
+    scores: dict[str, float] = {}
+    for langs in (candidates or CANDIDATES):
+        try:
+            scores["+".join(langs)] = eng.sample_confidence(gray, probe, languages=langs)
+        except Exception:
+            continue      # a model that will not load is not a candidate today
+    if not scores:
+        return default, {}
+    best = max(scores, key=scores.get)
+    base = scores.get("+".join(default), 0.0)
+    chosen = best.split("+") if scores[best] - base >= MIN_GAIN else default
+    return chosen, {k: round(v, 4) for k, v in sorted(scores.items(), key=lambda kv: -kv[1])}

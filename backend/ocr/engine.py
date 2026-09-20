@@ -42,27 +42,48 @@ class EasyOCREngine:
             # with identical output - toward the 10s/doc target with no accuracy cost.
             cores = os.cpu_count() or 4
             torch.set_num_threads(cores)
-        self._reader = easyocr.Reader(self.languages, gpu=gpu, verbose=False)
+        self._gpu = gpu
+        self._readers: dict[tuple[str, ...], "easyocr.Reader"] = {}
+        self._readers_lock = threading.Lock()
+        self._reader = self._reader_for(self.languages)
         self._numbers = None  # english-only recogniser, built on demand (see read_numbers)
         self._numbers_lock = threading.Lock()
         self._lock = threading.Lock()
 
-    def recognize(self, gray: np.ndarray) -> list[dict]:
+    def _reader_for(self, languages: list[str]):
+        """One reader per language set, built on first use and kept.
+
+        A model load is seconds and a few hundred megabytes, so a page in Telugu must not pay
+        for it twice and a deployment that only ever sees Hindi must not pay for it at all.
+        EasyOCR will not pair two Indic scripts in one reader - Devanagari and Telugu have to
+        be separate readers, which is why this is a cache rather than one wider reader."""
+        import easyocr
+
+        key = tuple(languages)
+        with self._readers_lock:
+            if key not in self._readers:
+                self._readers[key] = easyocr.Reader(list(languages), gpu=self._gpu, verbose=False)
+            return self._readers[key]
+
+    def recognize(self, gray: np.ndarray, languages: list[str] | None = None) -> list[dict]:
+        reader = self._reader if languages is None else self._reader_for(languages)
         with self._lock:  # the reader is not thread safe
             # detection runs on a 1280px canvas (the slow part on CPU); recognition still
             # reads crops from the full-resolution image
-            results = self._reader.readtext(gray, detail=1, paragraph=False, width_ths=0.7, text_threshold=0.6,
-                                            canvas_size=DETECT_CANVAS, batch_size=16)
+            results = reader.readtext(gray, detail=1, paragraph=False, width_ths=0.7, text_threshold=0.6,
+                                      canvas_size=DETECT_CANVAS, batch_size=16)
         return self._tokens(results)
 
-    def sample_confidence(self, gray: np.ndarray, boxes: list[list[int]]) -> float:
+    def sample_confidence(self, gray: np.ndarray, boxes: list[list[int]],
+                          languages: list[str] | None = None) -> float:
         """Mean recognition confidence on the given boxes only (no detection pass).
         Cheap way to compare two orientations of the same page."""
         if not boxes:
             return 0.0
         hl = [[b[0], b[2], b[1], b[3]] for b in boxes]  # easyocr wants x_min, x_max, y_min, y_max
+        reader = self._reader if languages is None else self._reader_for(languages)
         with self._lock:
-            res = self._reader.recognize(gray, horizontal_list=hl, free_list=[], detail=1, batch_size=16)
+            res = reader.recognize(gray, horizontal_list=hl, free_list=[], detail=1, batch_size=16)
         return float(np.mean([r[2] for r in res])) if res else 0.0
 
     def read_boxes(self, gray: np.ndarray, boxes: list[list[int]]) -> list[dict]:
