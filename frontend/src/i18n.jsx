@@ -336,8 +336,6 @@ export const HI = {
   // app frame
   'Skip to content': 'मुख्य सामग्री पर जाएँ',
   'Not a land document': 'भू-अभिलेख नहीं',
-  'NOT A LAND DOCUMENT': 'यह भू-अभिलेख नहीं है',
-  'LAND DOCUMENT': 'भू-अभिलेख',
   'Could not tell what this page is': 'यह पन्ना क्या है, कहा नहीं जा सकता',
   'Too little was read from it to say whether it is a land record. The quality check has the details.': 'इतना कम पढ़ा गया कि यह भू-अभिलेख है या नहीं, कहना संभव नहीं। विवरण गुणवत्ता जाँच में है।',
   'No land-record fields were extracted from this page, so none can be shown. If this really is a land record, a verifier can look at the page image.': 'इस पन्ने से भू-अभिलेख का कोई खाना नहीं निकाला गया, इसलिए कुछ दिखाया नहीं जा सकता। यदि यह सचमुच भू-अभिलेख है, तो जाँचकर्ता पन्ने का चित्र देख सकता है।',
@@ -354,9 +352,7 @@ export const HI = {
   'Land document?': 'भू-अभिलेख है?',
   'Fields': 'खाने',
   'Validation': 'सत्यापन',
-  'no fields were extracted': 'कोई खाना नहीं निकाला गया',
   'not land documents': 'भू-अभिलेख नहीं',
-  'Document classification': 'दस्तावेज़ वर्गीकरण',
   'Decided before any field is read': 'कोई भी खाना पढ़ने से पहले तय',
   'Land documents': 'भू-अभिलेख',
   'Not land': 'भू-अभिलेख नहीं',
@@ -478,9 +474,6 @@ export const HI = {
   'None yet.': 'अभी कोई नहीं।',
   'Measured': 'माप लिया गया',
   'Field accuracy': 'विवरण शुद्धता',
-  'Estimated time saved': 'अनुमानित बचा समय',
-  'vs. an assumed': 'मान लिया गया मैनुअल समय',
-  'min manual entry per record, auto-accepted only': 'मिनट प्रति अभिलेख, केवल स्वतः स्वीकृत',
 }
 
 const KEY = 'landlekha.lang'
