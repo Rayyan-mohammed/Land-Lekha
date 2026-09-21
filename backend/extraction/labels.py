@@ -49,6 +49,8 @@ AREA_UNIT_WORDS: dict[str, list[str]] = {
     "acre": ["एकड़", "एकड", "ఎకరం", "ఎకరాలు", "acre", "acres"],
     "gunta": ["గుంట", "గుంటలు", "gunta", "guntha"],
     "cent": ["సెంట్లు", "సెంటు", "cent", "cents"],
+    "kanal": ["कनाल", "कनाल", "kanal", "kanals"],
+    "marla": ["मरला", "marla", "marlas"],
     "bigha": ["बीघा", "बिघा", "bigha"],
     "sqm": ["वर्ग मीटर", "sq m", "sqm", "square metre", "square meter"],
 }

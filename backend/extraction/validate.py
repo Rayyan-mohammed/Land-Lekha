@@ -126,11 +126,36 @@ def find_unit(text: str) -> str | None:
     return None
 
 
+# Hectares in one of each unit. Every unit find_unit() can return must be here: when gunta and
+# cent were added to the vocabulary for Telugu records without a row in this table, any page
+# mentioning them raised KeyError and the whole extraction died.
+HECTARES_PER: dict[str, float] = {
+    "hectare": 1.0,
+    "acre": 0.404686,
+    "sqm": 0.0001,
+    "cent": 0.00404686,     # 1/100 acre - Andhra Pradesh, Telangana, Kerala, West Bengal
+    "gunta": 0.0101171,     # 1/40 acre - Telangana, Karnataka, Maharashtra
+    "kanal": 0.0505857,     # Haryana, Punjab, Himachal: 8 kanal to the acre
+    "marla": 0.00252929,    # 20 marla to the kanal
+}
+
+
+def _kanal_marla(text: str) -> float | None:
+    """"8 कनाल 16 मरला" / "8 kanal 16 marla" is one area written in two units, the way every
+    Haryana and Punjab record writes it. Return it in kanal, or None if it is not that shape."""
+    m = re.search(r"(\d+(?:\.\d+)?)\s*(?:कनाल|kanal)\S*\s*(\d+(?:\.\d+)?)\s*(?:मरला|marla)", text, re.I)
+    return float(m.group(1)) + float(m.group(2)) / 20 if m else None
+
+
 def parse_area(text: str, unit_hint: str | None = None, bigha_ha: float = 0.2529,
                default_unit: str | None = None) -> Parsed:
     """`unit_hint` comes from the label (table header "क्षेत्रफल (हेक्टेयर)"); `default_unit`
     is the state's customary unit, used (and flagged) only when no unit is readable."""
     t = clean(text)
+    km = _kanal_marla(_digits_fixed(t))
+    if km is not None:
+        return Parsed(f"{km:g} kanal", 1.0, [],
+                      {"value": km, "unit": "kanal", "hectares": round(km * HECTARES_PER["kanal"], 4)})
     num_part = re.sub(r"[:;'\"`]", " ", _digits_fixed(t).replace(",", "."))
     num_part = re.sub(r"\s+", " ", num_part)
     issues, score = [], 1.0
@@ -168,7 +193,11 @@ def parse_area(text: str, unit_hint: str | None = None, bigha_ha: float = 0.2529
     if unit is None:
         unit, score = "hectare", min(score, 0.6)
         issues.append("unit missing, assumed hectare")
-    factor = {"hectare": 1.0, "acre": 0.404686, "sqm": 0.0001, "bigha": bigha_ha}[unit]
+    factor = HECTARES_PER.get(unit, bigha_ha if unit == "bigha" else None)
+    if factor is None:
+        # a unit the vocabulary knows but this table does not: say so rather than crash
+        return Parsed(f"{value:g} {unit}", 0.4, issues + [f"no conversion for unit '{unit}'"],
+                      {"value": value, "unit": unit, "hectares": None})
     ha = value * factor
     # "4167 hectare" is implausible for one plot but "4.167" is the usual 3-decimal format:
     # the decimal point was lost. Put it back, flagged.
