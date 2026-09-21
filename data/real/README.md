@@ -8,7 +8,10 @@ Put real documents here to measure LandLekha on something other than generated d
   Apna Khata), or team members' family records **with permission**.
 * **Black out personal details you don't need** (Aadhaar numbers, phone numbers, addresses)
   before copying a file here. Names, khata/khasra numbers and places are what we measure.
-* Keep the repository private if these files are committed.
+* **Nothing in this folder except this README is ever committed.** The repository is public, and
+  a land record carries real people's names. `.gitignore` enforces it: documents and their typed
+  ground truth stay on the machine that measured them. Only the aggregate result is published,
+  in `eval/results/real.md`, and it carries counts and field names - never a name or a value.
 
 ## Format: one image or PDF plus one JSON with the same name
 
@@ -57,3 +60,16 @@ python eval/evaluate.py --split real --dir data/real
 
 Results go to `eval/results/real.md`. Add a village that isn't in the gazetteer to the
 gazetteer first, otherwise the place fields are (correctly) flagged as unknown.
+
+## Measuring
+
+```
+python eval/real_eval.py
+```
+
+Scores every document here that has ground truth, with the same definition of a correct field
+as the synthetic evaluation, so the two can be read side by side.
+
+Record in each JSON who typed it (`"keyed_by"`). The honest target is two people typing the
+same document independently and a third settling disagreements; until then say how many
+readers there were, because one reader's slip becomes a false "wrong" in the score.

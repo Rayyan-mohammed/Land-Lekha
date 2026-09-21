@@ -39,3 +39,9 @@ data/fonts/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Real land records carry real people's names. This repository is public, so the documents and
+# their typed ground truth stay on the machine that measured them; only the README and the
+# aggregate results (eval/results/real.md, no names) are ever committed.
+data/real/*
+!data/real/README.md
