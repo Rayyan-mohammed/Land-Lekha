@@ -24,7 +24,7 @@ Alternate hostname (same server): `http://ec2-65-2-234-77.ap-south-1.compute.ama
 
 LandLekha takes a scanned or photographed Indian land record — printed or handwritten, Hindi or English — and turns it into structured, validated data: owner, khata, khasra, survey number, area, land class, village, tehsil, district, mutation and registration details, plus every co-owner and parcel row under a khata. Every field gets a confidence score calibrated on held-out data, not a raw OCR score. Confident records are accepted with no human involved; uncertain fields go to a verifier who sees the scan and the machine's answer side by side and checks only what's flagged. **Of the fields the system chooses not to flag, 96.4% are correct** — measured on 40 documents the confidence model never saw during calibration.
 
-> **Status**: working prototype, built over 3 days (2026-09-11 to 2026-09-13) by a 6-person team on one shared `main` branch. The full pipeline — upload, OCR, extraction, validation, calibrated routing, human review, tamper-evident audit trail, REST + GraphQL APIs — is implemented and exercised by 82 backend tests and 34 frontend tests, both suites green in CI as of the latest push. Measured on 110 synthetic documents across three splits, built from the real Ministry of Panchayati Raj village directory. **Not yet measured on a single real land record** — `data/real/` and an in-app upload tool exist for exactly this, but as of this writing nothing has been added to it.
+> **Status**: working prototype, built by a 6-person team on one shared `main` branch, 2026-09-11 to 2026-09-20. The full pipeline — upload, OCR, extraction, validation, calibrated routing, human review, tamper-evident audit trail, REST + GraphQL APIs — is implemented and exercised by 138 backend tests and 37 frontend tests, both suites green in CI as of the latest push. Measured on 110 synthetic documents across three splits, built from the real Ministry of Panchayati Raj village directory. **Not yet measured on a single real land record** — `data/real/` and an in-app upload tool exist for exactly this, but as of this writing nothing has been added to it.
 
 ---
 
@@ -43,11 +43,10 @@ flowchart LR
 
   subgraph TRACKB["Track B — Extraction / Validation"]
     direction LR
-    CLS[Classify<br/>is this a land record?]
     X[Extract<br/>fuzzy label spotting]
     V[Validate<br/>rules · gazetteer · duplicates]
     C[Calibrate<br/>per-field confidence]
-    CLS --> X --> V --> C
+    X --> V --> C
   end
 
   subgraph TRACKC["Track C — Backend"]
@@ -64,7 +63,7 @@ flowchart LR
   end
 
   U --> P
-  O --> CLS
+  O --> X
   C -->|every field above threshold| AA[Auto-accept]
   C -->|anything uncertain| RVW
   RVW -->|corrections| MEM[(Learning memory)]
@@ -95,8 +94,7 @@ Land records — Khatauni, Khasra Panchsala, Jamabandi, Khatiyan, depending on t
 | --- | --- |
 | Upload | Accepts PNG / JPG / TIFF / PDF up to 20 MB and 60 megapixels; a born-digital PDF is read straight from its embedded text layer in about 0.5 s, no OCR at all |
 | Preprocess | OpenCV: page crop, illumination flattening, deskew, denoise, CLAHE contrast; a page photographed sideways or upside down is turned upright automatically |
-| Classify | A rule ensemble decides whether the page is a land record at all, from several kinds of evidence, **before** a single field is extracted |
-| OCR | EasyOCR reads Hindi and English in one pass; a page that reads badly is read again with lighter denoising, and numbers the model is unsure of are re-read by an English-only recognizer that can't confuse Devanagari digits with Latin ones |
+| OCR | The reader is chosen per page by measurement — a sample of detected boxes is re-read with each candidate language pair and the most confident wins (Hindi, Telugu or English); a page that reads badly is read again with lighter denoising, and numbers the model is unsure of are re-read by an English-only recognizer that can't confuse Devanagari digits with Latin ones |
 | Extract | Fuzzy label-spotting finds 15 fields — same line, beside the label, or inside a table cell — plus every co-owner and every parcel row under one khata |
 | Validate | Per-field format rules, a master gazetteer (state → district → tehsil → village) with hierarchy checks, and duplicate detection on parcel/account and exact file hash |
 | Confidence | A logistic model, fitted on a held-out split, scores each field from OCR / rule / label / source evidence; routing splits at a threshold tuned to a stated precision target, not to maximize auto-accept rate |
@@ -214,7 +212,6 @@ A separate 30-document split with 1–3 co-owners and 1–4 parcel rows per khat
 backend/
   ocr/            # Track A: OpenCV preprocessing, EasyOCR wrapper, the run_ocr() pipeline
   extraction/     # Track B: label-spotting, parsers/validators, gazetteer, confidence, learning
-  classify/       # is-this-a-land-record rule ensemble, runs before extraction
   api/            # Track C: FastAPI app, SQLAlchemy models, auth/RBAC, audit, worker queue, routes
 frontend/         # Track D: React 19 + Tailwind, upload/review/dashboard/records/audit/users screens
 data/
@@ -225,18 +222,19 @@ eval/             # CER/field-accuracy evaluation, confidence calibration, A/B e
 docs/             # data contracts between tracks, USPs, demo script, team plan
 tests/            # backend unit + integration tests (pytest)
 scripts/          # one-command start/setup scripts, the accessibility audit runner
-datasets/non_land/ # small synthetic non-land page set used to measure the classifier
 ```
 
 ---
 
 ## Quick start
 
-The fastest path to a real result, no OCR model download and no server needed - the extraction and validation logic against synthetic OCR output, in seconds:
+The fastest path to a real result, no server needed - the extraction and validation logic against real test fixtures:
 
 ```bash
 pip install -r backend/requirements.txt
-python -m pytest tests -q          # ~82 tests, no OCR model, a few seconds
+python -m pytest tests -q          # ~138 tests; most run in seconds against fixed OCR output,
+                                    # but a handful load a real multi-language OCR model
+                                    # (Hindi/Telugu/English reader selection) - full suite is 4-5 min
 ```
 
 To see the whole pipeline end to end:
@@ -305,14 +303,16 @@ produced the [live demo](#live-demo) above.
 
 ## Roadmap
 
-Built by a 6-person team across 3 days on one shared `main` branch (241 commits total, 2026-09-11 to 2026-09-13). Checkmarks are for what's actually merged and tested, not planned.
+Built by a 6-person team on one shared `main` branch (288 commits total, 2026-09-11 to 2026-09-20). Checkmarks are for what's actually merged and tested, not planned.
 
 | Phase | Vision / OCR | Extraction / Validation | Backend | Frontend |
 | --- | --- | --- | --- | --- |
 | **Day 1** — foundation (2026-09-11, 81 commits) | ✅ Preprocessing pipeline, EasyOCR wrapper | ✅ Field schema, label-spotting, first parsers | ✅ FastAPI skeleton, auth, models, worker queue | ✅ Upload, review, dashboard screens |
 | **Day 2** — hardening (2026-09-12, 151 commits) | ✅ Second-read retry, English-only number re-read, sideways/upside-down detection | ✅ Multi-owner/parcel support, LGD master data, land-document classifier, confidence calibration | ✅ Audit hash-chain, rate limiting, GraphQL, CSV export, CI | ✅ Hindi/English toggle, accessibility pass, GIS map |
 | **Day 3** — citizen-facing (2026-09-13, 9 commits) | ⬜ GPU path (needs hardware nobody has) | ⬜ Real documents in `data/real/` (tooling done, data not) | ✅ Dispute/re-verification flow, real-sample upload endpoint | ✅ Digitization map, read-aloud, kiosk QR scan, time-saved stat |
-| **Next** | Fine-tune on real field photos | Populate `data/real/`, expand the non-land test set | WhatsApp/SMS notification provider | Verify read-aloud and kiosk scan with real hardware |
+| **Deployment & docs** (2026-09-14/18) | — | — | ✅ AWS EC2 deployment, encryption at rest, `DEPLOYMENT.md` | — |
+| **Day 4** — retraction and multilingual (2026-09-20, 40 commits) | ✅ Low-resolution pages read instead of refused; script detection moved into the OCR layer | ✅ **Land-document classifier removed** — retracted as a claim the PS never asked for; routing now flags a page with no required fields instead of gating on a sight-classifier; **Telugu reader added**, chosen per page by measurement (te+en 0.66 vs hi+en 0.23 on a Telugu page); consistency rules given ids and bilingual wording; duplicate detection measured (32/40 recall, 0 false positives in 1,560 comparisons); simulated state-register comparison; confidence calibration checked against held-out data (ECE 0.0245) | ✅ Register-check endpoint | ✅ Register comparison shown on the review screen; assumed time-saved stat replaced with a counted one |
+| **Next** | Fine-tune on real field photos | Populate `data/real/` | WhatsApp/SMS notification provider | Verify read-aloud and kiosk scan with real hardware |
 
 ---
 
