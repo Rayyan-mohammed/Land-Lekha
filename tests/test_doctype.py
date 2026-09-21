@@ -42,3 +42,18 @@ def test_two_unrelated_titles_lower_the_confidence():
 def test_a_misread_title_still_lands():
     """OCR bends खतौनी into खतोनी, one vowel sign out."""
     assert identify("खतोनी\nग्राम : निगोहाँ")["type"] == "khatauni"
+
+
+def test_deed_titles_in_the_word_order_offices_print():
+    """A real West Bengal deed says "DEED OF GIFT"; the list only knew "gift deed"."""
+    assert identify("DEED OF GIFT\nTotal Set forth Value Rs 4,78,420")["type"] == "gift_deed"
+    assert identify("DEED OF SALE\nvendor")["type"] == "sale_deed"
+    assert identify("DEED OF LEASE\nlessee")["type"] == "lease_deed"
+
+
+def test_a_haryana_patta_nama_is_a_lease():
+    assert identify("किस्म वसीका\nपट्टानामा 8 कनाल 16 मरला")["type"] == "lease_deed"
+
+
+def test_a_telugu_sale_deed_is_named():
+    assert identify("విక్రయ పత్రము\nANDHRA PRADESH")["type"] == "sale_deed"

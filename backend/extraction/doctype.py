@@ -23,12 +23,12 @@ HEAD_LINES = 3     # a document names itself at the top
 HEAD_CHARS = 300   # ...and a title is never longer than this, however long those lines are
 
 TYPES: dict[str, list[str]] = {
-    "sale_deed": ["sale deed", "vendor", "vendee", "consideration", "विक्रय पत्र", "बैनामा"],
-    "gift_deed": ["gift deed", "donor", "donee", "दान पत्र"],
-    "lease_deed": ["lease deed", "lessor", "lessee", "lease period", "पट्टा विलेख"],
-    "exchange_deed": ["exchange deed", "विनिमय पत्र"],
-    "partition_deed": ["partition deed", "विभाजन पत्र", "बंटवारा"],
-    "mortgage": ["mortgage deed", "mortgagor", "mortgagee", "बंधक पत्र"],
+    "sale_deed": ["sale deed", "vendor", "vendee", "consideration", "विक्रय पत्र", "बैनामा", "deed of sale", "sale-deed", "विक्रय विलेख", "విక్రయ పత్రము", "విక్రయ దస్తావేజు"],
+    "gift_deed": ["gift deed", "donor", "donee", "दान पत्र", "deed of gift", "gift-deed", "दानपत्र", "హిబా", "దాన పత్రము"],
+    "lease_deed": ["lease deed", "lessor", "lessee", "lease period", "पट्टा विलेख", "deed of lease", "lease-deed", "पट्टानामा", "पट्टा नामा", "कौल पत्र", "కౌలు పత్రము"],
+    "exchange_deed": ["exchange deed", "विनिमय पत्र", "deed of exchange"],
+    "partition_deed": ["partition deed", "विभाजन पत्र", "बंटवारा", "deed of partition"],
+    "mortgage": ["mortgage deed", "mortgagor", "mortgagee", "बंधक पत्र", "deed of mortgage"],
     "will": ["testator", "bequeath", "वसीयत"],
     "mutation": ["mutation", "mutation no", "नामांतरण", "दाखिल खारिज"],
     "pahani_adangal": ["pahani", "adangal", "village account", "పహాణి", "ఆదంగల్"],
@@ -86,8 +86,11 @@ def identify(text: str) -> dict:
     head = _normalise(chr(10).join(text.splitlines()[:HEAD_LINES]))[:HEAD_CHARS]
     scores: dict[str, float] = {}
     for name, terms in TYPES.items():
+        # one piece of evidence per distinct title: "sale deed" and "sale-deed" normalise to
+        # the same string, and a type must not outscore another for having more spellings
+        terms = list(dict.fromkeys(_normalise(t).strip() for t in terms))
         in_head = sum(1 for t in terms if _matches(t, head))
-        in_body = sum(1 for t in terms if _normalise(t) in hay)
+        in_body = sum(1 for t in terms if t in hay)
         score = 3.0 * in_head + max(0, in_body - in_head)
         if score:
             scores[name] = score
