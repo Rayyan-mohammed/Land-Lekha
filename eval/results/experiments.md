@@ -368,6 +368,37 @@ The five it rejected are `dev-009`, `dev-030`, `test-001`, `test-022` and `multi
 with the per-document tables in `dev.json`, `test.json` and `multi.json` against the `quality`
 block of the matching OCR cache.
 
+## 14. Reading mostly-English pages with the English-only recogniser — rejected
+
+Prompted by the first real documents. A West Bengal deed of gift is almost entirely English, and
+the Hindi + English recogniser turned its E into D throughout: "DEED OF GIFT" came back as
+`DDDD OD GIDT`, "BETWEEN" as `BBWbDN`. Read with English alone, the title came back as
+`DEED OEGIFT` and four of six probe phrases were found instead of two.
+
+On five pages the case looked clean: English-only read every mostly-Latin page at least as well
+(by the share of output that forms words, and by confidence), and every Hindi or bilingual page
+much worse - and the Latin share of the first reading separated the two groups widely (0.93 and
+above against 0.46 and below). So the rule was: a first reading at least 90% Latin is read again
+with English alone.
+
+Then it was run on every synthetic English page in the dev and test splits, 23 pages and 320
+fields, re-reading each one:
+
+| | Fields right |
+| --- | --- |
+| Hindi + English (current) | 309 / 320 = 96.6% |
+| English-only route | 305 / 320 = 95.3% |
+
+Two pages gained (one by three fields), seven lost one or two. The losing pages were checked for
+the obvious explanation - Devanagari digits on an English page, which do not count toward the
+script share - and none of them had any. The English-only model simply reads some of these pages
+a little worse.
+
+Rejected: 320 fields outweigh two real pages, and a change that lowers the benchmark does not go
+in on the strength of an anecdote. The lead is recorded because it may well be right for real
+registered deeds, which are a different kind of page from anything the generator makes; it
+needs real deeds with ground truth to settle, not more synthetic ones.
+
 ## What would actually move the numbers
 
 - **Phone photos:** a recognition model trained on blurred/phone-captured Devanagari (fine-tuning on real field photos), or a stronger OCR engine. Until then, the quality check asks for a retake.

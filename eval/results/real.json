@@ -1,0 +1,62 @@
+[
+ {
+  "id": "ap-sale-deed-01",
+  "fields": 1,
+  "correct": 0,
+  "wrong": [
+   "state"
+  ],
+  "type_truth": "sale_deed",
+  "type_read": "unknown",
+  "quality": "poor",
+  "reader": "hi+en",
+  "scripts": [
+   "Latin",
+   "Devanagari"
+  ],
+  "route": "review",
+  "seconds": 220.3
+ },
+ {
+  "id": "hr-lease-deed-01",
+  "fields": 5,
+  "correct": 0,
+  "wrong": [
+   "state",
+   "district",
+   "tehsil",
+   "village",
+   "plot_area"
+  ],
+  "type_truth": "lease_deed",
+  "type_read": "unknown",
+  "quality": "poor",
+  "reader": "hi+en",
+  "scripts": [
+   "Devanagari",
+   "Latin"
+  ],
+  "route": "review",
+  "seconds": 146.8
+ },
+ {
+  "id": "wb-gift-deed-01",
+  "fields": 5,
+  "correct": 2,
+  "wrong": [
+   "state",
+   "plot_area",
+   "registration_date"
+  ],
+  "type_truth": "gift_deed",
+  "type_read": "unknown",
+  "quality": "poor",
+  "reader": "hi+en",
+  "scripts": [
+   "Latin",
+   "Devanagari"
+  ],
+  "route": "review",
+  "seconds": 202.3
+ }
+]
