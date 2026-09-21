@@ -402,3 +402,57 @@ def test_a_speck_is_not_a_reflection():
     from backend.ocr.quality import has_glare
 
     assert not has_glare(_with_flash(_page(paper=190), radius_frac=0.01))
+
+
+def _tok(texts):
+    return [{"text": t, "confidence": 0.5, "bbox": [0, i * 10, 50, i * 10 + 9]} for i, t in enumerate(texts)]
+
+
+def test_words_score_higher_than_scattered_marks():
+    """What a page read the wrong way round looks like, against what it says."""
+    from backend.ocr.pipeline import wordlike
+
+    upright = _tok(["भारतीय गेर न्यायिक", "भारत INDIA", "FIVE HUNDRED", "RUPEES"])
+    sideways = _tok(["ಶ", "ಕ [ಕಷ[ 4", "೪್ಞ %೪ # ೩ಞ ಕ", "1 ೩ಕ"])
+    assert wordlike(upright) > 0.6 > wordlike(sideways)
+
+
+def test_a_rotation_the_words_disagree_with_is_undone():
+    """The Haryana deed: turned sideways by the projection test, but it only reads as words
+    the way it arrived. Confidence would have kept the turn - the recogniser was surer of the
+    noise - so the decision is made on the words."""
+    import numpy as np
+
+    from backend.ocr.pipeline import confirm_rotate90
+
+    class Eng:
+        def sample_confidence(self, *a, **k):
+            return 0.0
+
+        def recognize(self, gray, languages=None):
+            return _tok(["भारतीय गेर न्यायिक", "FIVE HUNDRED RUPEES"])   # the page as it arrived
+
+    gray = np.zeros((40, 60), dtype=np.uint8)
+    turned = [{"text": "ಶ ಕ [", "confidence": 0.9, "bbox": [0, 0, 5, 5]}]   # confident noise
+    out, tokens, undone = confirm_rotate90(gray, turned, Eng())
+    assert undone is True
+    assert out.shape == (60, 40)            # turned back
+    assert "FIVE HUNDRED RUPEES" in [t["text"] for t in tokens]
+
+
+def test_a_page_that_really_was_sideways_stays_turned():
+    import numpy as np
+
+    from backend.ocr.pipeline import confirm_rotate90
+
+    class Eng:
+        def sample_confidence(self, *a, **k):
+            return 0.0
+
+        def recognize(self, gray, languages=None):
+            return _tok(["ಶ ಕ", "[ಕಷ"])            # the page as it arrived: noise
+
+    gray = np.zeros((40, 60), dtype=np.uint8)
+    turned = _tok(["GOVERNMENT OF RAJASTHAN", "RECORD OF RIGHTS"])
+    out, tokens, undone = confirm_rotate90(gray, turned, Eng())
+    assert undone is False and out.shape == (40, 60)

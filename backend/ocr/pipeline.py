@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 from pathlib import Path
 
@@ -118,6 +119,46 @@ def fix_upside_down(gray: np.ndarray, tokens: list[dict], eng) -> tuple[np.ndarr
     return flipped, eng.recognize(flipped), True
 
 
+# Three or more letters in a row from one script: a word, not a stray mark. Vowel signs and
+# the virama sit inside the Devanagari block, so a Hindi word counts as one run.
+_WORD = re.compile(r"[A-Za-z]{3,}|[ऀ-ॿ]{3,}|[ఀ-౿]{3,}|[ঀ-৿]{3,}")
+WORDLIKE_MARGIN = 0.1
+
+
+def wordlike(tokens: list[dict]) -> float:
+    """Share of the recognised characters that sit inside something shaped like a word.
+
+    A page read the wrong way round still comes back as characters - the recogniser always
+    answers - but as single letters and symbols, not words. This measures that, and unlike the
+    recogniser's own confidence it cannot be fooled by the recogniser being sure of noise."""
+    text = " ".join(t["text"] for t in tokens)
+    letters = sum(1 for c in text if not c.isspace())
+    return sum(len(m) for m in _WORD.findall(text)) / letters if letters else 0.0
+
+
+def confirm_rotate90(gray: np.ndarray, tokens: list[dict], eng) -> tuple[np.ndarray, list[dict], bool]:
+    """Check that a page the row/column test turned sideways really was sideways.
+
+    The projection test decides from the shape of the ink, and a form with aligned columns
+    has a stronger column profile than a row one: a real Haryana lease deed, printed upright,
+    scored 0.415 - inside the band sideways pages occupy - was turned on its side, read as
+    noise, and routed to the Kannada reader because that noise scored highest.
+
+    Recognition confidence cannot settle it either. On that deed the correct, upright reading
+    ("भारतीय गेर न्यायिक", "FIVE HUNDRED RUPEES") had a median confidence of 0.08 and the
+    sideways noise 0.17 - the recogniser was surer of the garbage. What does separate them is
+    whether the output is words: 0.65 upright against 0.33 turned, and on a page genuinely
+    photographed sideways 0.84 turned against 0.61 as it arrived. So that decides, with a
+    margin, and only pages the projection test proposed to turn pay the second read."""
+    if not tokens or not hasattr(eng, "sample_confidence"):
+        return gray, tokens, False
+    back = cv2.rotate(gray, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    back_tokens = eng.recognize(back)
+    if back_tokens and wordlike(back_tokens) > wordlike(tokens) + WORDLIKE_MARGIN:
+        return back, back_tokens, True
+    return gray, tokens, False
+
+
 def _read_page(img, eng, do_binarize: bool, denoise_h: int | None, languages: list[str] | None = None):
     """Preprocess and recognise one page; returns (image, tokens, PreprocessResult).
 
@@ -128,6 +169,12 @@ def _read_page(img, eng, do_binarize: bool, denoise_h: int | None, languages: li
     readable at all, which it was not before."""
     pre = preprocess(img, do_binarize=do_binarize, denoise_h=denoise_h)
     tokens = eng.recognize(pre.image) if languages is None else eng.recognize(pre.image, languages=languages)
+    # before anything else is decided from this reading, make sure the page is the right way up:
+    # choosing a reader from a sideways page chooses one from noise
+    if "rotate90" in pre.steps:
+        pre.image, tokens, undone = confirm_rotate90(pre.image, tokens, eng)
+        if undone:
+            pre.steps[pre.steps.index("rotate90")] = "rotate90 undone"
     # an engine that cannot swap readers (Tesseract, or a stub in a test) simply reads once
     can_route = SCRIPT_ROUTING and languages is None and tokens and hasattr(eng, "sample_confidence")
     if can_route:
