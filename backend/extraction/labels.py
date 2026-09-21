@@ -23,7 +23,7 @@ FIELD_ALIASES: dict[str, list[str]] = {
                "గ్రామం", "గ్రామము"],
     "tehsil": ["तहसील", "Tehsil", "Taluka",
               "మండలం", "మండలము", "తాలూకా"],
-    "district": ["जिला", "जनपद", "District",
+    "district": ["जिला", "जनपद", "District", "Distt", "Dist",
                 "జిల్లా"],
     "state": ["राज्य", "State",
              "రాష్ట్రం", "రాష్ట్రము"],
