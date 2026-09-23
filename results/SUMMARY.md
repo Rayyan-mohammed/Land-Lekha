@@ -6,6 +6,14 @@ by suggested slide, so you can lift a slide's worth of content in one pass.
 
 ---
 
+## Slide: "Architecture" → `charts/00_architecture.png`
+
+The pipeline end to end, coloured by which track owns each part (matches README's mermaid diagram).
+
+**Talking point**: the loop at the center is the point — an auto-accepted record and a verifier-approved one land in the same database indistinguishably, but every correction a verifier makes feeds back into the extraction step through the learning memory, so the system keeps improving without retraining.
+
+---
+
 ## Headline numbers (put these on a "results at a glance" slide)
 
 | Number | What it means |
