@@ -31,8 +31,8 @@ The pipeline end to end, coloured by which track owns each part (matches README'
 | **32 of 40, 0 false positives** | The same parcel, re-photographed, is found again — and a different parcel is never wrongly matched, across 1,560 comparisons |
 | **18.2%** | Field accuracy on the first 3 **real** documents — low, honestly reported, and explained (see below) |
 | **6 states, 71 districts, 33,942 villages** | Real government village data (Ministry of Panchayati Raj LGD directory), not made up |
-| **149 + 37** | Backend + frontend automated tests, all green in CI |
-| **Live** | http://65.2.234.77:8000 — actually deployed, AWS EC2 + Docker + Postgres |
+| **152 + 37** | Backend + frontend automated tests, all green in CI |
+| **Live** | https://landlekha.in — actually deployed, CloudFront + AWS EC2 + Docker + Postgres |
 
 ---
 
@@ -221,11 +221,11 @@ Full list: `README.md`'s "Honest limitations" section.
 
 ## Slide: "Live demo"
 
-**http://65.2.234.77:8000** — AWS EC2 (t3.medium, Mumbai region), Docker Compose, Postgres, encrypted volume, Elastic IP.
+**https://landlekha.in** — CloudFront (HTTPS) in front of an AWS EC2 origin (t3.medium, Mumbai region), Docker Compose, Postgres, encrypted volume.
 
 Demo accounts: `operator`/`upload@123`, `verifier`/`verify@123`, `admin`/`admin@123`.
 
-If a network blocks the raw IP: `http://ec2-65-2-234-77.ap-south-1.compute.amazonaws.com:8000`
+Direct origin (bypasses CloudFront): `http://65.2.234.77:8000`
 
 ---
 

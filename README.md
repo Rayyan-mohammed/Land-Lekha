@@ -14,9 +14,9 @@
 
 ### Live Demo
 
-🔗 **[http://65.2.234.77:8000](http://65.2.234.77:8000)** — AWS EC2 (t3.medium, ap-south-1), Docker Compose, encrypted root volume, Elastic IP (survives reboots). Demo accounts: `operator`/`upload@123`, `verifier`/`verify@123`, `admin`/`admin@123` (see "Run it" below — change these outside a demo). API docs at [/docs](http://65.2.234.77:8000/docs); GraphQL at `/api/graphql`.
+🔗 **[https://landlekha.in](https://landlekha.in)** — CloudFront (HTTPS, ACM certificate) in front of an AWS EC2 origin (t3.medium, ap-south-1), Docker Compose, encrypted root volume. Demo accounts: `operator`/`upload@123`, `verifier`/`verify@123`, `admin`/`admin@123` (see "Run it" below — change these outside a demo). API docs at [/docs](https://landlekha.in/docs); GraphQL at `/api/graphql`.
 
-Alternate hostname (same server): `http://ec2-65-2-234-77.ap-south-1.compute.amazonaws.com:8000`. Some networks (e.g. certain institutional/campus proxies) block raw `*.amazonaws.com` hostnames but allow plain IPs — if that alternate link doesn't load, use the IP link above instead, or try a different network.
+Direct origin (bypasses CloudFront, same app): `http://65.2.234.77:8000`. Some networks flag a brand-new domain under a "newly observed domain" heuristic for a while after registration — if `landlekha.in` doesn't load, try the direct IP above, or a different network.
 
 ---
 
@@ -24,7 +24,7 @@ Alternate hostname (same server): `http://ec2-65-2-234-77.ap-south-1.compute.ama
 
 LandLekha takes a scanned or photographed Indian land record — printed or handwritten, Hindi or English — and turns it into structured, validated data: owner, khata, khasra, survey number, area, land class, village, tehsil, district, mutation and registration details, plus every co-owner and parcel row under a khata. Every field gets a confidence score calibrated on held-out data, not a raw OCR score. Confident records are accepted with no human involved; uncertain fields go to a verifier who sees the scan and the machine's answer side by side and checks only what's flagged. **Of the fields the system chooses not to flag, 96.4% are correct** — measured on 40 documents the confidence model never saw during calibration.
 
-> **Status**: working prototype, built by a 6-person team on one shared `main` branch, 2026-09-11 to 2026-09-20. The full pipeline — upload, OCR, extraction, validation, calibrated routing, human review, tamper-evident audit trail, REST + GraphQL APIs — is implemented and exercised by 138 backend tests and 37 frontend tests, both suites green in CI as of the latest push. Measured on 110 synthetic documents across three splits, built from the real Ministry of Panchayati Raj village directory. **Measured on only three real land records so far, and it does badly on them: 2 of 11 fields (18.2%)** — three registered deeds from Andhra Pradesh, West Bengal and Haryana, page one only. Two of those states are not in the master data, the recogniser garbles printed English on stamp paper, and page one of a deed does not carry the parcel. Nothing was auto-accepted. See [eval/results/real.md](eval/results/real.md); the documents themselves are kept off this public repository.
+> **Status**: working prototype, built by a 6-person team on one shared `main` branch, 2026-09-11 to 2026-09-23. The full pipeline — upload, OCR, extraction, validation, calibrated routing, human review, tamper-evident audit trail, REST + GraphQL APIs — is implemented and exercised by 152 backend tests and 37 frontend tests, both suites green in CI as of the latest push. Measured on 110 synthetic documents across three splits, built from the real Ministry of Panchayati Raj village directory. **Measured on only three real land records so far, and it does badly on them: 2 of 11 fields (18.2%)** — three registered deeds from Andhra Pradesh, West Bengal and Haryana, page one only. Two of those states are not in the master data, the recogniser garbles printed English on stamp paper, and page one of a deed does not carry the parcel. Nothing was auto-accepted. See [eval/results/real.md](eval/results/real.md); the documents themselves are kept off this public repository.
 
 ---
 
@@ -232,7 +232,7 @@ The fastest path to a real result, no server needed - the extraction and validat
 
 ```bash
 pip install -r backend/requirements.txt
-python -m pytest tests -q          # ~138 tests; most run in seconds against fixed OCR output,
+python -m pytest tests -q          # ~152 tests; most run in seconds against fixed OCR output,
                                     # but a handful load a real multi-language OCR model
                                     # (Hindi/Telugu/English reader selection) - full suite is 4-5 min
 ```
@@ -303,7 +303,7 @@ produced the [live demo](#live-demo) above.
 
 ## Roadmap
 
-Built by a 6-person team on one shared `main` branch (288 commits total, 2026-09-11 to 2026-09-20). Checkmarks are for what's actually merged and tested, not planned.
+Built by a 6-person team on one shared `main` branch (297 commits total, 2026-09-11 to 2026-09-23). Checkmarks are for what's actually merged and tested, not planned.
 
 | Phase | Vision / OCR | Extraction / Validation | Backend | Frontend |
 | --- | --- | --- | --- | --- |
@@ -312,7 +312,9 @@ Built by a 6-person team on one shared `main` branch (288 commits total, 2026-09
 | **Day 3** — citizen-facing (2026-09-13, 9 commits) | ⬜ GPU path (needs hardware nobody has) | ⬜ Real documents in `data/real/` (tooling done, data not) | ✅ Dispute/re-verification flow, real-sample upload endpoint | ✅ Digitization map, read-aloud, kiosk QR scan, time-saved stat |
 | **Deployment & docs** (2026-09-14/18) | — | — | ✅ AWS EC2 deployment, encryption at rest, `DEPLOYMENT.md` | — |
 | **Day 4** — retraction and multilingual (2026-09-20, 40 commits) | ✅ Low-resolution pages read instead of refused; script detection moved into the OCR layer | ✅ **Land-document classifier removed** — retracted as a claim the PS never asked for; routing now flags a page with no required fields instead of gating on a sight-classifier; **Telugu reader added**, chosen per page by measurement (te+en 0.66 vs hi+en 0.23 on a Telugu page); consistency rules given ids and bilingual wording; duplicate detection measured (32/40 recall, 0 false positives in 1,560 comparisons); simulated state-register comparison; confidence calibration checked against held-out data (ECE 0.0245) | ✅ Register-check endpoint | ✅ Register comparison shown on the review screen; assumed time-saved stat replaced with a counted one |
-| **Next** | Fine-tune on real field photos | Populate `data/real/` | WhatsApp/SMS notification provider | Verify read-aloud and kiosk scan with real hardware |
+| **Day 5** — first real documents (2026-09-21/23, 8 commits) | ✅ Sideways-turn confirmed by reading both orientations; deed titles recognised in office print order; district labels recognised | ✅ Cents/guntas/kanal-marla area units converted; **first three real registered deeds measured — 18.2% field accuracy**, honestly reported and explained ([eval/results/real.md](eval/results/real.md)); real documents deliberately kept out of the public repo | — | — |
+| **Custom domain** (2026-09-21/23) | — | — | ✅ CloudFront (HTTPS/CDN) in front of the EC2 origin; `landlekha.in` registered and wired up via ACM + Route 53 | — |
+| **Next** | Fine-tune on real field photos | Add more real documents from more states | WhatsApp/SMS notification provider | Verify read-aloud and kiosk scan with real hardware |
 
 ---
 
@@ -337,7 +339,7 @@ Six people, one shared `main` branch, no feature branches (see `GIT_RULES.md` fo
 - [docs/contracts.md](docs/contracts.md) — the data contract each track hands to the next (OCR → extraction → API → UI)
 - [docs/demo-script.md](docs/demo-script.md) — the timed live-demo walkthrough, including honest answers to likely judge questions
 - [docs/team-plan.md](docs/team-plan.md) — the original 3-laptop parallel-work plan and task board
-- [DEPLOYMENT.md](DEPLOYMENT.md) — how the live demo is actually hosted: EC2 setup, security group, Elastic IP, encryption at rest, redeploy commands
+- [DEPLOYMENT.md](DEPLOYMENT.md) — how the live demo is actually hosted: EC2 setup, security group, Elastic IP, encryption at rest, CloudFront + custom domain, redeploy commands
 - [eval/results/experiments.md](eval/results/experiments.md) — 13 OCR experiments, each adopted or rejected with its number
 - [eval/results/](eval/results/) — the raw measured output behind every number in this file
 - [data/real/README.md](data/real/README.md) — the format for adding a real, redacted document

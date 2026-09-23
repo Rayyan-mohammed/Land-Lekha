@@ -1,18 +1,21 @@
-# Deployment (AWS EC2 + Docker Compose)
+# Deployment (AWS EC2 + Docker Compose + CloudFront)
 
 The live demo runs on a single AWS EC2 instance using the `Dockerfile` and
 `docker-compose.yml` already at the repo root — nothing here should ever require a second
-copy of those files. This document is about the cloud setup around them: instance,
-security group, volume, and the exact commands to reproduce or redeploy it.
+copy of those files. CloudFront sits in front of that EC2 instance as a CDN/HTTPS layer;
+it does not replace it, and it does not run any application code itself. This document is
+about the cloud setup around them: instance, security group, volume, CloudFront, DNS, and
+the exact commands to reproduce or redeploy it.
 
 ## Current deployment
 
 | | |
 | --- | --- |
-| URL | http://65.2.234.77:8000 |
+| URL | https://landlekha.in (CloudFront, HTTPS) — direct origin: http://65.2.234.77:8000 |
 | Instance | `t3.medium`, Amazon Linux 2023, `ap-south-1` (Mumbai) |
 | Storage | 20 GB root EBS volume, **encrypted at rest** |
 | Networking | Elastic IP (`65.2.234.77`) — survives instance stop/reboot |
+| CDN/TLS | CloudFront distribution `EVAJ9HA9V7GGC`, ACM certificate, Route 53 hosted zone for `landlekha.in` |
 | Services | `db` (Postgres 16), `api` (FastAPI + built React UI), via `docker compose` |
 
 ## Provisioning from scratch
@@ -67,7 +70,8 @@ docker compose ps                       # both db and api should show Up/healthy
 docker compose logs -f api              # watch for "OCR engine ready", no repeated restarts
 curl localhost:8000/api/health          # {"status":"ok","ocr_ready":true,"queue":0}
 ```
-Then confirm from outside the box: `http://<public-ip-or-domain>:8000/`, `/docs`, `/api/graphql`.
+Then confirm from outside the box: `https://landlekha.in/`, `/docs`, `/api/graphql` (and, to
+check the origin directly without CloudFront in the path, `http://65.2.234.77:8000/`).
 
 ## Redeploying an update
 
@@ -97,18 +101,59 @@ from that encrypted snapshot, then stop the instance, swap the volume, and resta
 That's a real few minutes of downtime, not a live toggle — plan for it, don't run it
 during a demo.
 
+## CloudFront + custom domain
+
+CloudFront is a CDN/HTTPS layer in front of the EC2 origin above — it forwards everything
+(all methods, all headers except `Host`) to the origin with caching disabled by default, so
+the app behaves identically to hitting the origin directly, just over HTTPS with edge
+caching for static assets. It does **not** run the app itself; the origin still has to be
+up. Reproducing this from scratch:
+
+1. **Get a domain** — `landlekha.in` was registered via Route 53 (Console: Route 53 →
+   Registered domains → Register domain; this is a real charge, so it has to be a deliberate
+   console action, not something to script blindly). Registering it auto-creates a public
+   hosted zone.
+2. **Request an ACM certificate in `us-east-1` specifically** (CloudFront only accepts certs
+   from that region, regardless of where the origin lives):
+   ```bash
+   aws acm request-certificate --domain-name landlekha.in \
+     --subject-alternative-names www.landlekha.in --validation-method DNS --region us-east-1
+   ```
+   Add the DNS validation CNAME records ACM returns to the hosted zone (`aws route53
+   change-resource-record-sets`), then `aws acm wait certificate-validated`.
+3. **Create the CloudFront distribution**, origin = the EC2 public DNS name, port 8000,
+   `OriginProtocolPolicy: http-only` (the origin itself has no TLS — CloudFront terminates
+   HTTPS for viewers and talks plain HTTP to the origin over the AWS network). Critically:
+   the default cache behavior must use the `CachingDisabled` managed cache policy and the
+   `AllViewerExceptHostHeader` managed origin request policy — without the latter, CloudFront
+   strips the `Authorization` header by default and every authenticated API call breaks
+   silently. A second cache behavior for `/assets/*` uses `CachingOptimized` instead, since
+   the built frontend's JS/CSS bundles are content-hashed and safe to cache aggressively.
+4. **Add the domain as a CloudFront alias** with the ACM certificate attached
+   (`aws cloudfront update-distribution`), then **point DNS at CloudFront**: an `A` record
+   (alias, not CNAME) for `landlekha.in` and `www.landlekha.in`, target = the CloudFront
+   distribution's domain name, hosted zone ID always `Z2FDTNDATAQYW2` (a fixed constant for
+   all CloudFront distributions, not specific to this one).
+5. **Verify end to end**, not just a health check — login and an authenticated request, since
+   header forwarding is the part most likely to silently break:
+   ```bash
+   curl https://landlekha.in/api/health
+   TOKEN=$(curl -s -X POST https://landlekha.in/api/auth/login -d "username=operator&password=upload@123" | python -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+   curl -H "Authorization: Bearer $TOKEN" https://landlekha.in/api/auth/me
+   ```
+
+A brand-new domain can get auto-blocked for a while by some institutional/campus network
+security proxies under a "newly observed domain" heuristic — that's the network's policy,
+not a sign the deployment is broken. Check from a different network before assuming
+something's wrong.
+
 ## Known gaps (not fixed, on purpose — documented instead of hidden)
 
 - **SSH is open to `0.0.0.0/0`**, not restricted to a specific IP. Fine for a short-lived
   hackathon demo; not fine for anything longer-lived.
 - **The AWS account used to provision this runs as root**, not a scoped IAM user. Anyone
-  continuing this deployment should create an IAM user with least-privilege EC2/Route53
-  permissions instead of using root credentials for CLI work.
-- **No custom domain** — the live URL is a raw IP. A `.in`/`.com` domain was priced
-  (`landlekha.in` ≈ $8/year via Route 53) but not purchased, to avoid real charges during
-  the hackathon. `http://ec2-65-2-234-77.ap-south-1.compute.amazonaws.com:8000` is a free
-  alternative hostname pointing at the same instance, for networks that block raw
-  `*.amazonaws.com` addresses but allow the IP (or vice versa).
+  continuing this deployment should create an IAM user with least-privilege EC2/Route53/
+  CloudFront/ACM permissions instead of using root credentials for CLI work.
 - **Horizontal scaling** (`docker compose up --scale api=3`) only works once
   `LL_DATABASE_URL` points at Postgres (the default in this compose file) — the queue is
   database-backed and multiple replicas claim work atomically (`backend/api/processing.py`),
