@@ -13,13 +13,19 @@ copy of this folder floating around, use this one.
 
 ## Slide: "Architecture" → `charts/architecture_slide.png` (use this one on the slide)
 
-Slide-ready system flow in the deck's colours: Input → Preprocess → Multi-script OCR → Extract →
-Validate & Score → the 0.90 decision → Auto-accept / Verifier review → Verified output, with the
-retake branch for unreadable photos and the learning-memory loop back into Extract. Every label
-and number on it is checked against the code and `eval/results/`.
+The team's own target architecture, drawn slide-ready in the deck's colours: Input → Preprocess →
+Classify → Multi-script OCR (EasyOCR + TrOCR) → Extract → Validation layer → the 88% decision →
+Auto-accept / Verifier review queue → Verified output, with the corrections → learning-memory loop.
+
+**Know which parts are built today, in case a judge opens the repo:** Classify and TrOCR are
+*planned for the next round* — the code currently has EasyOCR only, and the land-document
+classifier was removed. The auto-accept threshold in the code is 0.90 (the slide says 88%).
+`charts/architecture_slide_next_round_tags.png` is the same diagram with those two cards outlined
+and tagged "NEXT ROUND" — use that one if you want the slide to be exact about what is live.
 
 `charts/00_architecture.png` is a second view of the same system, coloured by which *team track*
-owns each part (matches README's mermaid diagram) — use it only if you want to show ownership.
+owns each part (matches README's mermaid diagram, i.e. what is built now) — use it only if you
+want to show ownership.
 
 **Talking point**: the loop at the center is the point — an auto-accepted record and a verifier-approved one land in the same database indistinguishably, but every correction a verifier makes feeds back into the extraction step through the learning memory, so the system keeps improving without retraining.
 
