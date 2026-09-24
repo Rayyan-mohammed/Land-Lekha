@@ -11,7 +11,15 @@ copy of this folder floating around, use this one.
 
 ---
 
-## Slide: "Architecture" → `charts/00_architecture.png`
+## Slide: "Architecture" → `charts/architecture_slide.png` (use this one on the slide)
+
+Slide-ready system flow in the deck's colours: Input → Preprocess → Multi-script OCR → Extract →
+Validate & Score → the 0.90 decision → Auto-accept / Verifier review → Verified output, with the
+retake branch for unreadable photos and the learning-memory loop back into Extract. Every label
+and number on it is checked against the code and `eval/results/`.
+
+`charts/00_architecture.png` is a second view of the same system, coloured by which *team track*
+owns each part (matches README's mermaid diagram) — use it only if you want to show ownership.
 
 The pipeline end to end, coloured by which track owns each part (matches README's mermaid diagram).
 
