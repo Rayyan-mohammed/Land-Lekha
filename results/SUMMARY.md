@@ -21,8 +21,6 @@ and number on it is checked against the code and `eval/results/`.
 `charts/00_architecture.png` is a second view of the same system, coloured by which *team track*
 owns each part (matches README's mermaid diagram) — use it only if you want to show ownership.
 
-The pipeline end to end, coloured by which track owns each part (matches README's mermaid diagram).
-
 **Talking point**: the loop at the center is the point — an auto-accepted record and a verifier-approved one land in the same database indistinguishably, but every correction a verifier makes feeds back into the extraction step through the learning memory, so the system keeps improving without retraining.
 
 ---
